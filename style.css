@@ -1,0 +1,18 @@
+html, body {
+    margin: 0;
+    border: 0;
+}
+
+#canvas {
+    display: block;
+    background-color: rgb(185, 159, 159);
+}
+
+.menu {
+    background-color: rgb(185, 219, 177);
+    stroke-width: 0;
+    min-width: 240px;
+    min-height: 100%;
+    position: absolute;
+    top: 0;
+}
