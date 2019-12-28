@@ -1,0 +1,50 @@
+html, body {
+    margin: 0;
+    border: 0;
+}
+
+#canvas {
+    display: block;
+    background-color: rgb(185, 159, 159);
+}
+
+.menu {
+    background-color: rgb(185, 219, 177);
+    stroke-width: 0;
+    min-width: 160px;
+    min-height: 100%;
+    position: absolute;
+    top: 0;
+}
+
+#primaryButton {
+    position: absolute; top: 40px; left: 5px; width: 70px; height: 80px;
+}
+
+#secondaryButton {
+    position: absolute; top: 40px; left: 85px; width: 70px; height: 80px;
+}
+
+#eraser {
+    position: absolute; top: 140px; left: 0px; width: 54px; height: 50px;
+}
+
+#barrier {
+    position: absolute; top: 140px; left: 54px; width: 53px; height: 50px;
+}
+
+#target {
+    position: absolute; top: 140px; left: 107px; width: 53px; height: 50px;
+}
+
+#unit {
+    position: absolute; top: 190px; left: 0px; width: 54px; height: 50px;
+}
+
+#undo {
+    position: absolute; top: 10px; right: 70px; width: 50px; height: 50px;
+}
+
+#redo {
+    position: absolute; top: 10px; right: 10px; width: 50px; height: 50px;
+}
