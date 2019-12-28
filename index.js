@@ -13,6 +13,11 @@ if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine
     
     // adapt the css stylesheet to mobile view
     document.querySelector("link[href='style.css']").href = "mobileStyle.css";
+
+    // hides mobile browser's address bar when page is done loading
+    window.addEventListener('load', function(event) {
+        setTimeout(function() { window.scrollTo(0, 1); }, 1);
+    }, false);
     isMobile = true;
 }
 
@@ -43,8 +48,7 @@ if(isMobile) {
         draw();
 
         ctx.fillStyle = "#888";
-        console.log('sat');
-        for(t in event.touches) {
+        for(t in event.changedTouches) {
             ctx.arc(t.clientX, t.clientY, 50, 0, 2 * Math.PI);
             ctx.fill();
         };
