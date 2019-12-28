@@ -1,6 +1,7 @@
 html, body {
     margin: 0;
     border: 0;
+    font: 18px/1.4 "Roboto", sans-serif;
 }
 
 #canvas {
@@ -8,43 +9,150 @@ html, body {
     background-color: rgb(185, 159, 159);
 }
 
-.menu {
-    background-color: rgb(185, 219, 177);
-    stroke-width: 0;
-    min-width: 160px;
-    min-height: 100%;
-    position: absolute;
-    top: 0;
+.lgBtn {
+    font: 18px/1.4 "Roboto", sans-serif;
+    width: 105px; height: 60px;
+    border-radius: 12px;
+    border: none;
+    background-color: #2b2;
+    text-align: center;
+    box-shadow: 0 10px #666;
+    
 }
 
-#primaryButton {
-    position: absolute; top: 40px; left: 5px; width: 70px; height: 80px;
+.lgBtn:active {
+    background-color: red;
+    box-shadow: 0 4px #666;
+    transform: translateY(6px);
+
 }
 
-#secondaryButton {
-    position: absolute; top: 40px; left: 85px; width: 70px; height: 80px;
+.lgBtn:focus {
+    background-color: #282;
+    box-shadow: 0 6px #666;
+    transform: translateY(4px);
+    outline: none;
 }
 
-#eraser {
-    position: absolute; top: 140px; left: 0px; width: 54px; height: 50px;
+.smBtn {
+    font: 18px/1.4 "Roboto", sans-serif;
+    width: 50px; height: 50px;
+    border-radius: 8px;
+    border: none;
+    background-color: #2f2;
 }
 
-#barrier {
-    position: absolute; top: 140px; left: 54px; width: 53px; height: 50px;
+.smBtn:focus {
+    background-color: #282;
+    outline: none;
 }
 
-#target {
-    position: absolute; top: 140px; left: 107px; width: 53px; height: 50px;
+
+
+@media screen and (orientation:portrait) {
+
+    .menu {
+        background-color: rgb(167, 201, 160);
+        stroke-width: 0;
+        min-width: 100%;
+        min-height: 200px;
+        position: absolute;
+        bottom: 0;
+    }
+
+    #debug {
+        position: absolute; bottom: -10px; left: 10px;
+    }
+
+    #primaryButton {
+        position: relative; top: 5px; left: 5px;
+        
+    }
+
+    #secondaryButton {
+        position: relative; top: 5px; left: 5px;
+    }
+
+    #eraser {
+        position: absolute; top: 80px; left: 5px;
+    }
+
+    #barrier {
+        position: absolute; top: 80px; left: 60px;
+    }
+
+    #target {
+        position: absolute; top: 80px; left: 115px;
+    }
+
+    #unit {
+        position: absolute; top: 80px; left: 170px;
+    }
+
+    #undo {
+        position: absolute; top: 10px; right: 70px; width: 50px; height: 50px;
+    }
+
+    #redo {
+        position: absolute; top: 10px; right: 10px; width: 50px; height: 50px;
+    }
 }
 
-#unit {
-    position: absolute; top: 190px; left: 0px; width: 54px; height: 50px;
+@media screen and (orientation:landscape) {
+    .menu {
+        background-color: rgb(167, 201, 160);
+        stroke-width: 0;
+        min-width: 160px;
+        min-height: 100%;
+        position: absolute;
+        top: 0;
+    }
+
+    #debug {
+        position: relative; top: -15px;
+        text-align: center;
+    }
+
+    #primaryButton {
+        position: absolute; top: 40px; left: 5px; width: 70px; height: 80px;
+    }
+
+    #secondaryButton {
+        position: absolute; top: 40px; left: 85px; width: 70px; height: 80px;
+    }
+
+    #eraser {
+        position: absolute; top: 140px; left: 0px; width: 54px; height: 50px;
+    }
+
+    #barrier {
+        position: absolute; top: 140px; left: 54px; width: 53px; height: 50px;
+    }
+
+    #target {
+        position: absolute; top: 140px; left: 107px; width: 53px; height: 50px;
+    }
+
+    #unit {
+        position: absolute; top: 190px; left: 0px; width: 54px; height: 50px;
+    }
+
+    #undo {
+        position: absolute; top: 10px; right: 70px; width: 50px; height: 50px;
+    }
+
+    #redo {
+        position: absolute; top: 10px; right: 10px; width: 50px; height: 50px;
+    }
 }
 
-#undo {
-    position: absolute; top: 10px; right: 70px; width: 50px; height: 50px;
-}
-
-#redo {
-    position: absolute; top: 10px; right: 10px; width: 50px; height: 50px;
+/* disable button text highlighting on all browsers, retrieved from: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting*/
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+       -khtml-user-select: none; /* Konqueror HTML */
+         -moz-user-select: none; /* Old versions of Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome, Opera and Firefox */
 }

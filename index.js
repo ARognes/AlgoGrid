@@ -30,16 +30,18 @@ if(isMobile) {
         //console.log(event.touches[0].identifier);
 
         if(event.touches.length === 2) { // zoom
-
+            document.getElementById('debug').style.fontSize = "8px";
             document.getElementById('debug').innerHTML = "Z: (" + event.touches[0].clientX + ", " + event.touches[0].clientY + ")-(" + event.touches[1].clientX + ", " + event.touches[1].clientY + ")";
         } else {
 
         }
     });
 
-    canvas.addEventListener("touchend", (event) => {
+    canvas.addEventListener("touchend", touchEnd(event), false);
+    canvas.addEventListener("touchcancel", touchEnd(event), false);
+    function touchEnd(event) {
         //console.log(event.changedTouches[0].identifier);
-    });
+    }
 
     canvas.addEventListener("touchmove", (event) => {
         event.preventDefault();
@@ -56,9 +58,7 @@ if(isMobile) {
         //console.log(event);
     });
 
-    canvas.addEventListener("touchcancel", (event) => {
-        //console.log(event);
-    });
+    
 } else {
 
     // pc input variables
@@ -87,12 +87,17 @@ if(isMobile) {
         }
     });
 
-    /** 
-     *  given an array of sub-arrays, this collects sub-arrays until it reaches a null element,
-     *  combines the sub-arrays into a large sub-array, 
-     *  and places them back into the main array where the null element was.
-    */
-    function compressArray() {
+    document.addEventListener("mouseup", (event) => {
+        if(mouseButtonsDown.primary === false && mouseButtonsDown.scroll === false && mouseButtonsDown.secondary === false) return;
+        if(event.button === 0) mouseButtonsDown.primary = false;
+        else if(event.button === 1) mouseButtonsDown.scroll = false;
+        else if(event.button === 2) mouseButtonsDown.secondary = false;
+
+        /** 
+         *  given an array of sub-arrays, this collects sub-arrays until it reaches a null element,
+         *  combines the sub-arrays into a large sub-array, 
+         *  and places them back into the main array where the null element was.
+        */
         var i = steps.length-1;
         let step = [];
         while(steps[i] != null) {
@@ -102,18 +107,10 @@ if(isMobile) {
         steps.pop();
         if(step.length > 0) steps.push(step);
         if(steps.length > UNDO_STEPS) steps.shift();
-    }
 
-    canvas.addEventListener("mouseup", (event) => {
-        if(mouseButtonsDown.primary === false && mouseButtonsDown.scroll === false && mouseButtonsDown.secondary === false) return;
-        if(event.button === 0) mouseButtonsDown.primary = false;
-        else if(event.button === 1) mouseButtonsDown.scroll = false;
-        else if(event.button === 2) mouseButtonsDown.secondary = false;
-    
-        compressArray();
     });
-    
-    canvas.addEventListener("mousemove", (event) => {
+
+    document.addEventListener("mousemove", (event) => {
         deltaMouse = {x: event.x - mousePos.x, y: event.y - mousePos.y};
         mousePos = {x : event.x, y : event.y};
     
@@ -122,15 +119,11 @@ if(isMobile) {
             cameraTrans.offsetY += deltaMouse.y;
         } else if(mouseButtonsDown.primary) {
             if(primaryTileMode === 0 || primaryTileMode === 1) styleTiles(primaryTileMode);
-        } else if(mouseButtonsDown.secondary) {
+        }
+        else if(mouseButtonsDown.secondary) {
             if(secondaryTileMode === 0 || secondaryTileMode === 1) styleTiles(secondaryTileMode);
         }
         requestAnimationFrame(draw);
-    });
-    
-    canvas.addEventListener("mouseleave", (event) => {
-        if(mouseButtonsDown.primary === true || mouseButtonsDown.scroll === true || mouseButtonsDown.secondary === true) compressArray();
-        mouseButtonsDown = {primary: false, scroll: false, secondary: false};
     });
     
     // find and change the styles of the tiles the mouse is and has hovered over using deltaMouse movement
@@ -193,8 +186,14 @@ if(isMobile) {
      *  key input
      */
 
-    canvas.addEventListener("keydown", (event) => {
-        
+    document.addEventListener("keydown", (event) => {
+        var key = event.which;
+
+        // undo and redo shortcut keys
+        if(event.ctrlKey) {
+            if(key === 90) undo();
+            else if(key === 89) redo();
+        }
     });
 
     canvas.addEventListener("keyup",(event) => {
@@ -237,7 +236,7 @@ window.addEventListener('resize', resizeCanvas, false);
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    draw(); // redraw canvas
+    requestAnimationFrame(draw); // redraw canvas
 }
 
 //resize canvas on load

@@ -8,6 +8,44 @@ html, body {
     background-color: rgb(185, 159, 159);
 }
 
+.lgBtn {
+    font: 18px/1.4 "Roboto", sans-serif;
+    width: 105px; height: 60px;
+    border-radius: 12px;
+    border: none;
+    background-color: #2b2;
+    text-align: center;
+    box-shadow: 0 10px #666;
+    
+}
+
+.lgBtn:active {
+    background-color: red;
+    box-shadow: 0 4px #666;
+    transform: translateY(6px);
+
+}
+
+.lgBtn:focus {
+    background-color: #282;
+    box-shadow: 0 6px #666;
+    transform: translateY(4px);
+    outline: none;
+}
+
+.smBtn {
+    font: 18px/1.4 "Roboto", sans-serif;
+    width: 50px; height: 50px;
+    border-radius: 8px;
+    border: none;
+    background-color: #2f2;
+}
+
+.smBtn:focus {
+    background-color: #282;
+    outline: none;
+}
+
 .menu {
     background-color: rgb(185, 219, 177);
     stroke-width: 0;
@@ -15,6 +53,11 @@ html, body {
     min-height: 100%;
     position: absolute;
     top: 0;
+}
+
+#debug {
+    position: relative; top: -10px;
+    text-align: center;
 }
 
 #primaryButton {
@@ -38,7 +81,7 @@ html, body {
 }
 
 #unit {
-    position: absolute; top: 210px; left: 20px; width: 60px; height: 40px;
+    position: absolute; top: 190px; left: 20px; width: 60px; height: 40px;
 }
 
 #undo {
@@ -47,4 +90,15 @@ html, body {
 
 #redo {
     position: absolute; top: 10px; right: 10px; width: 40px; height: 40px;
+}
+
+/* disable button text highlighting on all browsers, retrieved from: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting*/
+.noselect {
+    -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+       -khtml-user-select: none; /* Konqueror HTML */
+         -moz-user-select: none; /* Old versions of Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome, Opera and Firefox */
 }
