@@ -130,18 +130,14 @@ if(isMobile) {
 
     document.addEventListener('touchstart', positionHandler, false);
 	document.addEventListener('touchmove',  (event) => {
-        
+
         draw();
 
-        //ctx.fillStyle = '#f00';
         ctx.beginPath();
         ctx.arc(event.changedTouches[0].clientX, event.changedTouches[0].clientY, 30, 0, 2 * Math.PI);
         ctx.strokeStyle = '#f00';
         ctx.lineWidth = 4;
         ctx.stroke();
-        //ctx.fill();
-
-        console.log(event.changedTouches[0], event.touches[0]);
 
         positionHandler(event);
     }, false);
@@ -149,7 +145,7 @@ if(isMobile) {
 	document.addEventListener('touchcancel',  positionHandler, false);
 
     // found a VERY useful presentation on touch input from: https://patrickhlauke.github.io/getting-touchy-presentation/#Cover
-    function positionHandler(event) {
+    /*function positionHandler(event) {
         if ((event.clientX)&&(event.clientY)) {
             points[0] = event;
         } else if (event.targetTouches) {
@@ -158,7 +154,7 @@ if(isMobile) {
             pointsChangedTouches = event.changedTouches;
             event.preventDefault();
         }
-    }
+    }*/
 
     
 } else {

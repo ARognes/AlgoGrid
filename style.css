@@ -18,7 +18,15 @@ html, body {
     background-color: #282;
     box-shadow: 0 6px #666;
     outline: none;
-    
+
+    /* disable text highlighting on all browsers, retrieved from: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting*/
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Opera and Firefox */
 }
 
 .lgBtn:active {
@@ -41,6 +49,13 @@ html, body {
     border-radius: 8px;
     border: none;
     background-color: #2f2;
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Opera and Firefox */
 }
 
 .smBtn:active {
@@ -58,6 +73,13 @@ html, body {
     min-height: 100%;
     position: absolute;
     top: 0;
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Opera and Firefox */
 }
 
 #debug {
