@@ -20,10 +20,13 @@ html, body {
     border-radius: 12px;
     border: none;
     text-align: center;
+    /*background-color: #282;
+    box-shadow: 0 6px #666;
+    outline: none;*/
     background-color: #2b2;
     box-shadow: 0 10px #666;
-    outline: none;
-    
+    transform: translateY(-4px);
+
     /* disable text highlighting on all browsers, retrieved from: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting*/
     -webkit-touch-callout: none; /* iOS Safari */
         -webkit-user-select: none; /* Safari */
@@ -35,29 +38,20 @@ html, body {
 }
 
 .lgBtn:active {
-    background-color: red;
+    background-color: #f82;
     transform: translateY(2px);
     box-shadow: 0 4px #666;
 }
 
 .lgBtn:focus {
+    background-color: #282;
+    box-shadow: 0 6px #666;
+    transform: translateY(0px);
     outline: none;
 }
 
-/*
-.lgBtn:active {
-    background-color: red;
-    transform: translateY(2px);
-    box-shadow: 0 4px #666;
-}
 
-.lgBtn:not(:focus) {
-    background-color: #2b2;
-    box-shadow: 0 10px #666;
-    transform: translateY(-4px);
-    outline: none;
-}
-*/
+
 .smBtn {
     font: 18px/1.4 "Roboto", sans-serif;
     width: 50px; height: 50px;
@@ -72,11 +66,11 @@ html, body {
                 user-select: none; /* Non-prefixed version, currently
                                       supported by Chrome, Opera and Firefox */
 }
-/*
+
 .smBtn:active {
     background-color: #282;
     outline: none;
-}*/
+}
 .smBtn:focus {
     outline: none;
 }
