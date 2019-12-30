@@ -78,10 +78,16 @@ class Grid {
 
     setWidth(newWidth) {
         console.log(this.width + " to " + newWidth);
-        this.width = newWidth;
-        this.tiles = new Array(newWidth * newWidth);
-        for(var i=0; i<newWidth * newWidth; i++) this.tiles[i] = 0; // tiles hold state
-        requestAnimationFrame(draw);
+        if(newWidth < 2) {
+            console.error("Grid width must be larger than 1!");
+        } else if(newWidth > MAX_WIDTH) {
+            console.error("Grid width must be smaller than " + (MAX_WIDTH + 1));
+        } else {
+            this.width = newWidth;
+            this.tiles = new Array(newWidth * newWidth);
+            for(var i=0; i<newWidth * newWidth; i++) this.tiles[i] = 0; // tiles hold state
+            requestAnimationFrame(draw);
+        }
     }
 }
 
@@ -98,11 +104,12 @@ if(isMobile) {
         }
     });
 
-    canvas.addEventListener("touchend", touchEnd(event), false);
-    canvas.addEventListener("touchcancel", touchEnd(event), false);
+    document.addEventListener("touchend", touchEnd(event), false);
+    document.addEventListener("touchcancel", touchEnd(event), false);
     function touchEnd(event) {
         event.preventDefault();
-        //console.log(event.changedTouches[0].identifier);
+
+        console.log(event.changedTouches);
     }
 
     canvas.addEventListener("touchmove", (event) => {
@@ -271,6 +278,7 @@ const TIMER_START = Date.now();
 // grid construction
 const TILE_SIZE = 40;
 const TILE_SHRINK = 8;
+const MAX_WIDTH = 128;
 Grid = new Grid((screen.width > screen.height) ? Math.ceil(screen.width / TILE_SIZE) : Math.ceil(screen.height / TILE_SIZE)); // create grid to fill exactly or more than screen size;
 
 //menu variables
