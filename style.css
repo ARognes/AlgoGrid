@@ -104,6 +104,10 @@ html, body {
     position: absolute; top: 60px; right: 10px; width: 40px; height: 40px;
 }
 
+#fullscreen {
+    position: absolute; top: 110px; right: 10px; width: 90px; height: 40px;
+}
+
 /* disable button text highlighting on all browsers, retrieved from: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting*/
 .noselect {
     -webkit-touch-callout: none; /* iOS Safari */
