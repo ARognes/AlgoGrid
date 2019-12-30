@@ -128,7 +128,7 @@ if(isMobile) {
         //console.log(event);
     });*/
 
-    document.addEventListener('touchstart', positionHandler, false);
+    //document.addEventListener('touchstart', positionHandler, false);
 	document.addEventListener('touchmove',  (event) => {
 
         draw();
@@ -141,8 +141,8 @@ if(isMobile) {
 
         positionHandler(event);
     }, false);
-	document.addEventListener('touchend',  positionHandler, false);
-	document.addEventListener('touchcancel',  positionHandler, false);
+	//document.addEventListener('touchend',  positionHandler, false);
+	//document.addEventListener('touchcancel',  positionHandler, false);
 
     // found a VERY useful presentation on touch input from: https://patrickhlauke.github.io/getting-touchy-presentation/#Cover
     /*function positionHandler(event) {
