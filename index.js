@@ -87,7 +87,10 @@ class Grid {
 }
 
 if(isMobile) {
-    document.addEventListener("touchstart", (event) => {
+
+    var pointsTouches = [], pointsTargetTouches = [], pointsChangedTouches = [];
+
+    /*document.addEventListener("touchstart", (event) => {
         event.preventDefault();
         console.log(event.touches[0].clientX, event.touches[0].clientY);
 
@@ -123,7 +126,24 @@ if(isMobile) {
         };
 
         //console.log(event);
-    });
+    });*/
+
+    document.addEventListener('touchstart', positionHandler, false);
+	document.addEventListener('touchmove',  positionHandler, false);
+	document.addEventListener('touchend',  positionHandler, false);
+	document.addEventListener('touchcancel',  positionHandler, false);
+
+    // found a VERY useful presentation on touch input from: https://patrickhlauke.github.io/getting-touchy-presentation/#Cover
+    function positionHandler(event) {
+        if ((event.clientX)&&(event.clientY)) {
+            points[0] = event;
+        } else if (event.targetTouches) {
+            pointsTouches = event.touches;
+            pointsTargetTouches = event.targetTouches;
+            pointsChangedTouches = event.changedTouches;
+            event.preventDefault();
+        }
+    }
 
     
 } else {

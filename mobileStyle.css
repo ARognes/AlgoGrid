@@ -2,6 +2,7 @@ html, body {
     margin: 0;
     border: 0;
     font: 18px/1.4 "Roboto", sans-serif;
+    height: 100vh;
     overflow: hidden;
     position: relative;
 }
@@ -12,6 +13,7 @@ html, body {
 #canvas {
     display: block;
     background-color: rgb(185, 159, 159);
+    touch-action: pinch-zoom;
 }
 
 .lgBtn {
