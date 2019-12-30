@@ -2,7 +2,11 @@ html, body {
     margin: 0;
     border: 0;
     font: 18px/1.4 "Roboto", sans-serif;
+    overflow: hidden;
 }
+
+/*GIVE UP WITH BUTTONS! JUST USE JAVASCRIPT*/
+
 
 #canvas {
     display: block;
@@ -15,9 +19,16 @@ html, body {
     border-radius: 12px;
     border: none;
     text-align: center;
-    background-color: #282;
-    box-shadow: 0 6px #666;
+    background-color: #2b2;
+    box-shadow: 0 10px #666;
     outline: none;
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Opera and Firefox */
     
 }
 
@@ -25,7 +36,6 @@ html, body {
     background-color: red;
     transform: translateY(2px);
     box-shadow: 0 4px #666;
-
 }
 
 .lgBtn:not(:focus) {
@@ -41,6 +51,13 @@ html, body {
     border-radius: 8px;
     border: none;
     background-color: #2f2;
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Opera and Firefox */
 }
 
 .smBtn:active {
@@ -120,6 +137,13 @@ html, body {
         min-height: 100%;
         position: absolute;
         top: 0;
+        -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Opera and Firefox */
     }
 
     #debug {
@@ -152,7 +176,7 @@ html, body {
     }
 }
 
-/* disable button text highlighting on all browsers, retrieved from: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting*/
+/* disable text highlighting on all browsers, retrieved from: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting*/
 .noselect {
     -webkit-touch-callout: none; /* iOS Safari */
       -webkit-user-select: none; /* Safari */

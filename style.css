@@ -1,6 +1,7 @@
 html, body {
     margin: 0;
     border: 0;
+    font: 18px/1.4 "Roboto", sans-serif;
 }
 
 #canvas {
@@ -106,15 +107,4 @@ html, body {
 
 #fullscreen {
     position: absolute; top: 110px; right: 10px; width: 90px; height: 40px;
-}
-
-/* disable button text highlighting on all browsers, retrieved from: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting*/
-.noselect {
-    -webkit-touch-callout: none; /* iOS Safari */
-      -webkit-user-select: none; /* Safari */
-       -khtml-user-select: none; /* Konqueror HTML */
-         -moz-user-select: none; /* Old versions of Firefox */
-          -ms-user-select: none; /* Internet Explorer/Edge */
-              user-select: none; /* Non-prefixed version, currently
-                                    supported by Chrome, Opera and Firefox */
 }

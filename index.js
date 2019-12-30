@@ -17,11 +17,6 @@ if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine
     
     // adapt the css stylesheet to mobile view
     document.querySelector("link[href='style.css']").href = "mobileStyle.css";
-
-    // hides mobile browser's address bar when page is done loading
-    window.addEventListener('load', function(event) {
-        setTimeout(function() { window.scrollTo(0, 1); }, 1);
-    }, false);
     isMobile = true;
 }
 
@@ -39,7 +34,7 @@ class Grid {
     draw() {
 
         // find beginX and beginY, and view size
-        let beginX = Math.floor((-cameraTrans.offsetX+240)/cameraTrans.scale / TILE_SIZE);
+        let beginX = Math.floor((-cameraTrans.offsetX)/cameraTrans.scale / TILE_SIZE);
         let beginY = Math.floor(-cameraTrans.offsetY/cameraTrans.scale / TILE_SIZE);
         let viewWidth = Math.ceil(canvas.width/cameraTrans.scale / TILE_SIZE) + 1;
         let viewHeight = Math.ceil(canvas.height/cameraTrans.scale / TILE_SIZE)+ 1;
@@ -93,14 +88,14 @@ class Grid {
 
 if(isMobile) {
     canvas.addEventListener("touchstart", (event) => {
-        console.log(event.touches[0].clientX, event.touches[0].clientX);
+        console.log(event.touches[0].clientX, event.touches[0].clientY);
 
         if(event.touches.length === 2) { // zoom
             document.getElementById('debug').style.fontSize = "8px";
             document.getElementById('debug').innerHTML = "Z: (" + event.touches[0].clientX + ", " + event.touches[0].clientY + ")-(" + event.touches[1].clientX + ", " + event.touches[1].clientY + ")";
         } else {
             document.getElementById('debug').style.fontSize = "8px";
-            document.getElementById('debug').innerHTML = "T: (" + event.touch.clientX + ", " + event.touch.clientY + ")";
+            document.getElementById('debug').innerHTML = "T: (" + event.touches[0].clientX + ", " + event.touches[0].clientY + ")";
         }
     });
 
@@ -376,6 +371,7 @@ function draw() {
 
  // call fullscreen methods compatible for all browsers, retrieved from: https://developers.google.com/web/fundamentals/native-hardware/fullscreen/
  function toggleFullscreen() {
+    console.log('fullscreen');
     var doc = window.document;
     var docEl = doc.documentElement;
   
