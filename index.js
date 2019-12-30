@@ -129,7 +129,17 @@ if(isMobile) {
     });*/
 
     document.addEventListener('touchstart', positionHandler, false);
-	document.addEventListener('touchmove',  positionHandler, false);
+	document.addEventListener('touchmove',  (event) => {
+        draw();
+
+        ctx.fillStyle = '#f00';
+        ctx.arc(event.changedTouches[0].clientX, event.changedTouches[0].clientY, 50, 0, 2 * Math.PI);
+        ctx.fill();
+
+        console.log(event.changedTouches[0], event.touches[0]);
+
+        positionHandler(event);
+    }, false);
 	document.addEventListener('touchend',  positionHandler, false);
 	document.addEventListener('touchcancel',  positionHandler, false);
 

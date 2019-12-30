@@ -2,7 +2,6 @@ html, body {
     margin: 0;
     border: 0;
     font: 18px/1.4 "Roboto", sans-serif;
-    height: 100vh;
     overflow: hidden;
     position: relative;
 }
@@ -13,7 +12,6 @@ html, body {
 #canvas {
     display: block;
     background-color: rgb(185, 159, 159);
-    touch-action: pinch-zoom;
 }
 
 .lgBtn {
@@ -25,14 +23,6 @@ html, body {
     background-color: #2b2;
     box-shadow: 0 10px #666;
     outline: none;
-    -webkit-touch-callout: none; /* iOS Safari */
-        -webkit-user-select: none; /* Safari */
-         -khtml-user-select: none; /* Konqueror HTML */
-           -moz-user-select: none; /* Old versions of Firefox */
-            -ms-user-select: none; /* Internet Explorer/Edge */
-                user-select: none; /* Non-prefixed version, currently
-                                      supported by Chrome, Opera and Firefox */
-    
 }
 
 .lgBtn:focus {
@@ -101,9 +91,9 @@ html, body {
     .menu {
         background-color: rgb(167, 201, 160);
         stroke-width: 0;
+        position: fixed;
         min-width: 100%;
         min-height: 200px;
-        position: absolute;
         bottom: 0;
     }
 
@@ -141,17 +131,10 @@ html, body {
     .menu {
         background-color: rgb(167, 201, 160);
         stroke-width: 0;
+        position: fixed;
         min-width: 160px;
         min-height: 100%;
-        position: absolute;
         top: 0;
-        -webkit-touch-callout: none; /* iOS Safari */
-        -webkit-user-select: none; /* Safari */
-         -khtml-user-select: none; /* Konqueror HTML */
-           -moz-user-select: none; /* Old versions of Firefox */
-            -ms-user-select: none; /* Internet Explorer/Edge */
-                user-select: none; /* Non-prefixed version, currently
-                                      supported by Chrome, Opera and Firefox */
     }
 
     #debug {
