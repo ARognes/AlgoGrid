@@ -73,11 +73,9 @@ class Grid {
 
     setWidth(newWidth) {
         console.log(this.width + " to " + newWidth);
-        if(newWidth < 2) {
-            console.error("Grid width must be larger than 1!");
-        } else if(newWidth > MAX_WIDTH) {
-            console.error("Grid width must be smaller than " + (MAX_WIDTH + 1));
-        } else {
+        if(newWidth < MIN_WIDTH) console.error("Grid width must be at least " + MIN_WIDTH);
+        else if(newWidth > MAX_WIDTH) console.error("Grid width has maximum " + MAX_WIDTH);
+        else {
             this.width = newWidth;
             this.tiles = new Array(newWidth * newWidth);
             for(var i=0; i<newWidth * newWidth; i++) this.tiles[i] = 0; // tiles hold state
@@ -85,6 +83,12 @@ class Grid {
         }
     }
 }
+
+// input variables
+let pointerPos = {x: 0, y: 0};
+let deltaPointer = {x: 0, y: 0};
+let pointerActions = {primary: false, scroll: false, secondary: false};
+
 
 if(isMobile) {
 
@@ -106,68 +110,48 @@ if(isMobile) {
 
 
     /**
-     * touch variabes
-     */
-
-    var pointsTouches = [], pointsTargetTouches = [], pointsChangedTouches = [];
-
-    /**
      * touch events
      */
 
-    document.addEventListener('touchstart', (event) => {
-        draw();
+    canvas.addEventListener('touchstart', (event) => {
+        steps.push(null); //add empty step to mark where step started
+        futureSteps = [];
 
-        for(var i=0; i<event.touches.length; i++) {
-            ctx.beginPath();
-            ctx.arc(event.touches[i].clientX, event.touches[i].clientY, 30, 0, 2 * Math.PI);
-            ctx.strokeStyle = '#f00';
-            ctx.lineWidth = 4;
-            ctx.stroke();
-        }
+        deltaPointer = {x : 0, y : 0};
+        pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
 
-        //event.preventDefault();
-    }, /*{passive: false},*/ false);
+        if(event.touches.length === 1) {
+            pointerActions.primary = true;
+            styleTiles(primaryTileMode);
+            requestAnimationFrame(draw);
+        } 
+        else pointerActions.scroll = true;
+    }, false);
 
-	document.addEventListener('touchmove',  (event) => {
-
-        draw();
-
-        for(var i=0; i<event.touches.length; i++) {
-            ctx.beginPath();
-            ctx.arc(event.touches[i].clientX, event.touches[i].clientY, 30, 0, 2 * Math.PI);
-            ctx.strokeStyle = '#f00';
-            ctx.lineWidth = 4;
-            ctx.stroke();
-        }
-
-        //event.preventDefault();
-    }, /*{passive: false},*/ false);
-	//document.addEventListener('touchend',  positionHandler, false);
-	//document.addEventListener('touchcancel',  positionHandler, false);
-
-    // found a VERY useful presentation on touch input from: https://patrickhlauke.github.io/getting-touchy-presentation/#Cover
-    /*function positionHandler(event) {
-        if ((event.clientX)&&(event.clientY)) {
-            points[0] = event;
-        } else if (event.targetTouches) {
-            pointsTouches = event.touches;
-            pointsTargetTouches = event.targetTouches;
-            pointsChangedTouches = event.changedTouches;
-            event.preventDefault();
-        }
-    }*/
-
-
+	canvas.addEventListener('touchmove',  (event) => {
+        deltaPointer = {x: event.changedTouches[0].clientX - pointerPos.x, y: event.changedTouches[0].clientY - pointerPos.y};
+        pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
     
+        if(pointerActions.scroll) {
+            cameraTrans.offsetX += deltaPointer.x;
+            cameraTrans.offsetY += deltaPointer.y;
+        } else if(pointerActions.primary && (primaryTileMode === 0 || primaryTileMode === 1)) styleTiles(primaryTileMode);
+        requestAnimationFrame(draw);
 
+        //event.preventDefault();
+    }, /*{passive: false},*/ false);
+
+	document.addEventListener('touchend',  touchEnd, false);
+	document.addEventListener('touchcancel',  touchEnd, false);
+    function touchEnd(event) {
+        if(!pointerActions.primary && !pointerActions.scroll) return;
+        pointerActions.primary = false;
+        pointerActions.scroll = false;
+
+        condenseArray(steps);
+    }
     
 } else {
-
-    // pc input variables
-    let mousePos = {x: 0, y: 0};
-    let deltaMouse = {x: 0, y: 0};
-    let mouseButtonsDown = {primary: false, scroll: false, secondary: false};
 
     /**
      *  mouse input
@@ -178,95 +162,42 @@ if(isMobile) {
         futureSteps = [];
     
         if(event.button === 0) {
-            mouseButtonsDown.primary = true;
-            styleTile(primaryTileMode);
+            pointerActions.primary = true;
+            styleTiles(primaryTileMode);
             requestAnimationFrame(draw);
         } 
-        else if(event.button === 1) mouseButtonsDown.scroll = true;
+        else if(event.button === 1) pointerActions.scroll = true;
         else if(event.button === 2) {
-            mouseButtonsDown.secondary = true;
-            styleTile(secondaryTileMode);
+            pointerActions.secondary = true;
+            styleTiles(secondaryTileMode);
             requestAnimationFrame(draw);
         }
     });
 
     document.addEventListener("mouseup", (event) => {
-        if(mouseButtonsDown.primary === false && mouseButtonsDown.scroll === false && mouseButtonsDown.secondary === false) return;
-        if(event.button === 0) mouseButtonsDown.primary = false;
-        else if(event.button === 1) mouseButtonsDown.scroll = false;
-        else if(event.button === 2) mouseButtonsDown.secondary = false;
+        if(!pointerActions.primary && !pointerActions.scroll && !pointerActions.secondary) return;
+        if(event.button === 0) pointerActions.primary = false;
+        else if(event.button === 1) pointerActions.scroll = false;
+        else if(event.button === 2) pointerActions.secondary = false;
 
-        /** 
-         *  given an array of sub-arrays, this collects sub-arrays until it reaches a null element,
-         *  combines the sub-arrays into a large sub-array, 
-         *  and places them back into the main array where the null element was.
-        */
-        var i = steps.length-1;
-        let step = [];
-        while(steps[i] != null) {
-            step.push(steps.pop());
-            i--;
-        }
-        steps.pop();
-        if(step.length > 0) steps.push(step);
-        if(steps.length > UNDO_STEPS) steps.shift();
-
+        condenseArray(steps);
     });
 
     document.addEventListener("mousemove", (event) => {
-        deltaMouse = {x: event.x - mousePos.x, y: event.y - mousePos.y};
-        mousePos = {x : event.x, y : event.y};
+        deltaPointer = {x: event.x - pointerPos.x, y: event.y - pointerPos.y};
+        pointerPos = {x : event.x, y : event.y};
     
-        if(mouseButtonsDown.scroll) {
-            cameraTrans.offsetX += deltaMouse.x;
-            cameraTrans.offsetY += deltaMouse.y;
-        } else if(mouseButtonsDown.primary) {
+        if(pointerActions.scroll) {
+            cameraTrans.offsetX += deltaPointer.x;
+            cameraTrans.offsetY += deltaPointer.y;
+        } else if(pointerActions.primary) {
             if(primaryTileMode === 0 || primaryTileMode === 1) styleTiles(primaryTileMode);
         }
-        else if(mouseButtonsDown.secondary) {
+        else if(pointerActions.secondary) {
             if(secondaryTileMode === 0 || secondaryTileMode === 1) styleTiles(secondaryTileMode);
         }
         requestAnimationFrame(draw);
     });
-    
-    // find and change the styles of the tiles the mouse is and has hovered over using deltaMouse movement
-    function styleTiles(style) {
-    
-        // translate cursor screen coordinates into grid coordinates
-        let gx = Math.floor(((mousePos.x - cameraTrans.offsetX)/cameraTrans.scale + 4)/TILE_SIZE);
-        let gy = Math.floor(((mousePos.y - cameraTrans.offsetY)/cameraTrans.scale + 4)/TILE_SIZE);
-        checkTile(gx, gy, style);
-    
-        // translate last cursor coordinates into grid coordinates
-        let hx = Math.floor(((mousePos.x - deltaMouse.x - cameraTrans.offsetX)/cameraTrans.scale + 4)/TILE_SIZE);
-        let hy = Math.floor(((mousePos.y - deltaMouse.y - cameraTrans.offsetY)/cameraTrans.scale + 4)/TILE_SIZE);
-    
-        // edit tiles in-between cursor movement to ensure closed line is drawn, maximum possible loop iterations is Grid.width (a diagonal line from corner to corner)
-        while((hx != gx || hy != gy)) {
-            gx -= Math.sign(gx - hx);
-            gy -= Math.sign(gy - hy);
-            checkTile(gx, gy, style);
-        }
-    }
-    
-    // find and change the style of the tile the mouse is hovering over
-    function styleTile(style) {
-    
-        // translate cursor screen coordinates into grid coordinates
-        let gx = Math.floor(((mousePos.x - cameraTrans.offsetX)/cameraTrans.scale + 4)/TILE_SIZE);
-        let gy = Math.floor(((mousePos.y - cameraTrans.offsetY)/cameraTrans.scale + 4)/TILE_SIZE);
-        checkTile(gx, gy, style);
-    }
-    
-    // check that the tile style is different from the current style
-    function checkTile(gx, gy, style) {
-        let mgx = gx.mod(Grid.width);
-        let mgy = gy.mod(Grid.width);
-        if(Grid.tiles[mgx + mgy * Grid.width] !== style) {
-            steps.push({pos: mgx  + mgy * Grid.width, revert: Grid.tiles[mgx  + mgy * Grid.width]});
-            Grid.tiles[mgx + mgy * Grid.width] = style; // edit tile if coordinates are on grid
-        }
-    }
     
     canvas.addEventListener("wheel", (event) => {
         const ZOOM_AMOUNT = 0.1;
@@ -279,8 +210,8 @@ if(isMobile) {
         if(Math.abs(cameraTrans.scale-1) < ZOOM_AMOUNT * 0.5) cameraTrans.scale = 1; // ensure default scale 1 can always be reached
     
         // offset the position by the difference in mouse position from before to after scale
-        cameraTrans.offsetX = (mousePos.x - (mousePos.x - cameraTrans.offsetX) * (cameraTrans.scale / oldScale));
-        cameraTrans.offsetY = (mousePos.y - (mousePos.y - cameraTrans.offsetY) * (cameraTrans.scale / oldScale));
+        cameraTrans.offsetX = (pointerPos.x - (pointerPos.x - cameraTrans.offsetX) * (cameraTrans.scale / oldScale));
+        cameraTrans.offsetY = (pointerPos.y - (pointerPos.y - cameraTrans.offsetY) * (cameraTrans.scale / oldScale));
     
         requestAnimationFrame(draw);
     });
@@ -304,6 +235,57 @@ if(isMobile) {
     });
 }
 
+/** 
+ *  given an array of sub-arrays, this collects sub-arrays until it reaches a null element,
+ *  combines the sub-arrays into a large sub-array, 
+ *  and places them back into the main array where the null element was.
+*/
+function condenseArray(ar) {
+    let step = [];
+    var i = ar.length-1;
+    while(ar[i] != null) {
+        step.push(ar.pop());
+        i--;
+    }
+    ar.pop();
+    if(step.length > 0) ar.push(step);
+    if(ar.length > UNDO_STEPS) ar.shift();  // remove first element if array is 'full'
+}
+
+
+// find and change the styles of the tiles the mouse is and has hovered over using deltaPointer movement
+function styleTiles(style) {
+    
+    // translate cursor screen coordinates into grid coordinates
+    let gx = Math.floor(((pointerPos.x - cameraTrans.offsetX)/cameraTrans.scale + 4)/TILE_SIZE);
+    let gy = Math.floor(((pointerPos.y - cameraTrans.offsetY)/cameraTrans.scale + 4)/TILE_SIZE);
+    checkTile(gx, gy, style);
+
+    if(!deltaPointer.x && !deltaPointer.y) return;
+
+    // translate last cursor coordinates into grid coordinates
+    let hx = Math.floor(((pointerPos.x - deltaPointer.x - cameraTrans.offsetX)/cameraTrans.scale + 4)/TILE_SIZE);
+    let hy = Math.floor(((pointerPos.y - deltaPointer.y - cameraTrans.offsetY)/cameraTrans.scale + 4)/TILE_SIZE);
+
+    // edit tiles in-between cursor movement to ensure closed line is drawn, maximum possible loop iterations is Grid.width (a diagonal line from corner to corner)
+    while((hx != gx || hy != gy)) {
+        gx -= Math.sign(gx - hx);
+        gy -= Math.sign(gy - hy);
+        checkTile(gx, gy, style);
+    }
+}
+
+// check that the tile style is different from the current style
+function checkTile(gx, gy, style) {
+    let mgx = gx.mod(Grid.width);
+    let mgy = gy.mod(Grid.width);
+    if(Grid.tiles[mgx + mgy * Grid.width] !== style) {
+        steps.push({pos: mgx  + mgy * Grid.width, revert: Grid.tiles[mgx  + mgy * Grid.width]});
+        Grid.tiles[mgx + mgy * Grid.width] = style; // edit tile if coordinates are on grid
+    }
+}
+
+
 
 
 // time
@@ -312,6 +294,7 @@ const TIMER_START = Date.now();
 // grid construction
 const TILE_SIZE = 40;
 const TILE_SHRINK = 8;
+const MIN_WIDTH = 2;
 const MAX_WIDTH = 128;
 Grid = new Grid((screen.width > screen.height) ? Math.ceil(screen.width / TILE_SIZE) : Math.ceil(screen.height / TILE_SIZE)); // create grid to fill exactly or more than screen size;
 
