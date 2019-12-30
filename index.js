@@ -87,7 +87,8 @@ class Grid {
 }
 
 if(isMobile) {
-    canvas.addEventListener("touchstart", (event) => {
+    document.addEventListener("touchstart", (event) => {
+        event.preventDefault();
         console.log(event.touches[0].clientX, event.touches[0].clientY);
 
         if(event.touches.length === 2) { // zoom
@@ -95,6 +96,8 @@ if(isMobile) {
             document.getElementById('debug').innerHTML = "Z: (" + event.touches[0].clientX + ", " + event.touches[0].clientY + ")-(" + event.touches[1].clientX + ", " + event.touches[1].clientY + ")";
         } else {
             document.getElementById('debug').style.fontSize = "8px";
+            document.getElementById('debug').innerHTML = "trying";
+            document.getElementById('debug').innerHTML = event.touches.length;
             document.getElementById('debug').innerHTML = "T: (" + event.touches[0].clientX + ", " + event.touches[0].clientY + ")";
         }
     });
@@ -107,7 +110,7 @@ if(isMobile) {
         console.log(event);
     }
 
-    canvas.addEventListener("touchmove", (event) => {
+    document.addEventListener("touchmove", (event) => {
         event.preventDefault();
 
         //requestAnimationFrame(draw);
