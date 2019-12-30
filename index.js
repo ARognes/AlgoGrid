@@ -104,12 +104,12 @@ if(isMobile) {
         }
     });
 
-    document.addEventListener("touchend", touchEnd(event), false);
-    document.addEventListener("touchcancel", touchEnd(event), false);
+    document.addEventListener("touchend", touchEnd, false);
+    document.addEventListener("touchcancel", touchEnd, false);
     function touchEnd(event) {
         event.preventDefault();
 
-        console.log(event.changedTouches);
+        console.log(event);
     }
 
     canvas.addEventListener("touchmove", (event) => {
