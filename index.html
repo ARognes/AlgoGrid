@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    
     <meta name="description" content="An HTML website using a canvas to display an interactive grid. My first in-depth use of Javascript.">
     <meta name="keywords" content="grid, tile, simple">
     <meta name="author" content="Austin Rognes">
@@ -28,6 +29,8 @@
 
     <button onClick="undo()" class="smBtn" id="undo"><<</button>
     <button onClick="redo()" class="smBtn" id="redo">>></button>
+    <button onClick="Grid.setWidth(Grid.width-1)" class="smBtn" id="gridDec">Dec</button>
+    <button onClick="Grid.setWidth(Grid.width+1)" class="smBtn" id="gridInc">Inc</button>
 
     <script src="index.js"></script>
     <noscript>Your browser does not support JavaScript!</noscript>

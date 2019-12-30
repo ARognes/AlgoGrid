@@ -13,23 +13,24 @@ html, body {
     width: 105px; height: 60px;
     border-radius: 12px;
     border: none;
-    background-color: #2b2;
     text-align: center;
-    box-shadow: 0 10px #666;
+    background-color: #282;
+    box-shadow: 0 6px #666;
+    outline: none;
     
 }
 
 .lgBtn:active {
     background-color: red;
+    transform: translateY(2px);
     box-shadow: 0 4px #666;
-    transform: translateY(6px);
 
 }
 
-.lgBtn:focus {
-    background-color: #282;
-    box-shadow: 0 6px #666;
-    transform: translateY(4px);
+.lgBtn:not(:focus) {
+    background-color: #2b2;
+    box-shadow: 0 10px #666;
+    transform: translateY(-4px);
     outline: none;
 }
 
@@ -41,8 +42,11 @@ html, body {
     background-color: #2f2;
 }
 
-.smBtn:focus {
+.smBtn:active {
     background-color: #282;
+    outline: none;
+}
+.smBtn:focus {
     outline: none;
 }
 
@@ -90,6 +94,14 @@ html, body {
 
 #redo {
     position: absolute; top: 10px; right: 10px; width: 40px; height: 40px;
+}
+
+#gridDec {
+    position: absolute; top: 60px; right: 60px; width: 40px; height: 40px;
+}
+
+#gridInc {
+    position: absolute; top: 60px; right: 10px; width: 40px; height: 40px;
 }
 
 /* disable button text highlighting on all browsers, retrieved from: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting*/

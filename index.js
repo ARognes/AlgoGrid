@@ -3,6 +3,10 @@
  * @date 12/27/2019
  */
 
+ // modulus correction, retrieved from: https://web.archive.org/web/20090717035140if_/javascript.about.com/od/problemsolving/a/modulobug.htm
+Number.prototype.mod = function(n) {
+    return ((this%n)+n)%n;
+};
 
 // check if viewing on mobile device
 var isMobile = false;
@@ -25,21 +29,79 @@ if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine
 var canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
 
 
+class Grid {
+    constructor(width) {
+        this.width = width;
+        this.tiles = new Array(width * width);
+        for(var i=0; i<width * width; i++) this.tiles[i] = 0; // tiles hold state
+    }
+
+    draw() {
+
+        // find beginX and beginY, and view size
+        let beginX = Math.floor((-cameraTrans.offsetX+240)/cameraTrans.scale / TILE_SIZE);
+        let beginY = Math.floor(-cameraTrans.offsetY/cameraTrans.scale / TILE_SIZE);
+        let viewWidth = Math.ceil(canvas.width/cameraTrans.scale / TILE_SIZE) + 1;
+        let viewHeight = Math.ceil(canvas.height/cameraTrans.scale / TILE_SIZE)+ 1;
+
+        // iterate through tiles shown on screen
+        for(var i = beginX; i < viewWidth + beginX; i++) {
+            for(var j = beginY; j < viewHeight + beginY; j++) {
+
+                // convert tile cartesian coordinates to tile array coordinates
+                let k = i.mod(this.width) + j.mod(this.width) * this.width;
+
+                // set drawing context to tile style
+                ctx.lineWidth = 3;
+                if(this.tiles[k] === 0) {                      // default
+                    ctx.fillStyle = "#fcc";
+                    ctx.strokeStyle = "#fcc";
+                } 
+                else if(this.tiles[k] === 1) {                // barrier
+                    ctx.fillStyle = "#020";
+                    ctx.strokeStyle = "#030";
+                    ctx.lineWidth = 9;
+                } 
+                else if(this.tiles[k] === 2) {                // target
+                    ctx.fillStyle = "#4d4";
+                    ctx.strokeStyle = "#4f4";
+                } 
+                else if(this.tiles[k] === 3) {                //unit
+                    ctx.fillStyle = "#4f4";
+                    ctx.strokeStyle = "#4d4";
+                }
+                ctx.fillRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE-TILE_SHRINK, TILE_SIZE-TILE_SHRINK);
+                ctx.strokeRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE-TILE_SHRINK, TILE_SIZE-TILE_SHRINK);
+            }
+        }
+    }
+
+    setWidth(newWidth) {
+        console.log(this.width + " to " + newWidth);
+        this.width = newWidth;
+        this.tiles = new Array(newWidth * newWidth);
+        for(var i=0; i<newWidth * newWidth; i++) this.tiles[i] = 0; // tiles hold state
+        requestAnimationFrame(draw);
+    }
+}
+
 if(isMobile) {
     canvas.addEventListener("touchstart", (event) => {
-        //console.log(event.touches[0].identifier);
+        console.log(event.touches[0].clientX, event.touches[0].clientX);
 
         if(event.touches.length === 2) { // zoom
             document.getElementById('debug').style.fontSize = "8px";
             document.getElementById('debug').innerHTML = "Z: (" + event.touches[0].clientX + ", " + event.touches[0].clientY + ")-(" + event.touches[1].clientX + ", " + event.touches[1].clientY + ")";
         } else {
-
+            document.getElementById('debug').style.fontSize = "8px";
+            document.getElementById('debug').innerHTML = "T: (" + event.touch.clientX + ", " + event.touch.clientY + ")";
         }
     });
 
     canvas.addEventListener("touchend", touchEnd(event), false);
     canvas.addEventListener("touchcancel", touchEnd(event), false);
     function touchEnd(event) {
+        event.preventDefault();
         //console.log(event.changedTouches[0].identifier);
     }
 
@@ -138,7 +200,7 @@ if(isMobile) {
         let hx = Math.floor(((mousePos.x - deltaMouse.x - cameraTrans.offsetX)/cameraTrans.scale + 4)/TILE_SIZE);
         let hy = Math.floor(((mousePos.y - deltaMouse.y - cameraTrans.offsetY)/cameraTrans.scale + 4)/TILE_SIZE);
     
-        // edit tiles in-between cursor movement to ensure closed line is drawn, maximum possible loop iterations is GRID_WIDTH (a diagonal line from corner to corner)
+        // edit tiles in-between cursor movement to ensure closed line is drawn, maximum possible loop iterations is Grid.width (a diagonal line from corner to corner)
         while((hx != gx || hy != gy)) {
             gx -= Math.sign(gx - hx);
             gy -= Math.sign(gy - hy);
@@ -155,19 +217,19 @@ if(isMobile) {
         checkTile(gx, gy, style);
     }
     
-    // check that the grid coordinates given are valid and the tile style is different from the current style
+    // check that the tile style is different from the current style
     function checkTile(gx, gy, style) {
-        if(gx >= 0 && gy >= 0 && gx < GRID_WIDTH && gy < GRID_WIDTH) {
-            if(tiles[gx + gy * GRID_WIDTH].style !== style) {
-                steps.push({pos: gx  + gy * GRID_WIDTH, revert: tiles[gx  + gy * GRID_WIDTH].style});
-                tiles[gx + gy * GRID_WIDTH].style = style; // edit tile if coordinates are on grid
-            }
+        let mgx = gx.mod(Grid.width);
+        let mgy = gy.mod(Grid.width);
+        if(Grid.tiles[mgx + mgy * Grid.width] !== style) {
+            steps.push({pos: mgx  + mgy * Grid.width, revert: Grid.tiles[mgx  + mgy * Grid.width]});
+            Grid.tiles[mgx + mgy * Grid.width] = style; // edit tile if coordinates are on grid
         }
     }
     
     canvas.addEventListener("wheel", (event) => {
         const ZOOM_AMOUNT = 0.1;
-        const ZOOM_MIN = 0.5;
+        const ZOOM_MIN = 0.2;
         const ZOOM_MAX = 8;
     
         const oldScale = cameraTrans.scale;
@@ -203,18 +265,13 @@ if(isMobile) {
 
 
 
-
-
 // time
 const TIMER_START = Date.now();
 
 // grid construction
 const TILE_SIZE = 40;
 const TILE_SHRINK = 8;
-const GRID_WIDTH = (screen.width > screen.height) ? Math.ceil(screen.width / TILE_SIZE) : Math.ceil(screen.height / TILE_SIZE); // create grid to fill exactly or more than screen size
-const GRID_SIZE = GRID_WIDTH * GRID_WIDTH;
-const tiles = new Array(GRID_SIZE);
-for(var i=0; i<GRID_SIZE; i++) tiles[i] = {x: (i % GRID_WIDTH) * TILE_SIZE, y: Math.floor(i / GRID_WIDTH) * TILE_SIZE, style: 0}; // tiles hold position and state
+Grid = new Grid((screen.width > screen.height) ? Math.ceil(screen.width / TILE_SIZE) : Math.ceil(screen.height / TILE_SIZE)); // create grid to fill exactly or more than screen size;
 
 //menu variables
 let primaryTileMode = 1;
@@ -256,35 +313,7 @@ function draw() {
     ctx.translate(cameraTrans.offsetX, cameraTrans.offsetY);
     ctx.scale(cameraTrans.scale, cameraTrans.scale);
 
-    drawGrid();
-}
-
-function drawGrid() {
-    //const t = Date.now();
-    for(var i=0; i<GRID_SIZE; i++) {
-        ctx.lineWidth = 3;
-        if(tiles[i].style === 0) {                      // default
-            ctx.fillStyle = tiles[i].fillStyle = "#fcc";
-            ctx.strokeStyle = tiles[i].strokeStyle = "#fcc";
-        } 
-        else if(tiles[i].style === 1) {                // barrier
-            ctx.fillStyle = tiles[i].fillStyle = "#020";
-            ctx.strokeStyle = tiles[i].strokeStyle = "#030";
-            ctx.lineWidth = 9;
-        } 
-        else if(tiles[i].style === 2) {                // target
-            ctx.fillStyle = tiles[i].fillStyle = "#4d4";
-            ctx.strokeStyle = tiles[i].strokeStyle = "#4f4";
-        } 
-        else if(tiles[i].style === 3) {                //unit
-            ctx.fillStyle = tiles[i].fillStyle = "#4f4";
-            ctx.strokeStyle = tiles[i].strokeStyle = "#4d4";
-        }
-        ctx.fillRect(tiles[i].x, tiles[i].y, TILE_SIZE-TILE_SHRINK, TILE_SIZE-TILE_SHRINK);
-        ctx.strokeRect(tiles[i].x, tiles[i].y, TILE_SIZE-TILE_SHRINK, TILE_SIZE-TILE_SHRINK);
-    }
-    //console.log(Date.now() - t);
-    //console.log(cameraTrans.offsetX + GRID_WIDTH * TILE_SIZE/2 * cameraTrans.scale - canvas.width/2);
+    Grid.draw();
 }
 
 /**
@@ -315,8 +344,8 @@ function drawGrid() {
     if(!step) return;
     console.log('undo');
     for(var i=0; i < step.length; i++) {
-        futureStep.push({pos: step[i].pos, revert: tiles[step[i].pos].style});
-        tiles[step[i].pos].style = step[i].revert;
+        futureStep.push({pos: step[i].pos, revert: Grid.tiles[step[i].pos]});
+        Grid.tiles[step[i].pos] = step[i].revert;
     }
     futureSteps.push(futureStep);
     requestAnimationFrame(draw);
@@ -330,8 +359,8 @@ function drawGrid() {
     if(!futureStep) return;
     console.log('redo');
     for(var i=0; i < futureStep.length; i++) {
-        step.push({pos: futureStep[i].pos, revert: tiles[futureStep[i].pos].style});
-        tiles[futureStep[i].pos].style = futureStep[i].revert;
+        step.push({pos: futureStep[i].pos, revert: Grid.tiles[futureStep[i].pos]});
+        Grid.tiles[futureStep[i].pos] = futureStep[i].revert;
     }
     steps.push(step);
     requestAnimationFrame(draw);
