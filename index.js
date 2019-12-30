@@ -130,11 +130,16 @@ if(isMobile) {
 
     document.addEventListener('touchstart', positionHandler, false);
 	document.addEventListener('touchmove',  (event) => {
+        
         draw();
 
-        ctx.fillStyle = '#f00';
-        ctx.arc(event.changedTouches[0].clientX, event.changedTouches[0].clientY, 50, 0, 2 * Math.PI);
-        ctx.fill();
+        //ctx.fillStyle = '#f00';
+        ctx.beginPath();
+        ctx.arc(event.changedTouches[0].clientX, event.changedTouches[0].clientY, 30, 0, 2 * Math.PI);
+        ctx.strokeStyle = '#f00';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        //ctx.fill();
 
         console.log(event.changedTouches[0], event.touches[0]);
 

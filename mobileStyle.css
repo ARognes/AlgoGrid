@@ -23,6 +23,21 @@ html, body {
     background-color: #2b2;
     box-shadow: 0 10px #666;
     outline: none;
+    
+    /* disable text highlighting on all browsers, retrieved from: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting*/
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Opera and Firefox */
+}
+
+.lgBtn:active {
+    background-color: red;
+    transform: translateY(2px);
+    box-shadow: 0 4px #666;
 }
 
 .lgBtn:focus {
@@ -165,15 +180,4 @@ html, body {
     #unit {
         position: absolute; top: 190px; left: 0px; width: 54px; height: 50px;
     }
-}
-
-/* disable text highlighting on all browsers, retrieved from: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting*/
-.noselect {
-    -webkit-touch-callout: none; /* iOS Safari */
-      -webkit-user-select: none; /* Safari */
-       -khtml-user-select: none; /* Konqueror HTML */
-         -moz-user-select: none; /* Old versions of Firefox */
-          -ms-user-select: none; /* Internet Explorer/Edge */
-              user-select: none; /* Non-prefixed version, currently
-                                    supported by Chrome, Opera and Firefox */
 }
