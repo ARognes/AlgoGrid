@@ -88,59 +88,61 @@ class Grid {
 
 if(isMobile) {
 
+    /**
+     * add, remove, and modify html tags
+     */
+
+    element = document.getElementById('primaryButton');
+    element.parentNode.removeChild(element);
+
+    element = document.getElementById('secondaryButton');
+    element.parentNode.removeChild(element);
+
+    //TODO access these by parent sub-menu rather than by name, for loop of all sub-menu children
+    document.getElementById('eraser').className = 'lgBtn';
+    document.getElementById('barrier').className = 'lgBtn';
+    document.getElementById('target').className = 'lgBtn';
+    document.getElementById('unit').className = 'lgBtn';
+
+
+    /**
+     * touch variabes
+     */
+
     var pointsTouches = [], pointsTargetTouches = [], pointsChangedTouches = [];
 
-    /*document.addEventListener("touchstart", (event) => {
-        event.preventDefault();
-        console.log(event.touches[0].clientX, event.touches[0].clientY);
+    /**
+     * touch events
+     */
 
-        if(event.touches.length === 2) { // zoom
-            document.getElementById('debug').style.fontSize = "8px";
-            document.getElementById('debug').innerHTML = "Z: (" + event.touches[0].clientX + ", " + event.touches[0].clientY + ")-(" + event.touches[1].clientX + ", " + event.touches[1].clientY + ")";
-        } else {
-            document.getElementById('debug').style.fontSize = "8px";
-            document.getElementById('debug').innerHTML = "trying";
-            document.getElementById('debug').innerHTML = event.touches.length;
-            document.getElementById('debug').innerHTML = "T: (" + event.touches[0].clientX + ", " + event.touches[0].clientY + ")";
-        }
-    });
-
-    document.addEventListener("touchend", touchEnd, false);
-    document.addEventListener("touchcancel", touchEnd, false);
-    function touchEnd(event) {
-        event.preventDefault();
-
-        console.log(event);
-    }
-
-    document.addEventListener("touchmove", (event) => {
-        event.preventDefault();
-
-        //requestAnimationFrame(draw);
+    document.addEventListener('touchstart', (event) => {
         draw();
 
-        ctx.fillStyle = "#888";
-        for(t in event.changedTouches) {
-            ctx.arc(t.clientX, t.clientY, 50, 0, 2 * Math.PI);
-            ctx.fill();
-        };
+        for(var i=0; i<event.touches.length; i++) {
+            ctx.beginPath();
+            ctx.arc(event.touches[i].clientX, event.touches[i].clientY, 30, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#f00';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        }
 
-        //console.log(event);
-    });*/
+        //event.preventDefault();
+    }, /*{passive: false},*/ false);
 
-    //document.addEventListener('touchstart', positionHandler, false);
 	document.addEventListener('touchmove',  (event) => {
 
         draw();
 
-        ctx.beginPath();
-        ctx.arc(event.changedTouches[0].clientX, event.changedTouches[0].clientY, 30, 0, 2 * Math.PI);
-        ctx.strokeStyle = '#f00';
-        ctx.lineWidth = 4;
-        ctx.stroke();
+        for(var i=0; i<event.touches.length; i++) {
+            ctx.beginPath();
+            ctx.arc(event.touches[i].clientX, event.touches[i].clientY, 30, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#f00';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        }
 
-        positionHandler(event);
-    }, false);
+        //event.preventDefault();
+    }, /*{passive: false},*/ false);
 	//document.addEventListener('touchend',  positionHandler, false);
 	//document.addEventListener('touchcancel',  positionHandler, false);
 
@@ -155,6 +157,9 @@ if(isMobile) {
             event.preventDefault();
         }
     }*/
+
+
+    
 
     
 } else {
