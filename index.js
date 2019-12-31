@@ -99,18 +99,21 @@ const MIN_WIDTH = 2;
 const MAX_WIDTH = 128;
 Grid = new Grid((screen.width > screen.height) ? Math.ceil(screen.width / TILE_SIZE) : Math.ceil(screen.height / TILE_SIZE)); // create grid to fill exactly or more than screen size;
 
-//menu variables
+// menu variables
 let tileMode = 1;
 let eraser = true;
 let erasing = false;
 
-//undo redo stages
+// undo redo stages
 const UNDO_STEPS = 40;
 let steps = [];
 let futureSteps = [];
 
 // camera view
 let cameraTrans = {scale: 1, offsetX: 0, offsetY: 0};
+const ZOOM_AMOUNT = 0.1;
+const ZOOM_MIN = 0.2;
+const ZOOM_MAX = 8;
 
 /**
  * mobile input and pc input are funneled into the same functions
@@ -126,10 +129,6 @@ if(isMobile) {
     document.addEventListener("mousemove", pointerMove, false);
     document.addEventListener("mouseup", pointerUp, false);
     canvas.addEventListener("wheel", (event) => {
-        const ZOOM_AMOUNT = 0.1;
-        const ZOOM_MIN = 0.2;
-        const ZOOM_MAX = 8;
-    
         const oldScale = cameraTrans.scale;
         cameraTrans.scale -= ZOOM_AMOUNT * Math.sign(event.deltaY) * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
         cameraTrans.scale = Math.min(Math.max(cameraTrans.scale, ZOOM_MIN), ZOOM_MAX); // clamp scale to final variables
@@ -173,9 +172,8 @@ function pointerDown(event) {
     if(isMobile) pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
     else pointerPos = {x : event.x, y : event.y};
 
-
     let scrolling = false;
-    if(isMobile && event.touches.length !== 1) true;
+    if(isMobile && event.touches.length !== 1) scrolling = true;
     else if(event.button === 1) scrolling = true;
     
     if(scrolling) pointerActions.scroll = true;
@@ -195,11 +193,36 @@ function pointerMove(event) {
         pointerPos = {x : event.x, y : event.y};
     }
     
-        if(pointerActions.scroll) {
-            cameraTrans.offsetX += deltaPointer.x;
-            cameraTrans.offsetY += deltaPointer.y;
-        } else if(erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1))) styleTiles(tileMode);
-        requestAnimationFrame(draw);
+    if(pointerActions.scroll) {
+        cameraTrans.offsetX += deltaPointer.x;
+        cameraTrans.offsetY += deltaPointer.y;
+        if(isMobile) {
+            if(event.touches.length < 2) Document.getElementById('debug').innerHTML = "Error! Touch length: " + event.touches.length;
+            else {
+                const xDist = (event.touches[1].clientX - event.touches[0].clientX);
+                const yDist = (event.touches[1].clientY - event.touches[0].clientY);
+                const spread = xDist * xDist + yDist * yDist;
+                
+                Document.getElementById('debug').innerHTML = spread + ", " + xDist + ", " + yDist;
+            }
+
+            const oldScale = cameraTrans.scale;
+            cameraTrans.scale -= ZOOM_AMOUNT * Math.sign(1) * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
+            cameraTrans.scale = Math.min(Math.max(cameraTrans.scale, ZOOM_MIN), ZOOM_MAX); // clamp scale to final variables
+            if(Math.abs(cameraTrans.scale-1) < ZOOM_AMOUNT * 0.5) cameraTrans.scale = 1; // ensure default scale 1 can always be reached
+        
+            // offset the position by the difference in mouse position from before to after scale
+            cameraTrans.offsetX = (pointerPos.x - (pointerPos.x - cameraTrans.offsetX) * (cameraTrans.scale / oldScale));
+            cameraTrans.offsetY = (pointerPos.y - (pointerPos.y - cameraTrans.offsetY) * (cameraTrans.scale / oldScale));
+        
+            requestAnimationFrame(draw);
+
+
+
+
+        }
+    } else if(erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1))) styleTiles(tileMode);
+    requestAnimationFrame(draw);
 }
 
 function pointerUp(event) {
