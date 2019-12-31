@@ -137,11 +137,15 @@ if(isMobile) {
             const deltaSpread = (pointerSpread - spread) / 4000;
             pointerSpread = spread;
 
+            // current pointer center
             const pointerCenter = {x: (event.changedTouches[1].clientX + pointerPos.x)/2, y: (event.changedTouches[1].clientY + pointerPos.y)/2};
+
+            // if touchDown, no change in pointerCenter
             if(!deltaPointer.x && !deltaPointer.y) deltaPointer = pointerCenter;
             const deltaPointerCenter = {x: (pointerCenter.x - deltaPointer.x) / 40, y: (pointerCenter.y - deltaPointer.y) / 40};
+            deltaPointer = pointerCenter;
 
-            document.getElementById('debug').innerHTML = "(" + deltaPointerCenter.x + ", " + deltaPointerCenter.y + ")";
+            document.getElementById('debug').innerHTML = "(" + Math.round(deltaPointerCenter.x*10) + ", " + Math.round(deltaPointerCenter.y*10) + ")";
 
             const oldScale = cameraTrans.scale;
             cameraTrans.scale -= ZOOM_AMOUNT * deltaSpread * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
@@ -149,8 +153,8 @@ if(isMobile) {
             if(Math.abs(cameraTrans.scale-1) < ZOOM_AMOUNT * 0.5) cameraTrans.scale = 1; // ensure default scale 1 can always be reached
         
             // offset the position by the difference in mouse position from before to after scale
-            cameraTrans.offsetX = (pointerCenter.x - (pointerCenter.x - cameraTrans.offsetX - deltaPointerCenter.x) * (cameraTrans.scale / oldScale));
-            cameraTrans.offsetY = (pointerCenter.y - (pointerCenter.y - cameraTrans.offsetY - deltaPointerCenter.y) * (cameraTrans.scale / oldScale));
+            cameraTrans.offsetX = (pointerCenter.x + deltaPointerCenter.x - (pointerCenter.x - cameraTrans.offsetX) * (cameraTrans.scale / oldScale));
+            cameraTrans.offsetY = (pointerCenter.y + deltaPointerCenter.y - (pointerCenter.y - cameraTrans.offsetY) * (cameraTrans.scale / oldScale));
         } else if(erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1))) styleTiles(tileMode);
         requestAnimationFrame(draw);
     }, false);
