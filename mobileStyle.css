@@ -25,26 +25,6 @@ html, body {
     transform: translateY(-4px);
 */
 
-.selectBtn {
-    font: 18px/1.4 "Roboto", sans-serif;
-    width: 50px; height: 50px;
-    border-radius: 12px;
-    border: none;
-    text-align: center;
-    background-color: #2b2;
-    box-shadow: 0 10px #666;
-    transform: translateY(-4px);
-
-    /* disable text highlighting on all browsers, retrieved from: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting*/
-    -webkit-touch-callout: none; /* iOS Safari */
-        -webkit-user-select: none; /* Safari */
-         -khtml-user-select: none; /* Konqueror HTML */
-           -moz-user-select: none; /* Old versions of Firefox */
-            -ms-user-select: none; /* Internet Explorer/Edge */
-                user-select: none; /* Non-prefixed version, currently
-                                      supported by Chrome, Opera and Firefox */
-}
-
 /*.lgBtn:active {
     background-color: #f82;
     transform: translateY(2px);
@@ -66,9 +46,10 @@ html, body {
     border-radius: 8px;
     box-shadow: 0 10px #666;
     padding: 10px 20px 20px 20px;
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
+    margin: 10px 10px 20px 10px;
+    position: relative;
+    top: -115px;
+    left: 10px;
 }
 
 #toolbar input[type="radio"], input[type="checkbox"] {
@@ -180,8 +161,6 @@ html, body {
     position: absolute; top: 130px; right: 10px; width: 110px; height: 40px;
 }
 
-@media screen and (orientation:portrait) {
-
     .menu {
         background-color: #a99;
         stroke-width: 0;
@@ -202,59 +181,4 @@ html, body {
         position: relative; top: -10px; text-align: center;
     }
 
-    #eraser {
-        position: absolute; top: 10px; left: 5px;
-    }
 
-    #barrier {
-        position: absolute; top: 10px; left: 60px;
-    }
-
-    #target {
-        position: absolute; top: 10px; left: 115px;
-    }
-
-    #unit {
-        position: absolute; top: 10px; left: 170px;
-    }
-}
-
-@media screen and (orientation:landscape) {
-    .menu {
-        background-color: #a99;
-        stroke-width: 0;
-        position: fixed;
-        min-width: 380px;
-        min-height: 160px;
-        border-radius: 0 20px 0 0;
-        bottom:0;
-        -webkit-touch-callout: none; /* iOS Safari */
-        -webkit-user-select: none; /* Safari */
-         -khtml-user-select: none; /* Konqueror HTML */
-           -moz-user-select: none; /* Old versions of Firefox */
-            -ms-user-select: none; /* Internet Explorer/Edge */
-                user-select: none; /* Non-prefixed version, currently
-                                      supported by Chrome, Opera and Firefox */
-    }
-
-    #debug {
-        position: relative; top: -15px;
-        text-align: center;
-    }
-
-    #eraser {
-        position: absolute; top: 60px; left: 1px;
-    }
-
-    #barrier {
-        position: absolute; top: 60px; left: 54px;
-    }
-
-    #target {
-        position: absolute; top: 60px; left: 107px;
-    }
-
-    #unit {
-        position: absolute; top: 122px; left: 1px;
-    }
-}
