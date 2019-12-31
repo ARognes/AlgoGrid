@@ -3,7 +3,7 @@
  * @date 12/27/2019
  */
 
- // modulus correction, retrieved from: https://web.archive.org/web/20090717035140if_/javascript.about.com/od/problemsolving/a/modulobug.htm
+ // modulus method that works with negative numbers, retrieved from: https://web.archive.org/web/20090717035140if_/javascript.about.com/od/problemsolving/a/modulobug.htm
 Number.prototype.mod = function(n) {
     return ((this%n)+n)%n;
 };
@@ -87,118 +87,44 @@ class Grid {
 // input variables
 let pointerPos = {x: 0, y: 0};
 let deltaPointer = {x: 0, y: 0};
-let pointerActions = {primary: false, scroll: false, secondary: false};
+let pointerActions = {primary: false, scroll: false};
 
+// time
+const TIMER_START = Date.now();
+
+// grid construction
+const TILE_SIZE = 40;
+const TILE_SHRINK = 8;
+const MIN_WIDTH = 2;
+const MAX_WIDTH = 128;
+Grid = new Grid((screen.width > screen.height) ? Math.ceil(screen.width / TILE_SIZE) : Math.ceil(screen.height / TILE_SIZE)); // create grid to fill exactly or more than screen size;
+
+//menu variables
+let tileMode = 1;
+let eraser = true;
+let erasing = false;
+
+//undo redo stages
+const UNDO_STEPS = 40;
+let steps = [];
+let futureSteps = [];
+
+// camera view
+let cameraTrans = {scale: 1, offsetX: 0, offsetY: 0};
+
+/**
+ * mobile input and pc input are funneled into the same functions
+ */
 
 if(isMobile) {
-
-    /**
-     * add, remove, and modify html tags
-     */
-
-    element = document.getElementById('primaryButton');
-    element.parentNode.removeChild(element);
-
-    element = document.getElementById('secondaryButton');
-    element.parentNode.removeChild(element);
-
-    //TODO access these by parent sub-menu rather than by name, for loop of all sub-menu children
-    document.getElementById('eraser').className = 'lgBtn';
-    document.getElementById('barrier').className = 'lgBtn';
-    document.getElementById('target').className = 'lgBtn';
-    document.getElementById('unit').className = 'lgBtn';
-
-
-    /**
-     * touch events
-     */
-
-    canvas.addEventListener('touchstart', (event) => {
-        steps.push(null); //add empty step to mark where step started
-        futureSteps = [];
-
-        deltaPointer = {x : 0, y : 0};
-        pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
-
-        if(event.touches.length === 1) {
-            pointerActions.primary = true;
-            styleTiles(primaryTileMode);
-            requestAnimationFrame(draw);
-        } 
-        else pointerActions.scroll = true;
-    }, false);
-
-	canvas.addEventListener('touchmove',  (event) => {
-        deltaPointer = {x: event.changedTouches[0].clientX - pointerPos.x, y: event.changedTouches[0].clientY - pointerPos.y};
-        pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
-    
-        if(pointerActions.scroll) {
-            cameraTrans.offsetX += deltaPointer.x;
-            cameraTrans.offsetY += deltaPointer.y;
-        } else if(pointerActions.primary && (primaryTileMode === 0 || primaryTileMode === 1)) styleTiles(primaryTileMode);
-        requestAnimationFrame(draw);
-
-        //event.preventDefault();
-    }, /*{passive: false},*/ false);
-
-	document.addEventListener('touchend',  touchEnd, false);
-	document.addEventListener('touchcancel',  touchEnd, false);
-    function touchEnd(event) {
-        if(!pointerActions.primary && !pointerActions.scroll) return;
-        pointerActions.primary = false;
-        pointerActions.scroll = false;
-
-        condenseArray(steps);
-    }
-    
+    canvas.addEventListener('touchstart', pointerDown, false);
+	canvas.addEventListener('touchmove', pointerMove, false);
+	document.addEventListener('touchend',  pointerUp, false);
+	document.addEventListener('touchcancel', pointerUp, false);
 } else {
-
-    /**
-     *  mouse input
-     */
-    
-    canvas.addEventListener("mousedown", (event) => {
-        steps.push(null); //add empty step to mark where step started
-        futureSteps = [];
-    
-        if(event.button === 0) {
-            pointerActions.primary = true;
-            styleTiles(primaryTileMode);
-            requestAnimationFrame(draw);
-        } 
-        else if(event.button === 1) pointerActions.scroll = true;
-        else if(event.button === 2) {
-            pointerActions.secondary = true;
-            styleTiles(secondaryTileMode);
-            requestAnimationFrame(draw);
-        }
-    });
-
-    document.addEventListener("mouseup", (event) => {
-        if(!pointerActions.primary && !pointerActions.scroll && !pointerActions.secondary) return;
-        if(event.button === 0) pointerActions.primary = false;
-        else if(event.button === 1) pointerActions.scroll = false;
-        else if(event.button === 2) pointerActions.secondary = false;
-
-        condenseArray(steps);
-    });
-
-    document.addEventListener("mousemove", (event) => {
-        deltaPointer = {x: event.x - pointerPos.x, y: event.y - pointerPos.y};
-        pointerPos = {x : event.x, y : event.y};
-    
-        if(pointerActions.scroll) {
-            cameraTrans.offsetX += deltaPointer.x;
-            cameraTrans.offsetY += deltaPointer.y;
-        } else if(pointerActions.primary) {
-            if(primaryTileMode === 0 || primaryTileMode === 1) styleTiles(primaryTileMode);
-        }
-        else if(pointerActions.secondary) {
-            if(secondaryTileMode === 0 || secondaryTileMode === 1) styleTiles(secondaryTileMode);
-        }
-        requestAnimationFrame(draw);
-    });
-    
+    canvas.addEventListener("mousedown", pointerDown, false);
+    document.addEventListener("mousemove", pointerMove, false);
+    document.addEventListener("mouseup", pointerUp, false);
     canvas.addEventListener("wheel", (event) => {
         const ZOOM_AMOUNT = 0.1;
         const ZOOM_MIN = 0.2;
@@ -235,6 +161,55 @@ if(isMobile) {
     });
 }
 
+/**
+ * input functions
+ */
+
+function pointerDown(event) {
+    steps.push(null); //add empty step to mark where step started
+    futureSteps = [];
+
+    deltaPointer = {x : 0, y : 0};
+    if(isMobile) pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
+    else pointerPos = {x : event.x, y : event.y};
+
+
+    let scrolling = false;
+    if(isMobile && event.touches.length !== 1) true;
+    else if(event.button === 1) scrolling = true;
+    
+    if(scrolling) pointerActions.scroll = true;
+    else {
+        pointerActions.primary = true;
+        styleTiles(tileMode);
+        requestAnimationFrame(draw);
+    } 
+}
+
+function pointerMove(event) {
+    if(isMobile) {
+        deltaPointer = {x: event.changedTouches[0].clientX - pointerPos.x, y: event.changedTouches[0].clientY - pointerPos.y};
+        pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
+    } else {
+        deltaPointer = {x: event.x - pointerPos.x, y: event.y - pointerPos.y};
+        pointerPos = {x : event.x, y : event.y};
+    }
+    
+        if(pointerActions.scroll) {
+            cameraTrans.offsetX += deltaPointer.x;
+            cameraTrans.offsetY += deltaPointer.y;
+        } else if(erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1))) styleTiles(tileMode);
+        requestAnimationFrame(draw);
+}
+
+function pointerUp(event) {
+    if(!pointerActions.primary && !pointerActions.scroll) return;
+    pointerActions.primary = false;
+    pointerActions.scroll = false;
+    erasing = false;
+    condenseArray(steps);
+}
+
 /** 
  *  given an array of sub-arrays, this collects sub-arrays until it reaches a null element,
  *  combines the sub-arrays into a large sub-array, 
@@ -251,7 +226,6 @@ function condenseArray(ar) {
     if(step.length > 0) ar.push(step);
     if(ar.length > UNDO_STEPS) ar.shift();  // remove first element if array is 'full'
 }
-
 
 // find and change the styles of the tiles the mouse is and has hovered over using deltaPointer movement
 function styleTiles(style) {
@@ -275,10 +249,13 @@ function styleTiles(style) {
     }
 }
 
-// check that the tile style is different from the current style
+// check that the tile style is different from the current style, erase if first tile pressed is equal to current style
 function checkTile(gx, gy, style) {
     let mgx = gx.mod(Grid.width);
     let mgy = gy.mod(Grid.width);
+    if(eraser && !deltaPointer.x && !deltaPointer.y && Grid.tiles[mgx + mgy * Grid.width] === style) erasing = true;
+    if(erasing) style = 0;
+
     if(Grid.tiles[mgx + mgy * Grid.width] !== style) {
         steps.push({pos: mgx  + mgy * Grid.width, revert: Grid.tiles[mgx  + mgy * Grid.width]});
         Grid.tiles[mgx + mgy * Grid.width] = style; // edit tile if coordinates are on grid
@@ -286,30 +263,6 @@ function checkTile(gx, gy, style) {
 }
 
 
-
-
-// time
-const TIMER_START = Date.now();
-
-// grid construction
-const TILE_SIZE = 40;
-const TILE_SHRINK = 8;
-const MIN_WIDTH = 2;
-const MAX_WIDTH = 128;
-Grid = new Grid((screen.width > screen.height) ? Math.ceil(screen.width / TILE_SIZE) : Math.ceil(screen.height / TILE_SIZE)); // create grid to fill exactly or more than screen size;
-
-//menu variables
-let primaryTileMode = 1;
-let secondaryTileMode = 0;
-let selectCursorMode = 0;
-
-//undo redo stages
-const UNDO_STEPS = 40;
-let steps = [];
-let futureSteps = [];
-
-// camera view
-let cameraTrans = {scale: 1, offsetX: 0, offsetY: 0};
 
 // resize the canvas to fill browser window dynamically
 window.addEventListener('resize', resizeCanvas, false);
@@ -346,12 +299,13 @@ function draw() {
  */
 
  function setTileMode(newTileMode) {
-    if(!selectCursorMode) primaryTileMode = newTileMode;
-    else secondaryTileMode = newTileMode;
- }
-
- function setSelectCursorMode(i) {
-     selectCursorMode = i;
+    if(newTileMode === -1) eraser = document.getElementById('eraser').checked;
+    else if(eraser && tileMode === newTileMode) {
+        tileMode = 0;
+        let tools = document.getElementById("toolbar").children;
+        for(var i=2; i<tools.length; i += 2) tools[i].checked = false;  // uncheck all radio type tool
+    }
+    else tileMode = newTileMode;
  }
 
  /**

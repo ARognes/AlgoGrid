@@ -6,20 +6,38 @@ html, body {
 
 #canvas {
     display: block;
-    background-color: rgb(185, 159, 159);
+    background-color: #a99;
 }
 
-.lgBtn {
+
+#toolbar {
+	display: inline-block;
+	background-color: #dcc;
+    border-radius: 8px;
+    box-shadow: 0 10px #666;
+    padding: 10px 20px 20px 20px;
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+}
+
+#toolbar input[type="radio"], input[type="checkbox"] {
+    opacity: 0;
+    width: 0;
+    display: none;
+}
+
+#toolbar input[type="radio"] + label {
+    display: inline-block;
     font: 18px/1.4 "Roboto", sans-serif;
-    width: 105px; height: 60px;
-    border-radius: 12px;
+    padding: 10px 10px;
+    border-radius: 8px;
     border: none;
     text-align: center;
-    background-color: #282;
-    box-shadow: 0 6px #666;
-    outline: none;
-
-    /* disable text highlighting on all browsers, retrieved from: https://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting*/
+    background-color: #2b2;
+    box-shadow: 0 10px #666;
+    transform: translateY(-4px);
+    
     -webkit-touch-callout: none; /* iOS Safari */
         -webkit-user-select: none; /* Safari */
          -khtml-user-select: none; /* Konqueror HTML */
@@ -29,19 +47,43 @@ html, body {
                                       supported by Chrome, Opera and Firefox */
 }
 
-.lgBtn:active {
-    background-color: red;
-    transform: translateY(2px);
-    box-shadow: 0 4px #666;
-
-}
-
-.lgBtn:not(:focus) {
-    background-color: #2b2;
+#toolbar input[type="checkbox"] + label {
+    display: inline-block;
+    font: 18px/1.4 "Roboto", sans-serif;
+    padding: 10px 10px;
+    margin: 12px 0 0 0;
+    border-radius: 8px;
+    border: none;
+    text-align: center;
+    background-color: #f44;
     box-shadow: 0 10px #666;
     transform: translateY(-4px);
-    outline: none;
+    
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Opera and Firefox */
 }
+
+#toolbar input[type="radio"]:checked + label {
+    background-color: #f82;
+    transform: translateY(2px);
+    box-shadow: 0 4px #666;
+}
+
+#toolbar input[type="checkbox"]:checked + label {
+    background-color: #f00;
+    transform: translateY(2px);
+    box-shadow: 0 4px #666;
+}
+
+#eraser label {
+	background-color: #090;
+}
+
 
 .smBtn {
     font: 18px/1.4 "Roboto", sans-serif;
@@ -67,12 +109,13 @@ html, body {
 }
 
 .menu {
-    background-color: rgb(185, 219, 177);
+    background-color: #a99;
     stroke-width: 0;
-    min-width: 240px;
-    min-height: 100%;
+    min-width: 400px;
+    min-height: 200px;
     position: absolute;
-    top: 0;
+    border-radius: 0 20px 0 0;
+    bottom: 0;
     -webkit-touch-callout: none; /* iOS Safari */
         -webkit-user-select: none; /* Safari */
          -khtml-user-select: none; /* Konqueror HTML */
@@ -85,30 +128,6 @@ html, body {
 #debug {
     position: relative; top: -10px;
     text-align: center;
-}
-
-#primaryButton {
-    position: absolute; top: 40px; left: 15px; width: 100px; height: 80px;
-}
-
-#secondaryButton {
-    position: absolute; top: 40px; left: 125px; width: 100px; height: 80px;
-}
-
-#eraser {
-    position: absolute; top: 140px; left: 20px; width: 60px; height: 40px;
-}
-
-#barrier {
-    position: absolute; top: 140px; left: 90px; width: 60px; height: 40px;
-}
-
-#target {
-    position: absolute; top: 140px; left: 160px; width: 60px; height: 40px;
-}
-
-#unit {
-    position: absolute; top: 190px; left: 20px; width: 60px; height: 40px;
 }
 
 #undo {

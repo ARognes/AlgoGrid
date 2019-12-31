@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tile Grid Commit 21</title>
+    <title>Tile Grid Commit 22</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="description" content="An HTML website using a canvas to display an interactive grid. My first in-depth use of Javascript.">
@@ -17,13 +17,29 @@
     <canvas width="100" height="100" id="canvas"></canvas>
     <div class="menu">
         <h4 id="debug">Welcome!</h4>
-        <button onClick="setSelectCursorMode(0)" class="lgBtn" id="primaryButton" >Primary</button>
-        <button onClick="setSelectCursorMode(1)" class="lgBtn" id="secondaryButton" >Secondary</button>
 
-        <button onClick="setTileMode(0)" class="smBtn" id="eraser" >0</button>
-        <button onClick="setTileMode(1)" class="smBtn" id="barrier" >1</button>
-        <button onClick="setTileMode(2)" class="smBtn" id="target" >2</button>
-        <button onClick="setTileMode(3)" class="smBtn" id="unit" >3</button>
+        <!--
+        <button onClick="setTileMode(0, this)" class="lgBtn" id="eraser" >0</button>
+        <button onClick="setTileMode(1, this)" class="lgBtn" id="barrier" >1</button>
+        <button onClick="setTileMode(2, this)" class="lgBtn" id="target" >2</button>
+        <button onClick="setTileMode(3, this)" class="lgBtn" id="unit" >3</button>-->
+
+
+        
+
+    </div>
+    <div id="toolbar">
+        <input type="checkbox" onClick="setTileMode(-1)" checked="checked" id="eraser">
+        <label for="eraser">Eraser</label>
+        
+        <input type="radio" onClick="setTileMode(1)" id="barrier" checked="checked" name="tool">
+        <label for="barrier" class="tilestyle">Barrier</label>
+    
+        <input type="radio" onClick="setTileMode(2)" id="target" name="tool">
+        <label for="target">Target</label>
+    
+        <input type="radio" onClick="setTileMode(3)" id="unit" name="tool">
+        <label for="unit">Unit</label>
     </div>
 
     <button onClick="undo()" class="smBtn" id="undo"><<</button>

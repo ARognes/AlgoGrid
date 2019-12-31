@@ -14,7 +14,18 @@ html, body {
     background-color: rgb(185, 159, 159);
 }
 
-.lgBtn {
+/*.lgBtn {
+    font: 18px/1.4 "Roboto", sans-serif;
+    width: 50px; height: 50px;
+    border-radius: 12px;
+    border: none;
+    text-align: center;
+    background-color: #2b2;
+    box-shadow: 0 10px #666;
+    transform: translateY(-4px);
+*/
+
+.selectBtn {
     font: 18px/1.4 "Roboto", sans-serif;
     width: 50px; height: 50px;
     border-radius: 12px;
@@ -34,7 +45,7 @@ html, body {
                                       supported by Chrome, Opera and Firefox */
 }
 
-.lgBtn:active {
+/*.lgBtn:active {
     background-color: #f82;
     transform: translateY(2px);
     box-shadow: 0 4px #666;
@@ -45,7 +56,86 @@ html, body {
     box-shadow: 0 6px #666;
     transform: translateY(0px);
     outline: none;
+}*/
+
+
+
+#toolbar {
+	display: inline-block;
+	background-color: #dcc;
+    border-radius: 8px;
+    box-shadow: 0 10px #666;
+    padding: 10px 20px 20px 20px;
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
 }
+
+#toolbar input[type="radio"], input[type="checkbox"] {
+    opacity: 0;
+    width: 0;
+    display: none;
+}
+
+#toolbar input[type="radio"] + label {
+    display: inline-block;
+    font: 18px/1.4 "Roboto", sans-serif;
+    padding: 10px 10px;
+    border-radius: 8px;
+    border: none;
+    text-align: center;
+    background-color: #2b2;
+    box-shadow: 0 10px #666;
+    transform: translateY(-4px);
+    
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Opera and Firefox */
+}
+
+#toolbar input[type="checkbox"] + label {
+    display: inline-block;
+    font: 18px/1.4 "Roboto", sans-serif;
+    padding: 10px 10px;
+    margin: 12px 0 0 0;
+    border-radius: 8px;
+    border: none;
+    text-align: center;
+    background-color: #f44;
+    box-shadow: 0 10px #666;
+    transform: translateY(-4px);
+    
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Opera and Firefox */
+}
+
+#toolbar input[type="radio"]:checked + label {
+    background-color: #f82;
+    transform: translateY(2px);
+    box-shadow: 0 4px #666;
+}
+
+#toolbar input[type="checkbox"]:checked + label {
+    background-color: #f00;
+    transform: translateY(2px);
+    box-shadow: 0 4px #666;
+}
+
+#eraser label {
+	background-color: #090;
+}
+
+
+
 
 .smBtn {
     font: 18px/1.4 "Roboto", sans-serif;
@@ -93,7 +183,7 @@ html, body {
 @media screen and (orientation:portrait) {
 
     .menu {
-        background-color: rgb(167, 201, 160);
+        background-color: #a99;
         stroke-width: 0;
         position: fixed;
         min-width: 100%;
@@ -109,7 +199,7 @@ html, body {
     }
 
     #debug {
-        position: absolute; bottom: -10px; left: 10px;
+        position: relative; top: -10px; text-align: center;
     }
 
     #eraser {
@@ -131,12 +221,13 @@ html, body {
 
 @media screen and (orientation:landscape) {
     .menu {
-        background-color: rgb(167, 201, 160);
+        background-color: #a99;
         stroke-width: 0;
         position: fixed;
-        min-width: 160px;
-        min-height: 100%;
-        top: 0;
+        min-width: 380px;
+        min-height: 160px;
+        border-radius: 0 20px 0 0;
+        bottom:0;
         -webkit-touch-callout: none; /* iOS Safari */
         -webkit-user-select: none; /* Safari */
          -khtml-user-select: none; /* Konqueror HTML */
