@@ -197,17 +197,17 @@ function pointerMove(event) {
         cameraTrans.offsetX += deltaPointer.x;
         cameraTrans.offsetY += deltaPointer.y;
         if(isMobile) {
-            if(event.touches.length < 2) Document.getElementById('debug').innerHTML = "Error! Touch length: " + event.touches.length;
+            if(event.touches.length < 2) document.getElementById('debug').innerHTML = "Error! Touch length: " + event.touches.length;
             else {
                 const xDist = (event.touches[1].clientX - event.touches[0].clientX);
                 const yDist = (event.touches[1].clientY - event.touches[0].clientY);
                 const spread = xDist * xDist + yDist * yDist;
                 
-                Document.getElementById('debug').innerHTML = spread + ", " + xDist + ", " + yDist;
+                document.getElementById('debug').innerHTML = spread + ", " + xDist + ", " + yDist;
             }
 
             const oldScale = cameraTrans.scale;
-            cameraTrans.scale -= ZOOM_AMOUNT * Math.sign(1) * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
+            cameraTrans.scale -= ZOOM_AMOUNT * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
             cameraTrans.scale = Math.min(Math.max(cameraTrans.scale, ZOOM_MIN), ZOOM_MAX); // clamp scale to final variables
             if(Math.abs(cameraTrans.scale-1) < ZOOM_AMOUNT * 0.5) cameraTrans.scale = 1; // ensure default scale 1 can always be reached
         
