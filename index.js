@@ -124,7 +124,6 @@ if(isMobile) {
     canvas.addEventListener('touchstart', pointerDown, false);
 	canvas.addEventListener('touchmove', (event) => {
 
-
         if(!pointerActions.scroll) deltaPointer = {x: event.changedTouches[0].clientX - pointerPos.x, y: event.changedTouches[0].clientY - pointerPos.y};
         pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
         
@@ -134,7 +133,7 @@ if(isMobile) {
             const spread = Math.sqrt(xDist * xDist + yDist * yDist);
 
             if(pointerSpread === 0) pointerSpread = spread;
-            const deltaSpread = (pointerSpread - spread) / 100;
+            const deltaSpread = (pointerSpread - spread) / 10;
             pointerSpread = spread;
 
             // current pointer center
@@ -237,7 +236,7 @@ function pointerUp(event) {
     pointerActions.scroll = false;
     pointerSpread = 0;
     erasing = false;
-    condenseArray(steps);
+    condenseArray(steps);   //broken
 }
 
 /** 
