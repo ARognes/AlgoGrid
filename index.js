@@ -88,6 +88,7 @@ class Grid {
 let pointerPos = {x: 0, y: 0};
 let deltaPointer = {x: 0, y: 0};
 let pointerActions = {primary: false, scroll: false};
+let pointerSpread = 0;
 
 // time
 const TIMER_START = Date.now();
@@ -194,32 +195,35 @@ function pointerMove(event) {
     }
     
     if(pointerActions.scroll) {
-        cameraTrans.offsetX += deltaPointer.x;
-        cameraTrans.offsetY += deltaPointer.y;
         if(isMobile) {
-            if(event.touches.length < 2) document.getElementById('debug').innerHTML = "Error! Touch length: " + event.touches.length;
-            else {
-                const xDist = (event.touches[1].clientX - event.touches[0].clientX);
-                const yDist = (event.touches[1].clientY - event.touches[0].clientY);
-                const spread = xDist * xDist + yDist * yDist;
-                
-                document.getElementById('debug').innerHTML = spread + ", " + xDist + ", " + yDist;
-            }
+            
+            const xDist = (event.touches[1].clientX - event.touches[0].clientX);
+            const yDist = (event.touches[1].clientY - event.touches[0].clientY);
+            const spread = xDist * xDist + yDist * yDist;
+            const deltaSpread = spread - pointerSpread;
+            pointerSpread = spread;
+
+            const pointerCenter = {x: event.changedTouches[1].clientX - pointerPos.x, y: event.changedTouches[1].clientY - pointerPos.y};
+            
+            document.getElementById('debug').innerHTML = Math.floor(spread/100) + ", " + pointerCenter;
 
             const oldScale = cameraTrans.scale;
-            cameraTrans.scale -= ZOOM_AMOUNT * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
+            cameraTrans.scale -= ZOOM_AMOUNT * deltaSpread * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
             cameraTrans.scale = Math.min(Math.max(cameraTrans.scale, ZOOM_MIN), ZOOM_MAX); // clamp scale to final variables
             if(Math.abs(cameraTrans.scale-1) < ZOOM_AMOUNT * 0.5) cameraTrans.scale = 1; // ensure default scale 1 can always be reached
         
             // offset the position by the difference in mouse position from before to after scale
-            cameraTrans.offsetX = (pointerPos.x - (pointerPos.x - cameraTrans.offsetX) * (cameraTrans.scale / oldScale));
-            cameraTrans.offsetY = (pointerPos.y - (pointerPos.y - cameraTrans.offsetY) * (cameraTrans.scale / oldScale));
+            cameraTrans.offsetX = (pointerCenter.x - (pointerCenter.x - cameraTrans.offsetX) * (cameraTrans.scale / oldScale));
+            cameraTrans.offsetY = (pointerCenter.y - (pointerCenter.y - cameraTrans.offsetY) * (cameraTrans.scale / oldScale));
         
             requestAnimationFrame(draw);
 
 
 
 
+        } else {
+            cameraTrans.offsetX += deltaPointer.x;
+            cameraTrans.offsetY += deltaPointer.y;
         }
     } else if(erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1))) styleTiles(tileMode);
     requestAnimationFrame(draw);
