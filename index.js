@@ -200,15 +200,15 @@ function pointerMove(event) {
             const xDist = (event.touches[1].clientX - event.touches[0].clientX);
             const yDist = (event.touches[1].clientY - event.touches[0].clientY);
             const spread = xDist * xDist + yDist * yDist;
-            const deltaSpread = spread - pointerSpread;
+            const deltaSpread = (spread - pointerSpread) / (Math.pow(10, Grid.width));
             pointerSpread = spread;
 
             const pointerCenter = {x: event.changedTouches[1].clientX - pointerPos.x, y: event.changedTouches[1].clientY - pointerPos.y};
             
-            document.getElementById('debug').innerHTML = Math.floor(spread/100) + ", " + pointerCenter;
+            document.getElementById('debug').innerHTML = Math.floor(spread/100) + ", (" + pointerCenter.x + ", " + pointerCenter.y + ")";
 
             const oldScale = cameraTrans.scale;
-            cameraTrans.scale -= ZOOM_AMOUNT * deltaSpread / 1000 * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
+            cameraTrans.scale -= ZOOM_AMOUNT * deltaSpread * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
             cameraTrans.scale = Math.min(Math.max(cameraTrans.scale, ZOOM_MIN), ZOOM_MAX); // clamp scale to final variables
             if(Math.abs(cameraTrans.scale-1) < ZOOM_AMOUNT * 0.5) cameraTrans.scale = 1; // ensure default scale 1 can always be reached
         
