@@ -139,7 +139,7 @@ if(isMobile) {
 
             const pointerCenter = {x: (event.changedTouches[1].clientX + pointerPos.x)/2, y: (event.changedTouches[1].clientY + pointerPos.y)/2};
             if(!deltaPointer.x && !deltaPointer.y) deltaPointer = pointerCenter;
-            const deltaPointerCenter = {x: (pointerCenter.x - deltaPointer.x) / 4000, y: (pointerCenter.y - deltaPointer.y) / 4000};
+            const deltaPointerCenter = {x: (pointerCenter.x - deltaPointer.x) / 40000, y: (pointerCenter.y - deltaPointer.y) / 40000};
 
             document.getElementById('debug').innerHTML = "(" + deltaPointerCenter.x + ", " + deltaPointerCenter.y + ")";
 
@@ -149,8 +149,8 @@ if(isMobile) {
             if(Math.abs(cameraTrans.scale-1) < ZOOM_AMOUNT * 0.5) cameraTrans.scale = 1; // ensure default scale 1 can always be reached
         
             // offset the position by the difference in mouse position from before to after scale
-            cameraTrans.offsetX = (pointerCenter.x - (pointerCenter.x - cameraTrans.offsetX - deltaPointerCenter.x) * (cameraTrans.scale / oldScale));
-            cameraTrans.offsetY = (pointerCenter.y - (pointerCenter.y - cameraTrans.offsetY - deltaPointerCenter.y) * (cameraTrans.scale / oldScale));
+            cameraTrans.offsetX = (pointerCenter.x - (pointerCenter.x - cameraTrans.offsetX + deltaPointerCenter.x) * (cameraTrans.scale / oldScale));
+            cameraTrans.offsetY = (pointerCenter.y - (pointerCenter.y - cameraTrans.offsetY + deltaPointerCenter.y) * (cameraTrans.scale / oldScale));
         } else if(erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1))) styleTiles(tileMode);
         requestAnimationFrame(draw);
     }, false);
