@@ -200,12 +200,13 @@ function pointerMove(event) {
             const xDist = (event.touches[1].clientX - event.touches[0].clientX);
             const yDist = (event.touches[1].clientY - event.touches[0].clientY);
             const spread = xDist * xDist + yDist * yDist;
-            const deltaSpread = (spread - pointerSpread) / (Math.pow(10, Grid.width));
+            if(pointerSpread === 0) pointerSpread = spread;
+            const deltaSpread = (pointerSpread - spread) / 5000;
             pointerSpread = spread;
 
-            const pointerCenter = {x: event.changedTouches[1].clientX - pointerPos.x, y: event.changedTouches[1].clientY - pointerPos.y};
+            const pointerCenter = {x: (event.changedTouches[1].clientX + pointerPos.x)/2, y: (event.changedTouches[1].clientY + pointerPos.y)/2};
             
-            document.getElementById('debug').innerHTML = Math.floor(spread/100) + ", (" + pointerCenter.x + ", " + pointerCenter.y + ")";
+            document.getElementById('debug').innerHTML = Math.floor(deltaSpread) + ", (" + pointerCenter.x + ", " + pointerCenter.y + ")";
 
             const oldScale = cameraTrans.scale;
             cameraTrans.scale -= ZOOM_AMOUNT * deltaSpread * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
@@ -217,9 +218,6 @@ function pointerMove(event) {
             cameraTrans.offsetY = (pointerCenter.y - (pointerCenter.y - cameraTrans.offsetY) * (cameraTrans.scale / oldScale));
         
             requestAnimationFrame(draw);
-
-
-
 
         } else {
             cameraTrans.offsetX += deltaPointer.x;
