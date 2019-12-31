@@ -131,10 +131,10 @@ if(isMobile) {
         if(pointerActions.scroll) {
             const xDist = (event.touches[1].clientX - event.touches[0].clientX);
             const yDist = (event.touches[1].clientY - event.touches[0].clientY);
-            const spread = xDist * xDist + yDist * yDist;
+            const spread = Math.sqrt(xDist * xDist + yDist * yDist);
 
             if(pointerSpread === 0) pointerSpread = spread;
-            const deltaSpread = (pointerSpread - spread) / 4000;
+            const deltaSpread = (pointerSpread - spread) / 40;
             pointerSpread = spread;
 
             // current pointer center
@@ -142,10 +142,10 @@ if(isMobile) {
 
             // if touchDown, no change in pointerCenter
             if(!deltaPointer.x && !deltaPointer.y) deltaPointer = pointerCenter;
-            const deltaPointerCenter = {x: (pointerCenter.x - deltaPointer.x) / 40, y: (pointerCenter.y - deltaPointer.y) / 40};
+            const deltaPointerCenter = {x: (pointerCenter.x - deltaPointer.x), y: (pointerCenter.y - deltaPointer.y)};
             deltaPointer = pointerCenter;
 
-            document.getElementById('debug').innerHTML = "(" + Math.round(deltaPointerCenter.x*10) + ", " + Math.round(deltaPointerCenter.y*10) + ")";
+            document.getElementById('debug').innerHTML = "(" + Math.round(deltaPointerCenter.x) + ", " + Math.round(deltaPointerCenter.y) + ")";
 
             const oldScale = cameraTrans.scale;
             cameraTrans.scale -= ZOOM_AMOUNT * deltaSpread * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
