@@ -273,20 +273,21 @@ function pointerDown(event) {
     if(isMobile) pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
     else pointerPos = {x : event.x, y : event.y};
 
-    let scrolling = false;
     if(isMobile && event.touches.length === 2) {
-        scrolling = true;
         pointerSpread = 0;
+        if(!viewOnly) {
+            steps.pop();
+            steps.pop();
+            steps.pop();
+        }
     }
-    else if(event.button === 1) scrolling = true;
-    
-    if(scrolling) pointerActions.scroll = true;
+    if((isMobile && event.touches.length === 2) || event.button === 1) pointerActions.scroll = true;
     else if(!viewOnly) {
         pointerActions.primary = true;
         styleTiles(tileMode);
         requestAnimationFrame(draw);
     }
-    Document.getElementById("debug").innerHTML = steps;
+    document.getElementById("debug").innerHTML = steps;
 }
 
 function pointerUp(event) {
@@ -295,7 +296,7 @@ function pointerUp(event) {
     pointerActions.scroll = false;
     erasing = false;
     if(!viewOnly) condenseArray(steps);   //broken
-    Document.getElementById("debug").innerHTML = steps;
+    document.getElementById("debug").innerHTML = steps;
 }
 
 /** 
