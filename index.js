@@ -256,7 +256,7 @@ function zoom(amount, referencePoint) {
     const oldScale = cameraTrans.scale;
     cameraTrans.scale -= ZOOM_AMOUNT * amount * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
     cameraTrans.scale = Math.min(Math.max(cameraTrans.scale, ZOOM_MIN), ZOOM_MAX); // clamp scale to final variables
-    if(Math.abs(cameraTrans.scale-1) < ZOOM_AMOUNT * 0.5) cameraTrans.scale = 1; // ensure default scale 1 can always be reached
+    if(Math.abs(cameraTrans.scale-1) < ZOOM_AMOUNT * 0.2) cameraTrans.scale = 1; // ensure default scale 1 can always be reached
 
     // offset the position by the difference in mouse position from before to after scale
     cameraTrans.offsetX = (referencePoint.x - (referencePoint.x - cameraTrans.offsetX) * (cameraTrans.scale / oldScale));
@@ -277,6 +277,7 @@ function pointerDown(event) {
         pointerSpread = 0;
         if(!viewOnly) {
             steps.pop();
+            Grid.tiles[steps[steps.length-1].pos] = steps[steps.length-1].revert;
             steps.pop();
             steps.pop();
             document.getElementById("debug").innerHTML = logSteps();
@@ -291,11 +292,7 @@ function pointerDown(event) {
 }
 
 function pointerUp(event) {
-    if(!pointerActions.primary && !pointerActions.scroll) {
-        console.log("Can this even happen???");
-        document.getElementById("debug").style.color = "#fff";
-        return;
-    }
+    if(!pointerActions.primary && !pointerActions.scroll) return;   // html buttons pressed over canvas
     if(!viewOnly && !pointerActions.scroll) condenseArray(steps);
     pointerActions.primary = false;
     pointerActions.scroll = false;
