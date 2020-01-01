@@ -142,7 +142,7 @@ html, body {
 }
 
 #debug {
-    position: relative; top: -15px; text-align: center;
+    position: relative; top: -20px; text-align: center;
 }
 
 #undo {
@@ -176,7 +176,7 @@ html, body {
         stroke-width: 0;
         position: fixed;
         min-width: 100%;
-        min-height: 200px;
+        min-height: 140px;
         bottom: 0;
         -webkit-touch-callout: none; /* iOS Safari */
         -webkit-user-select: none; /* Safari */

@@ -164,8 +164,9 @@ const ZOOM_MAX = 8;
 //resize canvas on load, then center camera based off canvas
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-cameraTrans.offsetX = canvas.width/2 - Grid.width * TILE_SIZE / 2;
-cameraTrans.offsetY = canvas.height/2 - Grid.height * TILE_SIZE / 2;
+cameraTrans.offsetX = canvas.width/2 - Grid.width * TILE_SIZE / 2 + TILE_SHRINK/2;
+cameraTrans.offsetY = canvas.height/2 - Grid.height * TILE_SIZE / 2 + TILE_SHRINK/2;
+
 requestAnimationFrame(draw); // redraw canvas
 
 /**
@@ -174,6 +175,8 @@ requestAnimationFrame(draw); // redraw canvas
 
 if(isMobile) {
     canvas.addEventListener('touchstart', pointerDown, false);
+
+
 	canvas.addEventListener('touchmove', (event) => {
 
         if(!pointerActions.scroll) deltaPointer = {x: event.changedTouches[0].clientX - pointerPos.x, y: event.changedTouches[0].clientY - pointerPos.y};
@@ -198,7 +201,8 @@ if(isMobile) {
 
             document.getElementById('debug').innerHTML = "(" + Math.round(deltaPointerCenter.x*10) + ", " + Math.round(deltaPointerCenter.y*10) + ")";
 
-            const oldScale = cameraTrans.scale;
+            zoom(deltaSpread, pointerCenter);
+            /*const oldScale = cameraTrans.scale;
             cameraTrans.scale -= ZOOM_AMOUNT * deltaSpread * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
             cameraTrans.scale = Math.min(Math.max(cameraTrans.scale, ZOOM_MIN), ZOOM_MAX); // clamp scale to final variables
             if(Math.abs(cameraTrans.scale-1) < ZOOM_AMOUNT * 0.5) cameraTrans.scale = 1; // ensure default scale 1 can always be reached
@@ -206,27 +210,32 @@ if(isMobile) {
             // offset the position by the difference in mouse position from before to after scale
             cameraTrans.offsetX = (pointerCenter.x - (pointerCenter.x - cameraTrans.offsetX) * (cameraTrans.scale / oldScale)) + deltaPointerCenter.x;
             cameraTrans.offsetY = (pointerCenter.y - (pointerCenter.y - cameraTrans.offsetY) * (cameraTrans.scale / oldScale)) + deltaPointerCenter.y;
+            */
+
         } else if(erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1))) styleTiles(tileMode);
         requestAnimationFrame(draw);
+
     }, false);
 	document.addEventListener('touchend',  pointerUp, false);
-	document.addEventListener('touchcancel', pointerUp, false);
+    document.addEventListener('touchcancel', pointerUp, false);
 } else {
     canvas.addEventListener("mousedown", pointerDown, false);
-    document.addEventListener("mousemove", pointerMove, false);
-    document.addEventListener("mouseup", pointerUp, false);
-    canvas.addEventListener("wheel", (event) => {
-        const oldScale = cameraTrans.scale;
-        cameraTrans.scale -= ZOOM_AMOUNT * Math.sign(event.deltaY) * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
-        cameraTrans.scale = Math.min(Math.max(cameraTrans.scale, ZOOM_MIN), ZOOM_MAX); // clamp scale to final variables
-        if(Math.abs(cameraTrans.scale-1) < ZOOM_AMOUNT * 0.5) cameraTrans.scale = 1; // ensure default scale 1 can always be reached
-    
-        // offset the position by the difference in mouse position from before to after scale
-        cameraTrans.offsetX = (pointerPos.x - (pointerPos.x - cameraTrans.offsetX) * (cameraTrans.scale / oldScale));
-        cameraTrans.offsetY = (pointerPos.y - (pointerPos.y - cameraTrans.offsetY) * (cameraTrans.scale / oldScale));
-    
+
+
+    document.addEventListener("mousemove", (event) => {
+        deltaPointer = {x: event.x - pointerPos.x, y: event.y - pointerPos.y};
+        pointerPos = {x : event.x, y : event.y};
+        
+        if(pointerActions.scroll) {
+                cameraTrans.offsetX += deltaPointer.x;
+                cameraTrans.offsetY += deltaPointer.y;
+        } else if((erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1)) && !viewOnly)) styleTiles(tileMode);
         requestAnimationFrame(draw);
-    });
+    }, false);
+
+
+    document.addEventListener("mouseup", pointerUp, false);
+    canvas.addEventListener("wheel", (event) => {zoom(Math.sign(event.deltaY), pointerPos); requestAnimationFrame(draw);}, false);
 
     /**
      *  key input
@@ -251,6 +260,18 @@ if(isMobile) {
  * input functions
  */
 
+
+function zoom(amount, referencePoint) {
+    const oldScale = cameraTrans.scale;
+    cameraTrans.scale -= ZOOM_AMOUNT * amount * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
+    cameraTrans.scale = Math.min(Math.max(cameraTrans.scale, ZOOM_MIN), ZOOM_MAX); // clamp scale to final variables
+    if(Math.abs(cameraTrans.scale-1) < ZOOM_AMOUNT * 0.5) cameraTrans.scale = 1; // ensure default scale 1 can always be reached
+
+    // offset the position by the difference in mouse position from before to after scale
+    cameraTrans.offsetX = (referencePoint.x - (referencePoint.x - cameraTrans.offsetX) * (cameraTrans.scale / oldScale));
+    cameraTrans.offsetY = (referencePoint.y - (referencePoint.y - cameraTrans.offsetY) * (cameraTrans.scale / oldScale));
+}
+
 function pointerDown(event) {
     if(!viewOnly) {
         steps.push(null); //add empty step to mark where step started
@@ -271,17 +292,6 @@ function pointerDown(event) {
         styleTiles(tileMode);
         requestAnimationFrame(draw);
     } 
-}
-
-function pointerMove(event) {
-    deltaPointer = {x: event.x - pointerPos.x, y: event.y - pointerPos.y};
-    pointerPos = {x : event.x, y : event.y};
-    
-    if(pointerActions.scroll) {
-            cameraTrans.offsetX += deltaPointer.x;
-            cameraTrans.offsetY += deltaPointer.y;
-    } else if((erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1)) && !viewOnly)) styleTiles(tileMode);
-    requestAnimationFrame(draw);
 }
 
 function pointerUp(event) {
@@ -345,8 +355,6 @@ function checkTile(gx, gy, style) {
         Grid.tiles[mgx + mgy * Grid.width] = style; // edit tile if coordinates are on grid
     }
 }
-
-
 
 // resize the canvas to fill browser window dynamically
 window.addEventListener('resize', resizeCanvas, false);
