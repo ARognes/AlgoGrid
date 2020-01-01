@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tile Grid Commit 39</title>
+    <title>Tile Grid Commit 41</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="description" content="An HTML website using a canvas to display an interactive grid. My first in-depth use of Javascript.">
@@ -36,8 +36,8 @@
 
     <button onClick="undo()" class="smBtn" id="undo"><<</button>
     <button onClick="redo()" class="smBtn" id="redo">>></button>
-    <button onClick="Grid.setWidth(Grid.width-1)" class="smBtn" id="gridDec">Dec</button>
-    <button onClick="Grid.setWidth(Grid.width+1)" class="smBtn" id="gridInc">Inc</button>
+    <button onClick="Grid.setSize(Grid.width-1, Grid.height-1)" class="smBtn" id="gridDec">Dec</button>
+    <button onClick="Grid.setSize(Grid.width+1, Grid.height+1)" class="smBtn" id="gridInc">Inc</button>
     <button onClick="toggleFullscreen()" class="smBtn" id="fullscreen">Fullscreen</button>
     <button onClick="toggleGridRepeat()" class="smBtn" id="gridRepeat">Repeat</button>
 

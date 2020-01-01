@@ -116,25 +116,12 @@ class Grid {
         }
     }
 
-    setWidth(newWidth) {
-        console.log(this.width + " to " + newWidth);
-        if(newWidth < MIN_WIDTH) console.error("Grid width must be at least " + MIN_WIDTH);
-        else if(newWidth > MAX_WIDTH) console.error("Grid width has maximum " + MAX_WIDTH);
-        else {
-            this.width = newWidth;
-            this.tiles = new Array(newWidth * newWidth);
-            for(var i=0; i<newWidth * newWidth; i++) this.tiles[i] = 0; // tiles hold state
-            requestAnimationFrame(draw);
-        }
-    }
-
     // set size expects sizes out of bounds to be caught by the html/css, but clamps the values just in case something goes wrong
     setSize(width, height) {
         width = Math.min(Math.max(width, MIN_WIDTH), MAX_WIDTH);
         height = Math.min(Math.max(height, MIN_WIDTH), MAX_WIDTH);
         this.width = width;
         this.height = height;
-        console.log(width, height);
         this.tiles = new Array(width * height);
         for(var i=0; i<width * height; i++) this.tiles[i] = 0; // tiles hold state
         requestAnimationFrame(draw);
@@ -159,6 +146,7 @@ Grid = new Grid((window.innerWidth < window.innerHeight) ? Math.floor(window.inn
 
 // menu variables
 let tileMode = 1;
+let viewOnly = false;
 let eraser = true;
 let erasing = false;
 
@@ -264,8 +252,10 @@ if(isMobile) {
  */
 
 function pointerDown(event) {
-    steps.push(null); //add empty step to mark where step started
-    futureSteps = [];
+    if(!viewOnly) {
+        steps.push(null); //add empty step to mark where step started
+        futureSteps = [];
+    }
 
     deltaPointer = {x : 0, y : 0};
     if(isMobile) pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
@@ -276,7 +266,7 @@ function pointerDown(event) {
     else if(event.button === 1) scrolling = true;
     
     if(scrolling) pointerActions.scroll = true;
-    else {
+    else if(!viewOnly) {
         pointerActions.primary = true;
         styleTiles(tileMode);
         requestAnimationFrame(draw);
@@ -290,7 +280,7 @@ function pointerMove(event) {
     if(pointerActions.scroll) {
             cameraTrans.offsetX += deltaPointer.x;
             cameraTrans.offsetY += deltaPointer.y;
-    } else if(erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1))) styleTiles(tileMode);
+    } else if((erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1)) && !viewOnly)) styleTiles(tileMode);
     requestAnimationFrame(draw);
 }
 
@@ -300,7 +290,7 @@ function pointerUp(event) {
     pointerActions.scroll = false;
     pointerSpread = 0;
     erasing = false;
-    condenseArray(steps);   //broken
+    if(!viewOnly) condenseArray(steps);   //broken
 }
 
 /** 
@@ -392,14 +382,18 @@ function draw() {
 
  function setTileMode(newTileMode) {
     if(newTileMode === -1) {
-        if(tileMode === 0) document.getElementById('eraser').checked = true;    // if tileMode is full eraser, keep eraser checked
-        else eraser = document.getElementById('eraser').checked;  // if eraser button is pressed, toggle eraser
-    } else if(eraser && tileMode === newTileMode) {   // if already erasing and the selected tool is unselected, set tileMode to full eraser 0 as only the eraser button is checked
-        tileMode = 0;
-        let tools = document.getElementById("toolbar").children;
-        for(var i=2; i<tools.length; i += 2) tools[i].checked = false;  // uncheck all radio type tools
+        eraser = document.getElementById('eraser').checked;  // if eraser button is pressed, toggle eraser
+        viewOnly = !eraser;
+        if(tileMode !== 0) viewOnly = false;
+    } else {
+        viewOnly = false;
+        if(tileMode === newTileMode) {
+            tileMode = 0;
+            viewOnly = !eraser;
+            let tools = document.getElementById("toolbar").children;
+            for(var i=2; i<tools.length; i += 2) tools[i].checked = false;  // uncheck all radio type tools
+        } else tileMode = newTileMode;
     }
-    else tileMode = newTileMode;
  }
 
  /**
