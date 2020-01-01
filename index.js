@@ -279,6 +279,7 @@ function pointerDown(event) {
             steps.pop();
             steps.pop();
             steps.pop();
+            document.getElementById("debug").innerHTML = logSteps();
         }
     }
     if((isMobile && event.touches.length === 2) || event.button === 1) pointerActions.scroll = true;
@@ -294,7 +295,7 @@ function pointerUp(event) {
     pointerActions.primary = false;
     pointerActions.scroll = false;
     erasing = false;
-    if(!viewOnly) condenseArray(steps);   //broken
+    if(!viewOnly && !pointerSpread) condenseArray(steps);
 }
 
 /** 
@@ -460,14 +461,14 @@ function draw() {
   // return a string displaying undo/redo steps
   function logSteps() {
     var str = "(";
-    for(var i=0; i<steps.length; i++) {
-        if(steps[i] === null) str += "null, ";
-        else if(steps[i].revert !== undefined) str += steps[i].revert + ", ";
-        else str += "A, ";
+    var i=0;
+    while(steps[i]) {
+        str += "#, ";
+        i++;
     }
-    str = str.substr(0, str.length-2);
-    if(str.length) str += ")";
-    else str = "()";
+    if(steps.length > i) str += (steps.length-1 - i) + ")";
+    else str = str.substr(0, str.length - 2) + ")";
+    if(str.length === 1) str = "()";
     console.log(str);
     return str;
 }
