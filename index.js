@@ -217,8 +217,8 @@ if(isMobile) {
         pointerPos = {x : event.x, y : event.y};
         
         if(pointerActions.scroll) {
-                cameraTrans.offsetX += deltaPointer.x;
-                cameraTrans.offsetY += deltaPointer.y;
+            cameraTrans.offsetX += deltaPointer.x;
+            cameraTrans.offsetY += deltaPointer.y;
         } else if((erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1)) && !viewOnly)) styleTiles(tileMode);
         requestAnimationFrame(draw);
     }, false);
@@ -291,11 +291,15 @@ function pointerDown(event) {
 }
 
 function pointerUp(event) {
-    if(!pointerActions.primary && !pointerActions.scroll) return;
+    if(!pointerActions.primary && !pointerActions.scroll) {
+        console.log("Can this even happen???");
+        document.getElementById("debug").style.color = "#fff";
+        return;
+    }
+    if(!viewOnly && !pointerActions.scroll) condenseArray(steps);
     pointerActions.primary = false;
     pointerActions.scroll = false;
     erasing = false;
-    if(!viewOnly && !pointerSpread) condenseArray(steps);
 }
 
 /** 
@@ -458,7 +462,7 @@ function draw() {
       requestAnimationFrame(draw);
   }
 
-  // return a string displaying undo/redo steps
+  // return a string displaying undo/redo steps. (#, #) are complete steps, (#, 6) shows number of changed tiles in current step
   function logSteps() {
     var str = "(";
     var i=0;
@@ -469,6 +473,6 @@ function draw() {
     if(steps.length > i) str += (steps.length-1 - i) + ")";
     else str = str.substr(0, str.length - 2) + ")";
     if(str.length === 1) str = "()";
-    console.log(str);
+    //console.log(str); good lord don't use this
     return str;
 }
