@@ -287,7 +287,6 @@ function pointerDown(event) {
         styleTiles(tileMode);
         requestAnimationFrame(draw);
     }
-    document.getElementById("debug").innerHTML = steps;
 }
 
 function pointerUp(event) {
@@ -296,7 +295,6 @@ function pointerUp(event) {
     pointerActions.scroll = false;
     erasing = false;
     if(!viewOnly) condenseArray(steps);   //broken
-    document.getElementById("debug").innerHTML = steps;
 }
 
 /** 
@@ -314,6 +312,7 @@ function condenseArray(ar) {
     ar.pop();
     if(step.length > 0) ar.push(step);
     if(ar.length > UNDO_STEPS) ar.shift();  // remove first element if array is 'full'
+    document.getElementById("debug").innerHTML = logSteps();
 }
 
 // find and change the styles of the tiles the mouse is and has hovered over using deltaPointer movement
@@ -350,6 +349,7 @@ function checkTile(gx, gy, style) {
         steps.push({pos: mgx  + mgy * Grid.width, revert: Grid.tiles[mgx  + mgy * Grid.width]});
         Grid.tiles[mgx + mgy * Grid.width] = style; // edit tile if coordinates are on grid
     }
+    document.getElementById("debug").innerHTML = logSteps();
 }
 
 // resize the canvas to fill browser window dynamically
@@ -420,6 +420,7 @@ function draw() {
     }
     futureSteps.push(futureStep);
     requestAnimationFrame(draw);
+    document.getElementById("debug").innerHTML = logSteps();
  }
 
  function redo() {
@@ -435,6 +436,7 @@ function draw() {
     }
     steps.push(step);
     requestAnimationFrame(draw);
+    document.getElementById("debug").innerHTML = logSteps();
  }
 
  // call fullscreen methods compatible for all browsers, retrieved from: https://developers.google.com/web/fundamentals/native-hardware/fullscreen/
@@ -449,8 +451,23 @@ function draw() {
     else cancelFullScreen.call(doc);
   }
   
-  //toggle grid repeat
+  // toggle grid repeat
   function toggleGridRepeat() {
       Grid.repeat = !Grid.repeat;
       requestAnimationFrame(draw);
   }
+
+  // return a string displaying undo/redo steps
+  function logSteps() {
+    var str = "(";
+    for(var i=0; i<steps.length; i++) {
+        if(steps[i] === null) str += "null, ";
+        else if(steps[i].revert !== undefined) str += steps[i].revert + ", ";
+        else str += "A, ";
+    }
+    str = str.substr(0, str.length-2);
+    if(str.length) str += ")";
+    else str = "()";
+    console.log(str);
+    return str;
+}
