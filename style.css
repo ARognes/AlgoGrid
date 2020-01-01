@@ -149,3 +149,7 @@ html, body {
 #fullscreen {
     position: absolute; top: 110px; right: 10px; width: 90px; height: 40px;
 }
+
+#gridRepeat {
+    position: absolute; top: 160px; right: 10px; width: 90px; height: 40px;
+}

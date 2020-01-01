@@ -25,48 +25,93 @@ var canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
 
 
 class Grid {
-    constructor(width) {
-        this.width = width;
-        this.tiles = new Array(width * width);
-        for(var i=0; i<width * width; i++) this.tiles[i] = 0; // tiles hold state
+    constructor(width, height) {
+        this.repeat = false;
+        if(height === 0) this.setSize(width, width);
+        else this.setSize(width, height);
     }
 
     draw() {
+        if(!this.repeat) {  // draw grid normally
 
-        // find beginX and beginY, and view size
-        let beginX = Math.floor((-cameraTrans.offsetX)/cameraTrans.scale / TILE_SIZE);
-        let beginY = Math.floor(-cameraTrans.offsetY/cameraTrans.scale / TILE_SIZE);
-        let viewWidth = Math.ceil(canvas.width/cameraTrans.scale / TILE_SIZE) + 1;
-        let viewHeight = Math.ceil(canvas.height/cameraTrans.scale / TILE_SIZE)+ 1;
+            // find beginX, beginY, endX, and endY. if grid not in view, return
+            let beginX = Math.max(Math.floor((-cameraTrans.offsetX) / cameraTrans.scale / TILE_SIZE), 0);
+            if(beginX >= this.width) return;
+            let beginY = Math.max(Math.floor(-cameraTrans.offsetY / cameraTrans.scale / TILE_SIZE), 0);
+            if(beginY >= this.height) return;
+            let endX = Math.min(Math.ceil((-cameraTrans.offsetX + canvas.width) / cameraTrans.scale / TILE_SIZE), this.width);
+            if(endX < 0) return;
+            let endY = Math.min(Math.ceil((-cameraTrans.offsetY + canvas.height) / cameraTrans.scale / TILE_SIZE), this.height);
+            if(endY < 0) return;
 
-        // iterate through tiles shown on screen
-        for(var i = beginX; i < viewWidth + beginX; i++) {
-            for(var j = beginY; j < viewHeight + beginY; j++) {
 
-                // convert tile cartesian coordinates to tile array coordinates
-                let k = i.mod(this.width) + j.mod(this.width) * this.width;
+            // iterate through tiles shown on screen
+            for(var i = beginX; i < endX; i++) {
+                for(var j = beginY; j < endY; j++) {
 
-                // set drawing context to tile style
-                ctx.lineWidth = 3;
-                if(this.tiles[k] === 0) {                      // default
-                    ctx.fillStyle = "#fcc";
-                    ctx.strokeStyle = "#fcc";
-                } 
-                else if(this.tiles[k] === 1) {                // barrier
-                    ctx.fillStyle = "#020";
-                    ctx.strokeStyle = "#030";
-                    ctx.lineWidth = 9;
-                } 
-                else if(this.tiles[k] === 2) {                // target
-                    ctx.fillStyle = "#4d4";
-                    ctx.strokeStyle = "#4f4";
-                } 
-                else if(this.tiles[k] === 3) {                //unit
-                    ctx.fillStyle = "#4f4";
-                    ctx.strokeStyle = "#4d4";
+                    // convert tile cartesian coordinates to tile array coordinates
+                    let k = i + j * this.width;
+
+                    // set drawing context to tile style
+                    ctx.lineWidth = 3;
+                    if(this.tiles[k] === 0) {                      // default
+                        ctx.fillStyle = "#fcc";
+                        ctx.strokeStyle = "#fcc";
+                    } 
+                    else if(this.tiles[k] === 1) {                // barrier
+                        ctx.fillStyle = "#020";
+                        ctx.strokeStyle = "#030";
+                        ctx.lineWidth = 9;
+                    } 
+                    else if(this.tiles[k] === 2) {                // target
+                        ctx.fillStyle = "#4d4";
+                        ctx.strokeStyle = "#4f4";
+                    } 
+                    else if(this.tiles[k] === 3) {                //unit
+                        ctx.fillStyle = "#4f4";
+                        ctx.strokeStyle = "#4d4";
+                    }
+                    ctx.fillRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE-TILE_SHRINK, TILE_SIZE-TILE_SHRINK);
+                    ctx.strokeRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE-TILE_SHRINK, TILE_SIZE-TILE_SHRINK);
                 }
-                ctx.fillRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE-TILE_SHRINK, TILE_SIZE-TILE_SHRINK);
-                ctx.strokeRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE-TILE_SHRINK, TILE_SIZE-TILE_SHRINK);
+            }
+        } else {    //draw grid repeatedly
+
+            // find beginX and beginY, and view size
+            let beginX = Math.floor((-cameraTrans.offsetX)/cameraTrans.scale / TILE_SIZE);
+            let beginY = Math.floor(-cameraTrans.offsetY/cameraTrans.scale / TILE_SIZE);
+            let viewWidth = Math.ceil(canvas.width/cameraTrans.scale / TILE_SIZE) + 1;
+            let viewHeight = Math.ceil(canvas.height/cameraTrans.scale / TILE_SIZE)+ 1;
+
+            // iterate through tiles shown on screen
+            for(var i = beginX; i < viewWidth + beginX; i++) {
+                for(var j = beginY; j < viewHeight + beginY; j++) {
+
+                    // convert tile cartesian coordinates to tile array coordinates
+                    let k = i.mod(this.width) + j.mod(this.height) * this.width;
+
+                    // set drawing context to tile style
+                    ctx.lineWidth = 3;
+                    if(this.tiles[k] === 0) {                      // default
+                        ctx.fillStyle = "#fcc";
+                        ctx.strokeStyle = "#fcc";
+                    } 
+                    else if(this.tiles[k] === 1) {                // barrier
+                        ctx.fillStyle = "#020";
+                        ctx.strokeStyle = "#030";
+                        ctx.lineWidth = 9;
+                    } 
+                    else if(this.tiles[k] === 2) {                // target
+                        ctx.fillStyle = "#4d4";
+                        ctx.strokeStyle = "#4f4";
+                    } 
+                    else if(this.tiles[k] === 3) {                //unit
+                        ctx.fillStyle = "#4f4";
+                        ctx.strokeStyle = "#4d4";
+                    }
+                    ctx.fillRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE-TILE_SHRINK, TILE_SIZE-TILE_SHRINK);
+                    ctx.strokeRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE-TILE_SHRINK, TILE_SIZE-TILE_SHRINK);
+                }
             }
         }
     }
@@ -82,6 +127,18 @@ class Grid {
             requestAnimationFrame(draw);
         }
     }
+
+    // set size expects sizes out of bounds to be caught by the html/css, but clamps the values just in case something goes wrong
+    setSize(width, height) {
+        width = Math.min(Math.max(width, MIN_WIDTH), MAX_WIDTH);
+        height = Math.min(Math.max(height, MIN_WIDTH), MAX_WIDTH);
+        this.width = width;
+        this.height = height;
+        console.log(width, height);
+        this.tiles = new Array(width * height);
+        for(var i=0; i<width * height; i++) this.tiles[i] = 0; // tiles hold state
+        requestAnimationFrame(draw);
+    }
 }
 
 // input variables
@@ -94,11 +151,11 @@ let pointerSpread = 0;
 const TIMER_START = Date.now();
 
 // grid construction
-const TILE_SIZE = 40;
+const TILE_SIZE = 32;
 const TILE_SHRINK = 8;
 const MIN_WIDTH = 2;
 const MAX_WIDTH = 128;
-Grid = new Grid((screen.width > screen.height) ? Math.ceil(screen.width / TILE_SIZE) : Math.ceil(screen.height / TILE_SIZE)); // create grid to fill exactly or more than screen size;
+Grid = new Grid((window.innerWidth < window.innerHeight) ? Math.floor(window.innerWidth / TILE_SIZE) : Math.floor(window.innerHeight / TILE_SIZE), 0); // create grid to fill exactly or more than screen size;
 
 // menu variables
 let tileMode = 1;
@@ -115,6 +172,13 @@ let cameraTrans = {scale: 1, offsetX: 0, offsetY: 0};
 const ZOOM_AMOUNT = 0.1;
 const ZOOM_MIN = 0.2;
 const ZOOM_MAX = 8;
+
+//resize canvas on load, then center camera based off canvas
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+cameraTrans.offsetX = canvas.width/2 - Grid.width * TILE_SIZE / 2;
+cameraTrans.offsetY = canvas.height/2 - Grid.height * TILE_SIZE / 2;
+requestAnimationFrame(draw); // redraw canvas
 
 /**
  * mobile input and pc input are funneled into the same functions
@@ -270,7 +334,7 @@ function styleTiles(style) {
     let hx = Math.floor(((pointerPos.x - deltaPointer.x - cameraTrans.offsetX)/cameraTrans.scale + 4)/TILE_SIZE);
     let hy = Math.floor(((pointerPos.y - deltaPointer.y - cameraTrans.offsetY)/cameraTrans.scale + 4)/TILE_SIZE);
 
-    // edit tiles in-between cursor movement to ensure closed line is drawn, maximum possible loop iterations is Grid.width (a diagonal line from corner to corner)
+    // edit tiles in-between cursor movement to ensure closed line is drawn
     while((hx != gx || hy != gy)) {
         gx -= Math.sign(gx - hx);
         gy -= Math.sign(gy - hy);
@@ -280,8 +344,9 @@ function styleTiles(style) {
 
 // check that the tile style is different from the current style, erase if first tile pressed is equal to current style
 function checkTile(gx, gy, style) {
+    if(!Grid.repeat && (gx < 0 || gx >= Grid.width || gy < 0 || gy >= Grid.height)) return;
     let mgx = gx.mod(Grid.width);
-    let mgy = gy.mod(Grid.width);
+    let mgy = gy.mod(Grid.height);
     if(eraser && !deltaPointer.x && !deltaPointer.y && Grid.tiles[mgx + mgy * Grid.width] === style) erasing = true;
     if(erasing) style = 0;
 
@@ -298,14 +363,12 @@ window.addEventListener('resize', resizeCanvas, false);
 
 // canvas is always full window
 function resizeCanvas() {
+    cameraTrans.offsetX -= (canvas.width - window.innerWidth) / 2;
+    cameraTrans.offsetY -= (canvas.height - window.innerHeight) / 2;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     requestAnimationFrame(draw); // redraw canvas
 }
-
-//resize canvas on load
-resizeCanvas();
-
 
 /**
  *  draw function is essentially an efficiently called update function, 
@@ -328,11 +391,13 @@ function draw() {
  */
 
  function setTileMode(newTileMode) {
-    if(newTileMode === -1) eraser = document.getElementById('eraser').checked;
-    else if(eraser && tileMode === newTileMode) {
+    if(newTileMode === -1) {
+        if(tileMode === 0) document.getElementById('eraser').checked = true;    // if tileMode is full eraser, keep eraser checked
+        else eraser = document.getElementById('eraser').checked;  // if eraser button is pressed, toggle eraser
+    } else if(eraser && tileMode === newTileMode) {   // if already erasing and the selected tool is unselected, set tileMode to full eraser 0 as only the eraser button is checked
         tileMode = 0;
         let tools = document.getElementById("toolbar").children;
-        for(var i=2; i<tools.length; i += 2) tools[i].checked = false;  // uncheck all radio type tool
+        for(var i=2; i<tools.length; i += 2) tools[i].checked = false;  // uncheck all radio type tools
     }
     else tileMode = newTileMode;
  }
@@ -376,7 +441,6 @@ function draw() {
 
  // call fullscreen methods compatible for all browsers, retrieved from: https://developers.google.com/web/fundamentals/native-hardware/fullscreen/
  function toggleFullscreen() {
-    console.log('fullscreen');
     var doc = window.document;
     var docEl = doc.documentElement;
   
@@ -385,4 +449,10 @@ function draw() {
   
     if(!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) requestFullScreen.call(docEl);
     else cancelFullScreen.call(doc);
+  }
+  
+  //toggle grid repeat
+  function toggleGridRepeat() {
+      Grid.repeat = !Grid.repeat;
+      requestAnimationFrame(draw);
   }
