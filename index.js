@@ -175,18 +175,21 @@ requestAnimationFrame(draw); // redraw canvas
 
 if(isMobile) {
     canvas.addEventListener('touchstart', pointerDown, false);
-
-
+    document.addEventListener('touchend',  pointerUp, false);
+    document.addEventListener('touchcancel', pointerUp, false);
 	canvas.addEventListener('touchmove', (event) => {
 
+        // only update deltaPointer if not used for scrolling
         if(!pointerActions.scroll) deltaPointer = {x: event.changedTouches[0].clientX - pointerPos.x, y: event.changedTouches[0].clientY - pointerPos.y};
         pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
         
         if(pointerActions.scroll) {
+            // get vector from touch 0 to 1, then get distance
             const xDist = (event.touches[1].clientX - event.touches[0].clientX);
             const yDist = (event.touches[1].clientY - event.touches[0].clientY);
             const spread = Math.sqrt(xDist * xDist + yDist * yDist);
 
+            // pointerSpread was set to 0 when 2nd finger pointerDown, so make sure deltaSpread will be 0
             if(pointerSpread === 0) pointerSpread = spread;
             const deltaSpread = (pointerSpread - spread) / 10;
             pointerSpread = spread;
@@ -194,34 +197,21 @@ if(isMobile) {
             // current pointer center
             const pointerCenter = {x: (event.changedTouches[1].clientX + pointerPos.x)/2, y: (event.changedTouches[1].clientY + pointerPos.y)/2};
 
-            // if touchDown, no change in pointerCenter
+            // deltaPointer was set to (0, 0) when any touch pointerDown and hasn't changed if scrolling, so make sure deltaPointerCenter will be (0, 0)
             if(!deltaPointer.x && !deltaPointer.y) deltaPointer = pointerCenter;
             const deltaPointerCenter = {x: (pointerCenter.x - deltaPointer.x), y: (pointerCenter.y - deltaPointer.y)};
             deltaPointer = pointerCenter;
 
-            document.getElementById('debug').innerHTML = "(" + Math.round(deltaPointerCenter.x*10) + ", " + Math.round(deltaPointerCenter.y*10) + ")";
-
             zoom(deltaSpread, pointerCenter);
-            /*const oldScale = cameraTrans.scale;
-            cameraTrans.scale -= ZOOM_AMOUNT * deltaSpread * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
-            cameraTrans.scale = Math.min(Math.max(cameraTrans.scale, ZOOM_MIN), ZOOM_MAX); // clamp scale to final variables
-            if(Math.abs(cameraTrans.scale-1) < ZOOM_AMOUNT * 0.5) cameraTrans.scale = 1; // ensure default scale 1 can always be reached
-        
-            // offset the position by the difference in mouse position from before to after scale
-            cameraTrans.offsetX = (pointerCenter.x - (pointerCenter.x - cameraTrans.offsetX) * (cameraTrans.scale / oldScale)) + deltaPointerCenter.x;
-            cameraTrans.offsetY = (pointerCenter.y - (pointerCenter.y - cameraTrans.offsetY) * (cameraTrans.scale / oldScale)) + deltaPointerCenter.y;
-            */
-
-        } else if(erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1))) styleTiles(tileMode);
+            cameraTrans.offsetX += deltaPointerCenter.x;
+            cameraTrans.offsetY += deltaPointerCenter.y;
+        } else if((erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1)) && !viewOnly)) styleTiles(tileMode);
         requestAnimationFrame(draw);
 
     }, false);
-	document.addEventListener('touchend',  pointerUp, false);
-    document.addEventListener('touchcancel', pointerUp, false);
 } else {
     canvas.addEventListener("mousedown", pointerDown, false);
-
-
+    document.addEventListener("mouseup", pointerUp, false);
     document.addEventListener("mousemove", (event) => {
         deltaPointer = {x: event.x - pointerPos.x, y: event.y - pointerPos.y};
         pointerPos = {x : event.x, y : event.y};
@@ -233,9 +223,10 @@ if(isMobile) {
         requestAnimationFrame(draw);
     }, false);
 
-
-    document.addEventListener("mouseup", pointerUp, false);
-    canvas.addEventListener("wheel", (event) => {zoom(Math.sign(event.deltaY), pointerPos); requestAnimationFrame(draw);}, false);
+    canvas.addEventListener("wheel", (event) => {
+        zoom(Math.sign(event.deltaY), pointerPos); 
+        requestAnimationFrame(draw);
+    }, false);
 
     /**
      *  key input
@@ -283,7 +274,10 @@ function pointerDown(event) {
     else pointerPos = {x : event.x, y : event.y};
 
     let scrolling = false;
-    if(isMobile && event.touches.length !== 1) scrolling = true;
+    if(isMobile && event.touches.length === 2) {
+        scrolling = true;
+        pointerSpread = 0;
+    }
     else if(event.button === 1) scrolling = true;
     
     if(scrolling) pointerActions.scroll = true;
@@ -291,16 +285,17 @@ function pointerDown(event) {
         pointerActions.primary = true;
         styleTiles(tileMode);
         requestAnimationFrame(draw);
-    } 
+    }
+    Document.getElementById("debug").innerHTML = steps;
 }
 
 function pointerUp(event) {
     if(!pointerActions.primary && !pointerActions.scroll) return;
     pointerActions.primary = false;
     pointerActions.scroll = false;
-    pointerSpread = 0;
     erasing = false;
     if(!viewOnly) condenseArray(steps);   //broken
+    Document.getElementById("debug").innerHTML = steps;
 }
 
 /** 
