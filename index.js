@@ -246,6 +246,7 @@ requestAnimationFrame(draw); // redraw canvas
 
 if(isMobile) {
     canvas.addEventListener('touchstart', (event) => {
+        if(event.touches.length > 2) return;    // don't bother with 3 finger gestures
         if(!viewOnly) {
             steps.push(null); //add empty step to mark where step started
             futureSteps = [];
@@ -282,6 +283,7 @@ if(isMobile) {
     document.addEventListener('touchend',  touchEnd, false);
     document.addEventListener('touchcancel', touchEnd, false);
     function touchEnd(event) {
+        if(event.touches.length > 2) return;    // don't bother with 3 finger gestures
         if(!pointerActions.primary && !pointerActions.scroll) return;   // html buttons pressed over canvas
         if(!viewOnly && !pointerActions.scroll) condenseArray(steps);
         pointerActions.primary = false;
@@ -303,7 +305,7 @@ if(isMobile) {
 
             // pointerSpread was set to 0 when 2nd finger pointerDown, so make sure deltaSpread will be 0
             if(pointerSpread === 0) pointerSpread = spread;
-            const deltaSpread = (pointerSpread - spread) / 10;
+            const deltaSpread = (pointerSpread - spread) / 16;
             pointerSpread = spread;
 
             // current pointer center
