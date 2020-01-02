@@ -129,7 +129,7 @@ html, body {
     left:0;
 }
 
-#framePlay {
+#playFrame {
     height: 50px;
 }
 
@@ -172,7 +172,7 @@ html, body {
     font: 20px/1.4 "Roboto", sans-serif;
     position: absolute;
     top: -6px;
-    right: 19vw;
+    right: 4vw;
     pointer-events: none;
     -webkit-touch-callout: none; /* iOS Safari */
         -webkit-user-select: none; /* Safari */
@@ -297,7 +297,14 @@ input[type="range"]:focus {
 }
 
 #debug {
-    position: absolute; top: 0px; left: 10px;
+    position: absolute; top: -20px; left: 10px;
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Opera and Firefox */
 }
 
 #undo {

@@ -3,7 +3,9 @@
  * @date 12/27/2019
  */
 
- // modulus method that works with negative numbers, retrieved from: https://web.archive.org/web/20090717035140if_/javascript.about.com/od/problemsolving/a/modulobug.htm
+//#region initialize environment
+
+// modulus method that works with negative numbers, retrieved from: https://web.archive.org/web/20090717035140if_/javascript.about.com/od/problemsolving/a/modulobug.htm
 Number.prototype.mod = function(n) {
     return ((this%n)+n)%n;
 };
@@ -34,6 +36,8 @@ function resizeCanvas() {
     canvas.height = window.innerHeight;
     requestAnimationFrame(draw); // redraw canvas
 }
+
+//#endregion
 
 /**
  *  draw function is essentially an efficiently called update function, 
@@ -80,7 +84,7 @@ class Grid {
 
             // draw grid background
             ctx.fillStyle = "#fcc";
-            ctx.fillRect(0, 0, this.width * TILE_SIZE - GRID_LINE_WIDTH, this.height * TILE_SIZE);
+            ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
 
             // draw grid background lines
             ctx.strokeStyle = "#a99";
@@ -223,16 +227,20 @@ let viewOnly = false;
 let eraser = true;
 let erasing = false;
 
-// undo redo stages
+// undo redo steps
 const UNDO_STEPS = 40;
 let steps = [];
 let futureSteps = [];
 
+// play mode
+let playing = false;
+let playSpeed = 1;
+
 // camera view
 let cameraTrans = {scale: 1, offsetX: 0, offsetY: 0};
 const ZOOM_AMOUNT = 0.1;
-const ZOOM_MIN = 0.2 * Math.max(window.innerWidth, window.innerHeight) / 1400;    // this allows smaller screens to zoom similar to larger screens
-const ZOOM_MAX = 8 * Math.max(window.innerWidth, window.innerHeight) / 1400;
+const ZOOM_MIN = 0.2 * Math.max(window.innerWidth, window.innerHeight) / 1200;    // this allows smaller screens to zoom similar to larger screens
+const ZOOM_MAX = 8 * Math.max(window.innerWidth, window.innerHeight) / 1200;
 
 //resize canvas on load, then center camera based off canvas
 canvas.width = window.innerWidth;
@@ -463,23 +471,10 @@ function zoom(amount, referencePoint) {
     cameraTrans.offsetY = (referencePoint.y - (referencePoint.y - cameraTrans.offsetY) * (cameraTrans.scale / oldScale));
 }
 
-function incFrame(inc) {
-
-}
-
-function playFrame() {
-
-}
-
-function setFrameSpeed() {
-    const val = Math.ceil(Math.pow(document.getElementById("frameSpeed").value, 2)/100);
-    document.getElementById("frameSpeedText").innerHTML = (val/10).toFixed(1);
-}
-
 //#endregion
 //#region html function calls
 
- function setTileMode(newTileMode) {
+function setTileMode(newTileMode) {
     if(newTileMode === -1) {
         eraser = document.getElementById('eraser').checked;  // if eraser button is pressed, toggle eraser
         viewOnly = !eraser;
@@ -493,16 +488,16 @@ function setFrameSpeed() {
             for(var i=2; i<tools.length; i += 2) tools[i].checked = false;  // uncheck all radio type tools
         } else tileMode = newTileMode;
     }
- }
+}
 
- /**
-  * Undo and redo use Arrays to hold steps.
-  * Array steps and futureSteps holds Arrays of individual tile changes called step and futureStep.
-  * On undo, a step from steps is inverted and passed to futureSteps.
-  * There is an arbitrary constant UNDO_STEPS to decide how many steps are saved.
-  * If the user undoes and then changes tiles, futureSteps are wiped so that the user cannot redo. 
-  */
- function undo() {
+/**
+ * Undo and redo use Arrays to hold steps.
+ * Array steps and futureSteps holds Arrays of individual tile changes called step and futureStep.
+ * On undo, a step from steps is inverted and passed to futureSteps.
+ * There is an arbitrary constant UNDO_STEPS to decide how many steps are saved.
+ * If the user undoes and then changes tiles, futureSteps are wiped so that the user cannot redo. 
+ */
+function undo() {
     if(steps.length <= 0) return;
     let step = steps.pop();
     let futureStep = [];
@@ -516,9 +511,9 @@ function setFrameSpeed() {
     futureSteps.push(futureStep);
     requestAnimationFrame(draw);
     document.getElementById("debug").innerHTML = logSteps();
- }
+}
 
- function redo() {
+function redo() {
     if(futureSteps.length <= 0) return;
     let futureStep = futureSteps.pop();
     let step = [];
@@ -532,30 +527,133 @@ function setFrameSpeed() {
     steps.push(step);
     requestAnimationFrame(draw);
     document.getElementById("debug").innerHTML = logSteps();
- }
+}
 
- // call fullscreen methods compatible for all browsers, retrieved from: https://developers.google.com/web/fundamentals/native-hardware/fullscreen/
- function toggleFullscreen() {
+// call fullscreen methods compatible for all browsers, retrieved from: https://developers.google.com/web/fundamentals/native-hardware/fullscreen/
+function toggleFullscreen() {
     var doc = window.document;
     var docEl = doc.documentElement;
-  
+
     var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
     var cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
-  
+
     if(!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) requestFullScreen.call(docEl);
     else cancelFullScreen.call(doc);
-  }
-  
-  // toggle grid repeat
-  function toggleGridRepeat() {
-      Grid.repeat = !Grid.repeat;
-      requestAnimationFrame(draw);
-  }
+}
 
-  //#endregion
+// toggle grid repeat
+function toggleGridRepeat() {
+    Grid.repeat = !Grid.repeat;
+    requestAnimationFrame(draw);
+}
 
-  // return a string displaying undo/redo steps. (#, #) are complete steps, (#, 6) shows number of changed tiles in current step
-  function logSteps() {
+var frameInterval;
+
+// update tiles by rules
+function incFrame(inc) {
+    //if(!inc && !playing) return;
+
+    // empty undo and redo steps
+    steps = [];
+    futureSteps = [];
+
+    // neighbor tile location in array is stores here
+    var neighbors = [null, null, null, null, null, null, null, null];
+    var modifiedTiles = [...Grid.tiles];
+
+    if(!Grid.repeat) {
+        for(var i=0; i<Grid.tiles.length; i++) {
+            const k = i.mod(Grid.width);
+
+            // find if neighbor Grid.tiles right, left, up, and down exist, if so, get their address
+            if((k+1).mod(Grid.width) > k) neighbors[7] = i+1;
+            if((k-1).mod(Grid.width) < k) neighbors[3] = i-1;
+            if((i-Grid.width) >= 0) neighbors[1] = i-Grid.width;
+            if((i+Grid.width) < Grid.tiles.length) neighbors[5] = i+Grid.width;
+
+            // find if corner neighbor Grid.tiles upright, upleft, downright, and downleft exist, if so, get their address
+            if(neighbors[1] !== null) {
+                if(neighbors[7] !== null) neighbors[0] = neighbors[1] + 1;
+                if(neighbors[3] !== null) neighbors[2] = neighbors[1] - 1;
+            } 
+            if(neighbors[5] !== null) {
+                if(neighbors[7] !== null) neighbors[6] = neighbors[5] + 1;
+                if(neighbors[3] !== null) neighbors[4] = neighbors[5] - 1;
+            }
+
+            // filter out null or non-existant elements
+            neighbors = neighbors.filter((n) => {if(Grid.tiles[n]) return n});
+            
+            // Conway's Game of Life rules
+            if(Grid.tiles[i] > 0) {
+                if(neighbors.length < 2 || neighbors.length > 3) modifiedTiles[i] = 0;
+            } else if(neighbors.length === 3) modifiedTiles[i] = 1;
+            
+            neighbors = [null, null, null, null, null, null, null, null];
+        }
+    } else {
+        const gridLength = Grid.tiles.length;
+        for(var i=0; i<gridLength; i++) {
+            const k = i.mod(Grid.width);
+
+            // get all neighbors tile addresses
+            neighbors[7] = (i+1).mod(gridLength);
+            neighbors[3] = (i-1).mod(gridLength);
+            neighbors[1] = (i-Grid.width).mod(gridLength);
+            neighbors[5] = (i+Grid.width).mod(gridLength);
+            neighbors[0] = (neighbors[1] + 1).mod(gridLength);
+            neighbors[2] = (neighbors[1] - 1).mod(gridLength);
+            neighbors[6] = (neighbors[5] + 1).mod(gridLength);
+            neighbors[4] = (neighbors[5] - 1).mod(gridLength);
+            
+
+            // filter out null or non-existant elements
+            neighbors = neighbors.filter((n) => {if(Grid.tiles[n]) return n});
+            
+            // Conway's Game of Life rules
+            if(Grid.tiles[i] > 0) {
+                if(neighbors.length < 2 || neighbors.length > 3) modifiedTiles[i] = 0;
+            } else if(neighbors.length === 3) modifiedTiles[i] = 1;
+            
+            neighbors = [null, null, null, null, null, null, null, null];
+        }
+    }
+
+    Grid.tiles = modifiedTiles;
+    requestAnimationFrame(draw);
+
+    if(playing) frameInterval = setTimeout(() => incFrame(1), 1000 / playSpeed);
+}
+
+function playFrame() {
+    playing = !playing;
+    console.log(playing ? "Play" : "Pause");
+    const element = document.getElementById('playFrame');
+    if(playing) {
+        incFrame(1);
+        element.style.backgroundColor = "#888";
+        element.style.transform = "translateY(2px)";
+        element.style.boxShadow = "0 4px #666";
+        element.innerHTML = "II";
+    } else {
+        element.style.backgroundColor = "#222";
+        element.style.transform = "translateY(-4px)";
+        element.style.boxShadow = "0 10px #666";
+        element.innerHTML = "Play";
+    }
+}
+
+function setFrameSpeed() {
+    playSpeed = Math.ceil(Math.pow(document.getElementById("frameSpeed").value/10, 2)/100);
+    document.getElementById("frameSpeedText").innerHTML = "x" + (playSpeed/10).toFixed(1);
+    clearInterval(frameInterval);
+    incFrame(1);
+}
+
+//#endregion
+
+// return a string displaying undo/redo steps. (#, #) are complete steps, (#, 6) shows number of changed tiles in current step
+function logSteps() {
     var str = "(";
     var i=0;
     while(steps[i]) {

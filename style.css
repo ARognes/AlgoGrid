@@ -27,6 +27,7 @@ html, body {
     display: inline-block;
     font: 18px/1.4 "Roboto", sans-serif;
     padding: 10px 10px;
+    margin: 0 2px 0 2px;
     border-radius: 8px;
     border: none;
     text-align: center;
@@ -47,7 +48,7 @@ html, body {
     display: inline-block;
     font: 18px/1.4 "Roboto", sans-serif;
     padding: 10px 10px;
-    margin: 12px 0 0 0;
+    margin: 0 2px 0 2px;
     border-radius: 8px;
     border: none;
     text-align: center;
@@ -86,28 +87,31 @@ html, body {
 
 #framebar {
     display: inline-block;
-	background-color: #dcc;
+	background-color: #544;
     border-radius: 8px;
     box-shadow: 0 10px #666;
-    padding: 0px 40px 10px 40px;
+    padding: 0px 20px 90px 20px;
     position: absolute;
-    bottom: 120px;
+    bottom: 20px;
+    left: 28px;
 }
 
-#framePlay {
-    width: 60px;
-    height: 60px;
+#playFrame {
+    width: 50px;
+    height: 50px;
 }
 
 .frameBtn {
     display: inline-block;
     font: 18px/1.4 "Roboto", sans-serif;
     padding: 10px 10px;
-    width: 50px;
+    margin: 0 2px 0 2px;
+    width: 40px;
     border-radius: 8px;
     border: none;
     text-align: center;
-    background-color: #2b2;
+    color: #bbb;
+    background-color: #222;
     box-shadow: 0 10px #666;
     transform: translateY(-4px);
     
@@ -121,7 +125,7 @@ html, body {
 }
 
 .frameBtn:active {
-    background-color: #f82;
+    background-color: #888;
     transform: translateY(2px);
     box-shadow: 0 4px #666;
 }
@@ -135,7 +139,7 @@ html, body {
     font: 20px/1.4 "Roboto", sans-serif;
     position: absolute;
     top: 4px;
-    left: 255px;
+    left: 230px;
     pointer-events: none;
     -webkit-touch-callout: none; /* iOS Safari */
         -webkit-user-select: none; /* Safari */
@@ -148,7 +152,7 @@ html, body {
 
 input[type="range"] { 
     -webkit-appearance: none;
-    margin: 0;
+    margin: 0 2px 0 2px;
     display: inline-block;
     position: relative;
     top: 14px;
@@ -277,6 +281,13 @@ input[type="range"]:focus {
 
 #debug {
     position: absolute; top: -20px; left: 10px;
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Opera and Firefox */
 }
 
 #undo {
