@@ -23,6 +23,33 @@ if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine
 // get context and add input listeners
 var canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
 
+// resize the canvas to fill browser window dynamically
+window.addEventListener('resize', resizeCanvas, false);
+
+// canvas is always full window
+function resizeCanvas() {
+    cameraTrans.offsetX -= (canvas.width - window.innerWidth) / 2;
+    cameraTrans.offsetY -= (canvas.height - window.innerHeight) / 2;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    requestAnimationFrame(draw); // redraw canvas
+}
+
+/**
+ *  draw function is essentially an efficiently called update function, 
+ *  i.e. it only updates when the user has changed something.
+ */
+function draw() {
+
+    const time = (Date.now() - TIMER_START) / 10;
+
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.translate(cameraTrans.offsetX, cameraTrans.offsetY);
+    ctx.scale(cameraTrans.scale, cameraTrans.scale);
+
+    Grid.draw();
+}
 
 class Grid {
     constructor(width, height) {
@@ -128,6 +155,8 @@ class Grid {
     }
 }
 
+//#region global variable initialization
+
 // input variables
 let pointerPos = {x: 0, y: 0};
 let deltaPointer = {x: 0, y: 0};
@@ -166,13 +195,13 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 cameraTrans.offsetX = canvas.width/2 - Grid.width * TILE_SIZE / 2 + TILE_SHRINK/2;
 cameraTrans.offsetY = canvas.height/2 - Grid.height * TILE_SIZE / 2 + TILE_SHRINK/2;
-
 requestAnimationFrame(draw); // redraw canvas
 
-/**
- * mobile input and pc input are funneled into the same functions
- */
+//#endregion
+//#region input
 
+
+//mobile input and pc input are mostly funneled into the same functions for organization
 if(isMobile) {
     canvas.addEventListener('touchstart', pointerDown, false);
     document.addEventListener('touchend',  pointerUp, false);
@@ -269,20 +298,28 @@ function pointerDown(event) {
         futureSteps = [];
     }
 
-    deltaPointer = {x : 0, y : 0};
+    // set deltaPointer to (0, 0) as this is the reference point, then set pointerPos as mouse/first touch position
+    deltaPointer = {x : 0, y : 0}; 
     if(isMobile) pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
     else pointerPos = {x : event.x, y : event.y};
 
-    if(isMobile && event.touches.length === 2) {
-        pointerSpread = 0;
-        if(!viewOnly) {
-            steps.pop();
-            Grid.tiles[steps[steps.length-1].pos] = steps[steps.length-1].revert;
-            steps.pop();
-            steps.pop();
+    if(isMobile && event.touches.length === 2) {    // if second finger is pressed on mobile, scrolling begins and anything done by the first finger is undone
+        pointerSpread = 0;  // set pointerSpread to 0 as this is the reference point
+
+        if(!viewOnly) { // if viewOnly = true then the tiles and steps were never changed in the first place
+            if(steps[steps.length-3] === null) {                                        // if first touch only affected one tile
+                steps.pop();                                                            // remove null step pushed from second touch
+                Grid.tiles[steps[steps.length-1].pos] = steps[steps.length-1].revert;   // undo tile affected by first touch
+                steps.pop();                                                            // remove first touch step
+                steps.pop();                                                            // remove null step pushed from first touch
+            } else {                // if first touch moved and affected more than one tile
+                steps.pop();        // remove null step pushed from second touch
+                condenseArray();    // count the first touch movement as a step
+            }
             document.getElementById("debug").innerHTML = logSteps();
         }
     }
+
     if((isMobile && event.touches.length === 2) || event.button === 1) pointerActions.scroll = true;
     else if(!viewOnly) {
         pointerActions.primary = true;
@@ -354,37 +391,8 @@ function checkTile(gx, gy, style) {
     document.getElementById("debug").innerHTML = logSteps();
 }
 
-// resize the canvas to fill browser window dynamically
-window.addEventListener('resize', resizeCanvas, false);
-
-// canvas is always full window
-function resizeCanvas() {
-    cameraTrans.offsetX -= (canvas.width - window.innerWidth) / 2;
-    cameraTrans.offsetY -= (canvas.height - window.innerHeight) / 2;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    requestAnimationFrame(draw); // redraw canvas
-}
-
-/**
- *  draw function is essentially an efficiently called update function, 
- *  i.e. it only updates when the user has changed something.
- */
-function draw() {
-
-    const time = (Date.now() - TIMER_START) / 10;
-
-    ctx.setTransform(1,0,0,1,0,0);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.translate(cameraTrans.offsetX, cameraTrans.offsetY);
-    ctx.scale(cameraTrans.scale, cameraTrans.scale);
-
-    Grid.draw();
-}
-
-/**
- * html tag function calls
- */
+//#endregion
+//#region html function calls
 
  function setTileMode(newTileMode) {
     if(newTileMode === -1) {
@@ -458,6 +466,8 @@ function draw() {
       Grid.repeat = !Grid.repeat;
       requestAnimationFrame(draw);
   }
+
+  //#endregion
 
   // return a string displaying undo/redo steps. (#, #) are complete steps, (#, 6) shows number of changed tiles in current step
   function logSteps() {
