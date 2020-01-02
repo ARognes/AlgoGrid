@@ -622,7 +622,7 @@ function incFrame(inc) {
     Grid.tiles = modifiedTiles;
     requestAnimationFrame(draw);
 
-    if(playing) frameInterval = setTimeout(() => incFrame(1), 1000 / playSpeed);
+    if(!inc && playing) frameInterval = setTimeout(() => incFrame(0), 1000 / playSpeed);
 }
 
 function playFrame() {
@@ -630,7 +630,7 @@ function playFrame() {
     console.log(playing ? "Play" : "Pause");
     const element = document.getElementById('playFrame');
     if(playing) {
-        incFrame(1);
+        incFrame(0);
         element.style.backgroundColor = "#888";
         element.style.transform = "translateY(2px)";
         element.style.boxShadow = "0 4px #666";
@@ -647,7 +647,7 @@ function setFrameSpeed() {
     playSpeed = Math.ceil(Math.pow(document.getElementById("frameSpeed").value/10, 2)/100);
     document.getElementById("frameSpeedText").innerHTML = "x" + (playSpeed/10).toFixed(1);
     clearInterval(frameInterval);
-    incFrame(1);
+    if(playing) incFrame(0);
 }
 
 //#endregion

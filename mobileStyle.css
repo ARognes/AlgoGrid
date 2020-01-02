@@ -297,7 +297,7 @@ input[type="range"]:focus {
 }
 
 #debug {
-    position: absolute; top: -20px; left: 10px;
+    position: absolute; top: 30px; left: 110px;
     -webkit-touch-callout: none; /* iOS Safari */
         -webkit-user-select: none; /* Safari */
          -khtml-user-select: none; /* Konqueror HTML */
@@ -316,19 +316,19 @@ input[type="range"]:focus {
 }
 
 #gridDec {
-    position: absolute; top: 60px; right: 60px; width: 40px; height: 40px;
+    position: absolute; top: 10px; right: 160px; width: 40px; height: 40px;
 }
 
 #gridInc {
-    position: absolute; top: 60px; right: 10px; width: 40px; height: 40px;
+    position: absolute; top: 10px; right: 110px; width: 40px; height: 40px;
 }
 
 #fullscreen {
-    position: absolute; top: 110px; right: 10px; width: 90px; height: 40px;
+    position: absolute; top: 10px; left: 10px; width: 90px; height: 40px;
 }
 
 #gridRepeat {
-    position: absolute; top: 160px; right: 10px; width: 90px; height: 40px;
+    position: absolute; top: 60px; left: 10px; width: 90px; height: 40px;
 }
 
 /*#endregion*/
