@@ -231,8 +231,8 @@ let futureSteps = [];
 // camera view
 let cameraTrans = {scale: 1, offsetX: 0, offsetY: 0};
 const ZOOM_AMOUNT = 0.1;
-const ZOOM_MIN = 0.2;
-const ZOOM_MAX = 8;
+const ZOOM_MIN = 0.2 * Math.max(window.innerWidth, window.innerHeight) / 1400;    // this allows smaller screens to zoom similar to larger screens
+const ZOOM_MAX = 8 * Math.max(window.innerWidth, window.innerHeight) / 1400;
 
 //resize canvas on load, then center camera based off canvas
 canvas.width = window.innerWidth;
@@ -461,6 +461,19 @@ function zoom(amount, referencePoint) {
     // offset the position by the difference in mouse position from before to after scale
     cameraTrans.offsetX = (referencePoint.x - (referencePoint.x - cameraTrans.offsetX) * (cameraTrans.scale / oldScale));
     cameraTrans.offsetY = (referencePoint.y - (referencePoint.y - cameraTrans.offsetY) * (cameraTrans.scale / oldScale));
+}
+
+function incFrame(inc) {
+
+}
+
+function playFrame() {
+
+}
+
+function setFrameSpeed() {
+    const val = Math.ceil(Math.pow(document.getElementById("frameSpeed").value, 2)/100);
+    document.getElementById("frameSpeedText").innerHTML = (val/10).toFixed(1);
 }
 
 //#endregion

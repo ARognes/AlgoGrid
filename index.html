@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tile Grid Commit 51</title>
+    <title>Tile Grid Commit 52</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="description" content="An HTML website using a canvas to display an interactive grid. My first in-depth use of Javascript.">
@@ -16,22 +16,28 @@
 
     <canvas id="canvas"></canvas>
     
-    <div class="menu">
-        <h4 id="debug">Welcome!</h4>
+    <h4 id="debug">Welcome!</h4>
+
+    <div id="framebar">
+        <button onClick="incFrame(-1)" class="frameBtn"><<</button
+        ><button onClick="incFrame(1)" class="frameBtn">>></button
+        ><button onClick="playFrame()" class="frameBtn" id="framePlay">Play</button
+        ><input type="range" oninput="setFrameSpeed()" min="10" max="100" value="20" id="frameSpeed"
+        ><p id="frameSpeedText">1.0</p>
     </div>
 
     <div id="toolbar">
-        <input type="checkbox" onClick="setTileMode(-1)" checked="checked" id="eraser">
-        <label for="eraser">Eraser</label>
+        <input type="checkbox" onClick="setTileMode(-1)" checked="checked" id="eraser"
+        ><label for="eraser">Eraser</label
         
-        <input type="radio" onClick="setTileMode(1)" id="barrier" checked="checked" name="tool">
-        <label for="barrier" class="tilestyle">Barrier</label>
+        ><input type="radio" onClick="setTileMode(1)" id="barrier" checked="checked" name="tool"
+        ><label for="barrier" class="tilestyle">Barrier</label
     
-        <input type="radio" onClick="setTileMode(2)" id="target" name="tool">
-        <label for="target">Target</label>
+        ><input type="radio" onClick="setTileMode(2)" id="target" name="tool"
+        ><label for="target">Target</label
     
-        <input type="radio" onClick="setTileMode(3)" id="unit" name="tool">
-        <label for="unit">Unit</label>
+        ><input type="radio" onClick="setTileMode(3)" id="unit" name="tool"
+        ><label for="unit">Unit</label>
     </div>
 
     <button onClick="undo()" class="smBtn" id="undo"><<</button>

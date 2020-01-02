@@ -4,12 +4,8 @@ html, body {
     font: 18px/1.4 "Roboto", sans-serif;
 }
 
-#canvas {
-    display: block;
-    background-color: #a99;
-}
 
-
+/*#region toolbar*/
 #toolbar {
 	display: inline-block;
 	background-color: #dcc;
@@ -59,6 +55,7 @@ html, body {
     box-shadow: 0 10px #666;
     transform: translateY(-4px);
     
+    
     -webkit-touch-callout: none; /* iOS Safari */
         -webkit-user-select: none; /* Safari */
          -khtml-user-select: none; /* Konqueror HTML */
@@ -84,7 +81,152 @@ html, body {
 	background-color: #090;
 }
 
+/*#endregion toolbar*/
+/*#region framebar*/
 
+#framebar {
+    display: inline-block;
+	background-color: #dcc;
+    border-radius: 8px;
+    box-shadow: 0 10px #666;
+    padding: 0px 40px 10px 40px;
+    position: absolute;
+    bottom: 120px;
+}
+
+#framePlay {
+    width: 60px;
+    height: 60px;
+}
+
+.frameBtn {
+    display: inline-block;
+    font: 18px/1.4 "Roboto", sans-serif;
+    padding: 10px 10px;
+    width: 50px;
+    border-radius: 8px;
+    border: none;
+    text-align: center;
+    background-color: #2b2;
+    box-shadow: 0 10px #666;
+    transform: translateY(-4px);
+    
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Opera and Firefox */
+}
+
+.frameBtn:active {
+    background-color: #f82;
+    transform: translateY(2px);
+    box-shadow: 0 4px #666;
+}
+
+.frameBtn:focus {
+    outline: 0;
+}
+
+#frameSpeedText {
+    text-align: center;
+    font: 20px/1.4 "Roboto", sans-serif;
+    position: absolute;
+    top: 4px;
+    left: 255px;
+    pointer-events: none;
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Opera and Firefox */
+}
+
+input[type="range"] { 
+    -webkit-appearance: none;
+    margin: 0;
+    display: inline-block;
+    position: relative;
+    top: 14px;
+    height: 46px;
+    width: 120px;
+    overflow: hidden;
+    cursor: pointer;
+    border-radius: 8px;
+    box-shadow: 0 10px #666;
+}
+
+input[type="range"] + label { 
+    position: relative;
+    left: -60px;
+    text-align: center;
+}
+
+input[type="range"]:focus { 
+    outline: none;
+}
+
+::-webkit-slider-runnable-track {
+    background: #bbf;
+}
+
+::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 0;
+    height: 46px;
+    box-shadow: -100vw 0 0 100vw dodgerblue;
+}
+
+::-moz-range-track {
+    height: 46px;
+    background: #eee;
+}
+
+::-moz-range-thumb {
+    display: none;
+    background: #fff;
+    height: 46px;
+    width: 0;
+    box-shadow: -100vw 0 0 100vw dodgerblue;
+    box-sizing: border-box;
+}
+
+::-ms-fill-lower {
+    background: dodgerblue;
+}
+
+::-ms-thumb {
+    background: #fff;
+    height: 46px;
+    width: 0;
+    box-sizing: border-box;
+}
+
+::-ms-ticks-after {
+    display: none; 
+}
+
+::-ms-ticks-before {
+    display: none; 
+}
+
+::-ms-track {
+    background: #ddd;
+    color: transparent;
+    height: 40px;
+    border: none;
+}
+
+::-ms-tooltip {
+    display: none;
+}
+
+/*#endregion*/
+/*#region classes*/
 .smBtn {
     font: 18px/1.4 "Roboto", sans-serif;
     width: 50px; height: 50px;
@@ -125,9 +267,16 @@ html, body {
                                       supported by Chrome, Opera and Firefox */
 }
 
+/*#endregion classes*/
+/*#region ids*/
+
+#canvas {
+    display: block;
+    background-color: #a99;
+}
+
 #debug {
-    position: relative; top: -10px;
-    text-align: center;
+    position: absolute; top: -20px; left: 10px;
 }
 
 #undo {
@@ -153,3 +302,7 @@ html, body {
 #gridRepeat {
     position: absolute; top: 160px; right: 10px; width: 90px; height: 40px;
 }
+
+/*#endregion*/
+
+
