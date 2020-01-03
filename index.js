@@ -680,13 +680,13 @@ function playFrame() {
         incFrame(true);
         element.style.backgroundColor = "#888";
         element.style.transform = "translateY(2px)";
-        element.style.boxShadow = "0 4px #666";
+        //element.style.boxShadow = "0 4px #666";
         element.innerHTML = "II";
     } else {
         clearInterval(frameInterval);
         element.style.backgroundColor = "#222";
         element.style.transform = "translateY(-4px)";
-        element.style.boxShadow = "0 10px #666";
+        //element.style.boxShadow = "0 10px #666";
         element.innerHTML = "Play";
     }
 }
@@ -705,12 +705,12 @@ function setSimpleViewMode() {
         canvas.style.backgroundColor = "#000";
         element.style.backgroundColor = "#888";
         element.style.transform = "translateY(2px)";
-        element.style.boxShadow = "0 4px #666";
+        //element.style.boxShadow = "0 4px #666";
     } else {
         canvas.style.backgroundColor = "#a99";
         element.style.backgroundColor = "#222";
         element.style.transform = "translateY(-4px)";
-        element.style.boxShadow = "0 10px #666";
+        //element.style.boxShadow = "0 10px #666";
     }
     requestAnimationFrame(draw);
 }

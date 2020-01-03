@@ -32,17 +32,66 @@ html, body {
     outline: none;
 }*/
 
+/*#region modebar*/
 
+#modebar {
+    display: inline-block;
+    position: fixed;
+    width: 99%;
+    bottom: 0;
+    left: 0.5%;
+	/*background-color: #dcc;
+    border-radius: 8px;
+    box-shadow: 0 10px #666;
+    padding: 10px 2.5vw 20px 2.5vw;
+    position: fixed;
+    bottom: 0;
+    left: 3.5vw;*/
+}
+
+#modebar input[type="radio"] {
+    opacity: 0;
+    width: 0;
+    display: none;
+}
+
+#modebar input[type="radio"] + label {
+    display: inline-block;
+    font: 18px/1.4 "Roboto", sans-serif;
+    height: 30px;
+    width: 33vw;
+    border-radius: 14px 14px 0 0;
+    border: none;
+    text-align: center;
+    background-color: #2b2;
+    /*transform: translateY(-4px);*/
+    
+    -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+         -khtml-user-select: none; /* Konqueror HTML */
+           -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+                user-select: none; /* Non-prefixed version, currently
+                                      supported by Chrome, Opera and Firefox */
+}
+
+#modebar input[type="radio"]:checked + label {
+    background-color: #f82;
+    transform: translateY(8px);
+    box-shadow: 0 4px #666;
+}
+
+/*#endregion*/
 /*#region toolbar*/
 
 #toolbar {
 	display: inline-block;
 	background-color: #dcc;
     border-radius: 8px;
-    box-shadow: 0 10px #666;
-    padding: 10px 2.5vw 20px 2.5vw;
+
+    padding: 10px 2.5vw 40px 2.5vw;
     position: fixed;
-    bottom: 10px;
+    bottom: 0;
     left: 3.5vw;
 }
 
@@ -55,8 +104,8 @@ html, body {
 #toolbar input[type="radio"] + label {
     display: inline-block;
     font: 18px/1.4 "Roboto", sans-serif;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding-top: 4px;
+    padding-bottom: 4px;
     width: 21vw;
     margin: 0 0.5vw;
     border-radius: 8px;
@@ -78,8 +127,8 @@ html, body {
 #toolbar input[type="checkbox"] + label {
     display: inline-block;
     font: 18px/1.4 "Roboto", sans-serif;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding-top: 4px;
+    padding-bottom: 4px;
     width: 21vw;
     margin: 0 0.5vw;
     border-radius: 8px;
@@ -121,16 +170,16 @@ html, body {
     display: inline-block;
 	background-color: #544;
     border-radius: 8px;
-    padding: 4px 2.5vw 110px 2.5vw;
+    padding: 0 2.5vw 20px 2.5vw;
     margin: 0 5vw;
     width: 85vw;
-    position: absolute;
-    bottom: -10px;
+    position: fixed;
+    bottom: 55px;
     left:0;
 }
 
 #playFrame {
-    height: 50px;
+    height: 45px;
 }
 
 .frameBtn {
@@ -140,12 +189,11 @@ html, body {
     padding-top: 5px;
     width: 15vw;
     margin: 0 0.5vw;
-    border-radius: 8px;
+    border-radius: 8px 8px 0 0;
     border: none;
     text-align: center;
     color: #bbb;
     background-color: #222;
-    box-shadow: 0 10px #666;
     transform: translateY(-4px);
     
     -webkit-touch-callout: none; /* iOS Safari */
@@ -160,7 +208,6 @@ html, body {
 .frameBtn:active {
     background-color: #888;
     transform: translateY(2px);
-    box-shadow: 0 4px #666;
 }
 
 .frameBtn:focus {
@@ -193,8 +240,7 @@ input[type="range"] {
     width: 36vw;
     overflow: hidden;
     cursor: pointer;
-    border-radius: 8px;
-    box-shadow: 0 10px #666;
+    border-radius: 8px 8px 0 0;
 }
 
 input[type="range"] + label { 
@@ -254,7 +300,7 @@ input[type="range"]:focus {
 ::-ms-track {
     background: #ddd;
     color: transparent;
-    height: 40px;
+    height: 46px;
     border: none;
 }
 
