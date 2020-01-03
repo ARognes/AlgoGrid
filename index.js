@@ -64,6 +64,7 @@ function draw() {
 class Grid {
     constructor(width, height) {
         this.repeat = false;
+        this.simple = false;
         if(height === 0) this.setSize(width, width);
         else this.setSize(width, height);
     }
@@ -82,53 +83,76 @@ class Grid {
             let endY = Math.min(Math.ceil((-cameraTrans.offsetY + canvas.height) / cameraTrans.scale / TILE_SIZE), this.height);
             if(endY < 0) return;
 
-            // draw grid background
-            ctx.fillStyle = "#fcc";
-            ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
+            if(!this.simple) {
 
-            // draw grid background lines
-            ctx.strokeStyle = "#a99";
-            ctx.lineWidth = GRID_LINE_WIDTH;
-            for(var i = beginX; i <= endX; i++) {
-                ctx.beginPath();
-                ctx.moveTo(i * TILE_SIZE, 0);
-                ctx.lineTo(i * TILE_SIZE, endY * TILE_SIZE);
-                ctx.stroke();
-            }
-            for(var i = beginY; i <= endY; i++) {
-                ctx.beginPath();
-                ctx.moveTo(0, i * TILE_SIZE);
-                ctx.lineTo(endX * TILE_SIZE, i * TILE_SIZE);
-                ctx.stroke();
-            }
+                // draw grid background
+                ctx.fillStyle = "#fcc";
+                ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
 
-            // iterate through tiles shown on screen
-            for(var i = beginX; i < endX; i++) {
-                for(var j = beginY; j < endY; j++) {
+                // draw grid background lines
+                ctx.strokeStyle = "#a99";
+                ctx.lineWidth = GRID_LINE_WIDTH;
+                for(var i = beginX; i <= endX; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(i * TILE_SIZE, 0);
+                    ctx.lineTo(i * TILE_SIZE, endY * TILE_SIZE);
+                    ctx.stroke();
+                }
+                for(var i = beginY; i <= endY; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, i * TILE_SIZE);
+                    ctx.lineTo(endX * TILE_SIZE, i * TILE_SIZE);
+                    ctx.stroke();
+                }
 
-                    // convert tile cartesian coordinates to tile array coordinates
-                    let k = i + j * this.width;
+                // iterate through tiles shown on screen
+                for(var i = beginX; i < endX; i++) {
+                    for(var j = beginY; j < endY; j++) {
 
-                    // set drawing context to tile style
-                    ctx.lineWidth = 3;
-                    if(!this.tiles[k]) continue;                  // default 
-                    else if(this.tiles[k] === 1) {                // barrier
-                        ctx.fillStyle = "#020";
-                        ctx.strokeStyle = "#030";
-                        ctx.lineWidth = 9;
-                    } 
-                    else if(this.tiles[k] === 2) {                // target
-                        ctx.fillStyle = "#4d4";
-                        ctx.strokeStyle = "#4f4";
-                    } 
-                    else if(this.tiles[k] === 3) {                //unit
-                        ctx.fillStyle = "#4f4";
-                        ctx.strokeStyle = "#4d4";
+                        // convert tile cartesian coordinates to tile array coordinates
+                        let k = i + j * this.width;
+
+                        // set drawing context to tile style
+                        ctx.lineWidth = 3;
+                        if(!this.tiles[k]) continue;                  // default 
+                        else if(this.tiles[k] === 1) {                // barrier
+                            ctx.fillStyle = "#020";
+                            ctx.strokeStyle = "#030";
+                            ctx.lineWidth = 9;
+                        } 
+                        else if(this.tiles[k] === 2) {                // target
+                            ctx.fillStyle = "#4d4";
+                            ctx.strokeStyle = "#4f4";
+                        } 
+                        else if(this.tiles[k] === 3) {                //unit
+                            ctx.fillStyle = "#4f4";
+                            ctx.strokeStyle = "#4d4";
+                        }
+                        ctx.fillRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeRect(i * TILE_SIZE + ctx.lineWidth/2, j * TILE_SIZE + ctx.lineWidth/2, TILE_SIZE - ctx.lineWidth, TILE_SIZE - ctx.lineWidth);
                     }
-                    ctx.fillRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-                    ctx.strokeRect(i * TILE_SIZE + ctx.lineWidth/2, j * TILE_SIZE + ctx.lineWidth/2, TILE_SIZE - ctx.lineWidth, TILE_SIZE - ctx.lineWidth);
                 }
             }
+            else {
+                // draw grid background
+                ctx.fillStyle = "#222";
+                ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
+                ctx.fillStyle = "#fff";
+
+                // iterate through tiles shown on screen
+                for(var i = beginX; i < endX; i++) {
+                    for(var j = beginY; j < endY; j++) {
+
+                        // convert tile cartesian coordinates to tile array coordinates
+                        let k = i + j * this.width;
+
+                        // set drawing context to tile style
+                        if(!this.tiles[k]) continue;    // dead 
+                        ctx.fillRect(i * TILE_SIZE + 2, j * TILE_SIZE + 2, TILE_SIZE - 4, TILE_SIZE - 4);   // alive
+                    }
+                }
+            }
+
         } else {    //draw grid repeatedly
 
             // find beginX and beginY, and view size
@@ -140,56 +164,79 @@ class Grid {
             let endY = beginY + viewHeight;
 
 
-            // draw grid background
-            ctx.fillStyle = "#daa";
-            ctx.fillRect(beginX * TILE_SIZE, beginY * TILE_SIZE, viewWidth * TILE_SIZE, viewHeight * TILE_SIZE);
-            ctx.fillStyle = "#fcc";
-            ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
+            if(!this.simple) {
 
-            // draw grid background lines
-            ctx.strokeStyle = "#a99";
-            ctx.lineWidth = GRID_LINE_WIDTH;
-            for(var i = beginX; i <= endX; i++) {
-                ctx.beginPath();
-                ctx.moveTo(i * TILE_SIZE, beginY * TILE_SIZE);
-                ctx.lineTo(i * TILE_SIZE, endY * TILE_SIZE);
-                ctx.stroke();
-            }
-            for(var i = beginY; i <= viewHeight + beginY; i++) {
-                ctx.beginPath();
-                ctx.moveTo(beginX * TILE_SIZE, i * TILE_SIZE);
-                ctx.lineTo(endX * TILE_SIZE, i * TILE_SIZE);
-                ctx.stroke();
-            }
+                // draw grid background
+                ctx.fillStyle = "#daa";
+                ctx.fillRect(beginX * TILE_SIZE, beginY * TILE_SIZE, viewWidth * TILE_SIZE, viewHeight * TILE_SIZE);
+                ctx.fillStyle = "#fcc";
+                ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
 
-            // iterate through tiles shown on screen
-            for(var i = beginX; i < viewWidth + beginX; i++) {
-                for(var j = beginY; j < endY; j++) {
+                // draw grid background lines
+                ctx.strokeStyle = "#a99";
+                ctx.lineWidth = GRID_LINE_WIDTH;
+                for(var i = beginX; i <= endX; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(i * TILE_SIZE, beginY * TILE_SIZE);
+                    ctx.lineTo(i * TILE_SIZE, endY * TILE_SIZE);
+                    ctx.stroke();
+                }
+                for(var i = beginY; i <= viewHeight + beginY; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(beginX * TILE_SIZE, i * TILE_SIZE);
+                    ctx.lineTo(endX * TILE_SIZE, i * TILE_SIZE);
+                    ctx.stroke();
+                }
 
-                    // convert tile cartesian coordinates to tile array coordinates
-                    let k = i.mod(this.width) + j.mod(this.height) * this.width;
+                // iterate through tiles shown on screen
+                for(var i = beginX; i < viewWidth + beginX; i++) {
+                    for(var j = beginY; j < endY; j++) {
 
-                    // set drawing context to tile style
-                    ctx.lineWidth = 3;
-                    if(this.tiles[k] === 0) continue;             // default
-                    else if(this.tiles[k] === 1) {                // barrier
-                        ctx.fillStyle = "#020";
-                        ctx.strokeStyle = "#030";
-                        ctx.lineWidth = 9;
-                    } 
-                    else if(this.tiles[k] === 2) {                // target
-                        ctx.fillStyle = "#4d4";
-                        ctx.strokeStyle = "#4f4";
-                    } 
-                    else if(this.tiles[k] === 3) {                //unit
-                        ctx.fillStyle = "#4f4";
-                        ctx.strokeStyle = "#4d4";
+                        // convert tile cartesian coordinates to tile array coordinates
+                        let k = i.mod(this.width) + j.mod(this.height) * this.width;
+
+                        // set drawing context to tile style
+                        ctx.lineWidth = 3;
+                        if(this.tiles[k] === 0) continue;             // default
+                        else if(this.tiles[k] === 1) {                // barrier
+                            ctx.fillStyle = "#020";
+                            ctx.strokeStyle = "#030";
+                            ctx.lineWidth = 9;
+                        } 
+                        else if(this.tiles[k] === 2) {                // target
+                            ctx.fillStyle = "#4d4";
+                            ctx.strokeStyle = "#4f4";
+                        } 
+                        else if(this.tiles[k] === 3) {                //unit
+                            ctx.fillStyle = "#4f4";
+                            ctx.strokeStyle = "#4d4";
+                        }
+                        ctx.fillRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeRect(i * TILE_SIZE + ctx.lineWidth/2, j * TILE_SIZE + ctx.lineWidth/2, TILE_SIZE - ctx.lineWidth, TILE_SIZE - ctx.lineWidth);
                     }
-                    ctx.fillRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-                    ctx.strokeRect(i * TILE_SIZE + ctx.lineWidth/2, j * TILE_SIZE + ctx.lineWidth/2, TILE_SIZE - ctx.lineWidth, TILE_SIZE - ctx.lineWidth);
+                }
+            } else {
+
+                // draw grid background
+                ctx.fillStyle = "#222";
+                ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
+                ctx.fillStyle = "#fff";
+
+                // iterate through tiles shown on screen
+                for(var i = beginX; i < viewWidth + beginX; i++) {
+                    for(var j = beginY; j < endY; j++) {
+
+                        // convert tile cartesian coordinates to tile array coordinates
+                        let k = i.mod(this.width) + j.mod(this.height) * this.width;
+
+                        // set drawing context to tile style
+                        ctx.lineWidth = 3;
+                        if(this.tiles[k] === 0) continue;   // dead
+                        ctx.fillRect(i * TILE_SIZE + 2, j * TILE_SIZE + 2, TILE_SIZE - 4, TILE_SIZE - 4);   // alive
+                    }
                 }
             }
-        }
+        } 
     }
 
     // set size expects sizes out of bounds to be caught by the html/css, but clamps the values just in case something goes wrong
@@ -218,7 +265,7 @@ const TIMER_START = Date.now();
 // grid construction
 const TILE_SIZE = 32;
 const MIN_WIDTH = 2;
-const MAX_WIDTH = 128;
+const MAX_WIDTH = 256;
 Grid = new Grid((window.innerWidth < window.innerHeight) ? Math.floor(window.innerWidth / TILE_SIZE) : Math.floor(window.innerHeight / TILE_SIZE), 0); // create grid to fill exactly or more than screen size;
 
 // menu variables
@@ -234,7 +281,7 @@ let futureSteps = [];
 
 // play mode
 let playing = false;
-let playSpeed = 1;
+let playSpeed = 2;
 
 // camera view
 let cameraTrans = {scale: 1, offsetX: 0, offsetY: 0};
@@ -550,8 +597,8 @@ function toggleGridRepeat() {
 var frameInterval;
 
 // update tiles by rules
-function incFrame(inc) {
-    //if(!inc && !playing) return;
+function incFrame(playThread) {
+    if(!playThread && playing) playFrame();
 
     // empty undo and redo steps
     steps = [];
@@ -622,7 +669,7 @@ function incFrame(inc) {
     Grid.tiles = modifiedTiles;
     requestAnimationFrame(draw);
 
-    if(!inc && playing) frameInterval = setTimeout(() => incFrame(0), 1000 / playSpeed);
+    if(playThread && playing) frameInterval = setTimeout(() => incFrame(true), 1000 / playSpeed);
 }
 
 function playFrame() {
@@ -630,12 +677,13 @@ function playFrame() {
     console.log(playing ? "Play" : "Pause");
     const element = document.getElementById('playFrame');
     if(playing) {
-        incFrame(0);
+        incFrame(true);
         element.style.backgroundColor = "#888";
         element.style.transform = "translateY(2px)";
         element.style.boxShadow = "0 4px #666";
         element.innerHTML = "II";
     } else {
+        clearInterval(frameInterval);
         element.style.backgroundColor = "#222";
         element.style.transform = "translateY(-4px)";
         element.style.boxShadow = "0 10px #666";
@@ -644,10 +692,27 @@ function playFrame() {
 }
 
 function setFrameSpeed() {
-    playSpeed = Math.ceil(Math.pow(document.getElementById("frameSpeed").value/10, 2)/100);
-    document.getElementById("frameSpeedText").innerHTML = "x" + (playSpeed/10).toFixed(1);
+    playSpeed = Math.ceil(Math.pow(document.getElementById("frameSpeed").value/10, 2)/100)/10;
+    document.getElementById("frameSpeedText").innerHTML = "x" + (playSpeed).toFixed(1);
     clearInterval(frameInterval);
-    if(playing) incFrame(0);
+    if(playing) frameInterval = setTimeout(() => incFrame(true), 1000 / playSpeed);
+}
+
+function setSimpleViewMode() {
+    Grid.simple = !Grid.simple;
+    const element = document.getElementById('simpleViewMode');
+    if(Grid.simple) {
+        canvas.style.backgroundColor = "#000";
+        element.style.backgroundColor = "#888";
+        element.style.transform = "translateY(2px)";
+        element.style.boxShadow = "0 4px #666";
+    } else {
+        canvas.style.backgroundColor = "#a99";
+        element.style.backgroundColor = "#222";
+        element.style.transform = "translateY(-4px)";
+        element.style.boxShadow = "0 10px #666";
+    }
+    requestAnimationFrame(draw);
 }
 
 //#endregion

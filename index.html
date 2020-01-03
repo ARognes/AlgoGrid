@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tile Grid Commit 54</title>
+    <title>Tile Grid Commit 55</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="description" content="An HTML website using a canvas to display an interactive grid. My first in-depth use of Javascript.">
@@ -19,11 +19,11 @@
     <h4 id="debug">Welcome!</h4>
 
     <div id="framebar">
-        <button onClick="incFrame(-1)" class="frameBtn"><<</button
-        ><button onClick="incFrame(1)" class="frameBtn">>></button
+        <button onClick="setSimpleViewMode()" class="frameBtn" id="simpleViewMode">@</button
+        ><button onClick="incFrame(false)" class="frameBtn">>></button
         ><button onClick="playFrame()" class="frameBtn" id="playFrame">Play</button
-        ><input type="range" oninput="setFrameSpeed()" min="100" max="890" value="316" id="frameSpeed"
-        ><p id="frameSpeedText">x1.0</p>
+        ><input type="range" oninput="setFrameSpeed()" min="100" max="1414" value="447" id="frameSpeed"
+        ><p id="frameSpeedText">x2.0</p>
     </div>
 
     <div id="toolbar">
@@ -42,8 +42,8 @@
 
     <button onClick="undo()" class="smBtn" id="undo"><<</button>
     <button onClick="redo()" class="smBtn" id="redo">>></button>
-    <button onClick="Grid.setSize(Grid.width/2, Grid.height/2)" class="smBtn" id="gridDec">Dec</button>
-    <button onClick="Grid.setSize(Grid.width*2, Grid.height*2)" class="smBtn" id="gridInc">Inc</button>
+    <button onClick="Grid.setSize(Grid.width/2, Grid.height/2); steps = []; futureSteps = [];" class="smBtn" id="gridDec">Dec</button>
+    <button onClick="Grid.setSize(Grid.width*2, Grid.height*2); steps = []; futureSteps = [];" class="smBtn" id="gridInc">Inc</button>
     <button onClick="toggleFullscreen()" class="smBtn" id="fullscreen">Fullscreen</button>
     <button onClick="toggleGridRepeat()" class="smBtn" id="gridRepeat">Repeat</button>
 
