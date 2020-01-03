@@ -82,9 +82,10 @@ html, body {
 	background-color: #dcc;
     border-radius: 8px;
 
-    padding: 10px 2.5vw 40px 2.5vw;
+    padding: 8px 2.5vw 18px 2.5vw;
     position: absolute;
-    bottom: 0;
+    box-shadow: 0 10px #666;
+    bottom: 14px;
     left: 3.5vw;
 }
 
@@ -156,6 +157,33 @@ html, body {
 	background-color: #090;
 }
 
+#menuIndicator {
+    position: absolute;
+    right: 10px;
+    top: -10px;
+    font: 12px/1.4 'Nunito', sans-serif;
+    color: #222;
+}
+
+#menuIndicatorBox {
+    width: 20px; 
+    height: 10px; 
+    background-color: #222; 
+    border-radius: 5px; 
+    display: inline-block;
+}
+
+#toolbarPlatform {
+    background-color: #dcc;
+    overflow: hidden;
+    position: absolute; right: 0; 
+    bottom: -10px; 
+    width: 160px;
+    height: 20px; 
+    border-radius: 0 0 8px 8px; 
+    box-shadow: 0 10px #666;
+}
+
 /*#endregion*/
 /*#region framebar*/
 
@@ -167,12 +195,12 @@ html, body {
     margin: 0 5vw;
     width: 85vw;
     position: absolute;
-    bottom: 55px;
+    bottom: 60px;
     left:0;
 }
 
 #playFrame {
-    height: 45px;
+    height: 46px;
 }
 
 .frameBtn {
@@ -182,11 +210,13 @@ html, body {
     padding-top: 5px;
     width: 15vw;
     margin: 0 0.5vw;
-    border-radius: 8px 8px 0 0;
+    /*border-radius: 8px 8px 0 0;*/
+    border-radius: 8px;
     border: none;
     text-align: center;
     color: #bbb;
     background-color: #222;
+    box-shadow: 0 10px #666;
     transform: translateY(-4px);
     
     -webkit-touch-callout: none; /* iOS Safari */
@@ -201,6 +231,7 @@ html, body {
 .frameBtn:active {
     background-color: #888;
     transform: translateY(2px);
+    box-shadow: 0 4px #666;
 }
 
 .frameBtn:focus {
@@ -233,7 +264,9 @@ input[type="range"] {
     width: 36vw;
     overflow: hidden;
     cursor: pointer;
-    border-radius: 8px 8px 0 0;
+    /*border-radius: 8px 8px 0 0;*/
+    border-radius: 8px;
+    box-shadow: 0 10px #666;
 }
 
 input[type="range"] + label { 

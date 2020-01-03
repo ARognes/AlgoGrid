@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tile Grid Commit 57</title>
+    <title>Tile Grid Commit 58</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="description" content="An HTML website using a canvas to display an interactive grid. My first in-depth use of Javascript.">
@@ -10,6 +10,7 @@
     <link href="style.css" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Overpass&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:800&display=swap" rel="stylesheet">
     
 </head>
 <body oncontextmenu="return false">
@@ -19,6 +20,7 @@
     <h4 id="debug">Welcome!</h4>
 
     <div id="barmenu">
+
         <div id="framebar">
             <button onClick="setSimpleViewMode()" class="frameBtn" id="simpleViewMode">@</button
             ><button onClick="incFrame(false)" class="frameBtn">>></button
@@ -38,10 +40,18 @@
             ><label for="target">Target</label
         
             ><input type="radio" onClick="setTileMode(3)" id="unit" name="tool"
-            ><label for="unit">Unit</label>
+            ><label for="unit">Unit</label
+            ><div id="toolbarPlatform">
+                <div id="menuIndicator">
+                    <p style="display: inline-block; margin-right: 4px;">Pathfinding</p>
+                    <div id="menuIndicatorBox"></div>
+                    <div id="menuIndicatorBox"></div>
+                    <div id="menuIndicatorBox"></div>
+                </div>
+            </div>
         </div>
 
-        <div id="modebar">
+        <!--<div id="modebar">
             <input type="radio" onClick="setMode(0)" id="default" checked="checked" name="mode"
             ><label for="default" class="tilestyle">Default</label
         
@@ -49,8 +59,10 @@
             ><label for="life">Life</label
         
             ><input type="radio" onClick="setMode(2)" id="pathfinding" name="mode"
-            ><label for="pathfinding">Pathfining</label>
+            ><label for="pathfinding">Pathfining</label>-->
         </div>
+
+        
     </div>
 
     <button onClick="undo()" class="smBtn" id="undo"><<</button>

@@ -279,9 +279,13 @@ const UNDO_STEPS = 40;
 let steps = [];
 let futureSteps = [];
 
-// play mode
+// playing frames
 let playing = false;
 let playSpeed = 2;
+
+// mode
+let mode = 0;
+
 
 // camera view
 let cameraTrans = {scale: 1, offsetX: 0, offsetY: 0};
@@ -380,10 +384,14 @@ if(isMobile) {
 
     }, false);
 
+    //#region menuBarSwipe
     var touchStartY = 0;
     var touchEndY = 0;
     var timeTouchStart = 0;
-    var menuMoving = 0;
+    var menuMoving = 100;
+    const ANIMATION_SPEED_DIP = 0.05;
+    mode = 2;
+    dipAnimation(true);
     document.getElementById("barmenu").addEventListener('touchstart', (event) => {
         if(event.touches.length === 1) {
             touchStartY = event.changedTouches[0].clientY;
@@ -393,26 +401,43 @@ if(isMobile) {
 
     document.getElementById("barmenu").addEventListener('touchmove', (event) => {
         if(touchStartY && event.touches.length === 1) {
-
             touchEndY = event.touches[0].clientY - touchStartY;
-            if(!menuMoving && touchEndY > 60 && Date.now() - timeTouchStart < 300) dipAnimation(true);
+
+            // if menu isn't already moving and swipe is within standard 0.3 seconds and at least 20 pixels big, or has reached the bottom of the screen
+            if(!menuMoving && ((event.touches[0].clientY >= canvas.height - 4) || (touchEndY > 20 && Date.now() - timeTouchStart < 300))) dipAnimation(true);
         }
     }, false);
 
-    const ANIMATION_SPEED_DIP = 0.1;
     function dipAnimation(dir) {
-        //console.log(dir);
-        console.log(menuMoving);
         if(dir) {
-            menuMoving += (200 - menuMoving) * ANIMATION_SPEED_DIP;
-            if(menuMoving > 199) dir = false;
+            menuMoving += (100 - menuMoving) * ANIMATION_SPEED_DIP;
+            if(menuMoving > 99) {
+                dir = false;
+                mode = (mode+1) % 3;
+                var indicators = document.getElementById("menuIndicator").children;
+                for(var i=1; i<indicators.length; i++) indicators[i].style.backgroundColor = (i === mode+1) ? "#f00" : "#a99";
+                if(mode === 0) {
+                    indicators[0].innerHTML = "Pixel Art";
+                    document.getElementById("toolbarPlatform").style.width = "142px";
+                } else if(mode === 1) {
+                    indicators[0].innerHTML = "Life";
+                    document.getElementById("toolbarPlatform").style.width = "112px";
+                } else if(mode === 2) {
+                    indicators[0].innerHTML = "Pathfinding";
+                    document.getElementById("toolbarPlatform").style.width = "156px";
+                }
+
+
+            }
         } else {
             menuMoving += (-menuMoving) * ANIMATION_SPEED_DIP;
             if(menuMoving < 1) menuMoving = 0;
         }
-        document.getElementById("barmenu").style.bottom = -menuMoving + "px";
+        if(menuMoving > 20) document.getElementById("barmenu").style.bottom = 20-menuMoving + "px";
+        document.getElementById("framebar").style.bottom = (60 - menuMoving) + "px";
         if(menuMoving) setTimeout(() => dipAnimation(dir), 1);
     }
+    //#endregion
 } else {
 
     canvas.addEventListener("mousedown", (event) => {
@@ -715,13 +740,13 @@ function playFrame() {
         incFrame(true);
         element.style.backgroundColor = "#888";
         element.style.transform = "translateY(2px)";
-        //element.style.boxShadow = "0 4px #666";
+        element.style.boxShadow = "0 4px #666";
         element.innerHTML = "II";
     } else {
         clearInterval(frameInterval);
         element.style.backgroundColor = "#222";
         element.style.transform = "translateY(-4px)";
-        //element.style.boxShadow = "0 10px #666";
+        element.style.boxShadow = "0 10px #666";
         element.innerHTML = "Play";
     }
 }
@@ -740,12 +765,12 @@ function setSimpleViewMode() {
         canvas.style.backgroundColor = "#000";
         element.style.backgroundColor = "#888";
         element.style.transform = "translateY(2px)";
-        //element.style.boxShadow = "0 4px #666";
+        element.style.boxShadow = "0 4px #666";
     } else {
         canvas.style.backgroundColor = "#a99";
         element.style.backgroundColor = "#222";
         element.style.transform = "translateY(-4px)";
-        //element.style.boxShadow = "0 10px #666";
+        element.style.boxShadow = "0 10px #666";
     }
     requestAnimationFrame(draw);
 }
