@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tile Grid Commit 56</title>
+    <title>Tile Grid Commit 57</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="description" content="An HTML website using a canvas to display an interactive grid. My first in-depth use of Javascript.">
@@ -18,37 +18,39 @@
     
     <h4 id="debug">Welcome!</h4>
 
-    <div id="framebar">
-        <button onClick="setSimpleViewMode()" class="frameBtn" id="simpleViewMode">@</button
-        ><button onClick="incFrame(false)" class="frameBtn">>></button
-        ><button onClick="playFrame()" class="frameBtn" id="playFrame">Play</button
-        ><input type="range" oninput="setFrameSpeed()" min="100" max="1414" value="447" id="frameSpeed"
-        ><p id="frameSpeedText">x2.0</p>
-    </div>
+    <div id="barmenu">
+        <div id="framebar">
+            <button onClick="setSimpleViewMode()" class="frameBtn" id="simpleViewMode">@</button
+            ><button onClick="incFrame(false)" class="frameBtn">>></button
+            ><button onClick="playFrame()" class="frameBtn" id="playFrame">Play</button
+            ><input type="range" oninput="setFrameSpeed()" min="100" max="1414" value="447" id="frameSpeed"
+            ><p id="frameSpeedText">x2.0</p>
+        </div>
 
-    <div id="toolbar">
-        <input type="checkbox" onClick="setTileMode(-1)" checked="checked" id="eraser"
-        ><label for="eraser">Eraser</label
+        <div id="toolbar">
+            <input type="checkbox" onClick="setTileMode(-1)" checked="checked" id="eraser"
+            ><label for="eraser">Eraser</label
+            
+            ><input type="radio" onClick="setTileMode(1)" id="barrier" checked="checked" name="tool"
+            ><label for="barrier" class="tilestyle">Barrier</label
         
-        ><input type="radio" onClick="setTileMode(1)" id="barrier" checked="checked" name="tool"
-        ><label for="barrier" class="tilestyle">Barrier</label
-    
-        ><input type="radio" onClick="setTileMode(2)" id="target" name="tool"
-        ><label for="target">Target</label
-    
-        ><input type="radio" onClick="setTileMode(3)" id="unit" name="tool"
-        ><label for="unit">Unit</label>
-    </div>
+            ><input type="radio" onClick="setTileMode(2)" id="target" name="tool"
+            ><label for="target">Target</label
+        
+            ><input type="radio" onClick="setTileMode(3)" id="unit" name="tool"
+            ><label for="unit">Unit</label>
+        </div>
 
-    <div id="modebar">
-        <input type="radio" onClick="setMode(0)" id="default" checked="checked" name="mode"
-        ><label for="default" class="tilestyle">Default</label
-    
-        ><input type="radio" onClick="setMode(1)" id="life" name="mode"
-        ><label for="life">Life</label
-    
-        ><input type="radio" onClick="setMode(2)" id="pathfinding" name="mode"
-        ><label for="pathfinding">Pathfining</label>
+        <div id="modebar">
+            <input type="radio" onClick="setMode(0)" id="default" checked="checked" name="mode"
+            ><label for="default" class="tilestyle">Default</label
+        
+            ><input type="radio" onClick="setMode(1)" id="life" name="mode"
+            ><label for="life">Life</label
+        
+            ><input type="radio" onClick="setMode(2)" id="pathfinding" name="mode"
+            ><label for="pathfinding">Pathfining</label>
+        </div>
     </div>
 
     <button onClick="undo()" class="smBtn" id="undo"><<</button>

@@ -36,17 +36,10 @@ html, body {
 
 #modebar {
     display: inline-block;
-    position: fixed;
+    position: absolute;
     width: 99%;
     bottom: 0;
     left: 0.5%;
-	/*background-color: #dcc;
-    border-radius: 8px;
-    box-shadow: 0 10px #666;
-    padding: 10px 2.5vw 20px 2.5vw;
-    position: fixed;
-    bottom: 0;
-    left: 3.5vw;*/
 }
 
 #modebar input[type="radio"] {
@@ -90,7 +83,7 @@ html, body {
     border-radius: 8px;
 
     padding: 10px 2.5vw 40px 2.5vw;
-    position: fixed;
+    position: absolute;
     bottom: 0;
     left: 3.5vw;
 }
@@ -173,7 +166,7 @@ html, body {
     padding: 0 2.5vw 20px 2.5vw;
     margin: 0 5vw;
     width: 85vw;
-    position: fixed;
+    position: absolute;
     bottom: 55px;
     left:0;
 }
@@ -330,6 +323,7 @@ input[type="range"]:focus {
     background-color: #282;
     outline: none;
 }
+
 .smBtn:focus {
     outline: none;
 }
@@ -340,6 +334,13 @@ input[type="range"]:focus {
 #canvas {
     display: block;
     background-color: #a99;
+}
+
+#barmenu {
+    position: absolute;
+    width: 100vw;
+    bottom: 0;
+    left: 0;
 }
 
 #debug {

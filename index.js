@@ -300,6 +300,7 @@ requestAnimationFrame(draw); // redraw canvas
 //#region input
 
 if(isMobile) {
+
     canvas.addEventListener('touchstart', (event) => {
         if(event.touches.length > 2) return;    // don't bother with 3 finger gestures
         if(!viewOnly) {
@@ -339,7 +340,7 @@ if(isMobile) {
     document.addEventListener('touchcancel', touchEnd, false);
     function touchEnd(event) {
         if(event.touches.length > 2) return;    // don't bother with 3 finger gestures
-        if(!pointerActions.primary && !pointerActions.scroll) return;   // html buttons pressed over canvas
+        if(!pointerActions.primary && !pointerActions.scroll) return;   // html buttons shouldn't be pressed over canvas
         if(!viewOnly && !pointerActions.scroll) condenseArray(steps);
         pointerActions.primary = false;
         pointerActions.scroll = false;
@@ -378,6 +379,40 @@ if(isMobile) {
         requestAnimationFrame(draw);
 
     }, false);
+
+    var touchStartY = 0;
+    var touchEndY = 0;
+    var timeTouchStart = 0;
+    var menuMoving = 0;
+    document.getElementById("barmenu").addEventListener('touchstart', (event) => {
+        if(event.touches.length === 1) {
+            touchStartY = event.changedTouches[0].clientY;
+            timeTouchStart = Date.now();
+        }
+    }, false);
+
+    document.getElementById("barmenu").addEventListener('touchmove', (event) => {
+        if(touchStartY && event.touches.length === 1) {
+
+            touchEndY = event.touches[0].clientY - touchStartY;
+            if(!menuMoving && touchEndY > 60 && Date.now() - timeTouchStart < 300) dipAnimation(true);
+        }
+    }, false);
+
+    const ANIMATION_SPEED_DIP = 0.1;
+    function dipAnimation(dir) {
+        //console.log(dir);
+        console.log(menuMoving);
+        if(dir) {
+            menuMoving += (200 - menuMoving) * ANIMATION_SPEED_DIP;
+            if(menuMoving > 199) dir = false;
+        } else {
+            menuMoving += (-menuMoving) * ANIMATION_SPEED_DIP;
+            if(menuMoving < 1) menuMoving = 0;
+        }
+        document.getElementById("barmenu").style.bottom = -menuMoving + "px";
+        if(menuMoving) setTimeout(() => dipAnimation(dir), 1);
+    }
 } else {
 
     canvas.addEventListener("mousedown", (event) => {
