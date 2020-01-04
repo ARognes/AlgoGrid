@@ -434,6 +434,7 @@ if(isMobile) {
                     document.getElementById("toolbar").children[2].checked = true;
                     eraser = true;
                     tileMode = 1;
+                    viewOnly = false;
                 } else if(mode === 2) {
                     indicators[0].innerHTML = "Pathfinding";
                     document.getElementById("toolbarPlatform").style.width = "156px";
@@ -452,7 +453,7 @@ if(isMobile) {
             document.getElementById("framebar").style.bottom = (134 - menuMoving) + "px";
         } else if(mode === 2) { // pathfinding
             if(menuMoving > 20) document.getElementById("barmenu").style.bottom = 20-menuMoving + "px";
-            document.getElementById("framebar").style.bottom = (68 - menuMoving) + "px";
+            document.getElementById("framebar").style.bottom = (67 - menuMoving) + "px";
         }
 
         if(menuMoving) setTimeout(() => dipAnimation(dir), 1);
@@ -721,26 +722,31 @@ function incFrame(playThread) {
     } else {
         const gridLength = Grid.tiles.length;
         for(var i=0; i<gridLength; i++) {
-            const k = i.mod(Grid.width);
+            const k = i - i.mod(Grid.width);
 
             // get all neighbors tile addresses
-            neighbors[7] = (i+1).mod(gridLength);
-            neighbors[3] = (i-1).mod(gridLength);
+            neighbors[7] = (i+1).mod(Grid.width) + k;
+            neighbors[3] = (i-1).mod(Grid.width) + k;
             neighbors[1] = (i-Grid.width).mod(gridLength);
             neighbors[5] = (i+Grid.width).mod(gridLength);
-            neighbors[0] = (neighbors[1] + 1).mod(gridLength);
-            neighbors[2] = (neighbors[1] - 1).mod(gridLength);
-            neighbors[6] = (neighbors[5] + 1).mod(gridLength);
-            neighbors[4] = (neighbors[5] - 1).mod(gridLength);
+            neighbors[0] = (neighbors[1] + 1).mod(Grid.width) + neighbors[1] - neighbors[1].mod(Grid.width);
+            neighbors[2] = (neighbors[1] - 1).mod(Grid.width) + neighbors[1] - neighbors[1].mod(Grid.width);
+            neighbors[6] = (neighbors[5] + 1).mod(Grid.width) + neighbors[5] - neighbors[5].mod(Grid.width);
+            neighbors[4] = (neighbors[5] - 1).mod(Grid.width) + neighbors[5] - neighbors[5].mod(Grid.width);
             
 
             // filter out null or non-existant elements
-            neighbors = neighbors.filter((n) => {if(Grid.tiles[n]) return n});
             
+            //neighbors = neighbors.filter((n) => {if(Grid.tiles[n]) return 0});
+            let totalNeighbors = 0;
+            for(var j=0; j<8; j++) {
+                if(Grid.tiles[neighbors[j]]) totalNeighbors++;
+            }
+
             // Conway's Game of Life rules
             if(Grid.tiles[i] > 0) {
-                if(neighbors.length < 2 || neighbors.length > 3) modifiedTiles[i] = 0;
-            } else if(neighbors.length === 3) modifiedTiles[i] = 1;
+                if(totalNeighbors < 2 || totalNeighbors > 3) modifiedTiles[i] = 0;
+            } else if(totalNeighbors === 3) modifiedTiles[i] = 1;
             
             neighbors = [null, null, null, null, null, null, null, null];
         }

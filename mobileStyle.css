@@ -1,7 +1,7 @@
 html, body {
     margin: 0;
     border: 0;
-    font: 18px/1.4 "Roboto", sans-serif;
+    font: 18px/1.4 'Nunito', sans-serif;
     overflow: hidden;
     position: relative;
 }
@@ -9,7 +9,7 @@ html, body {
 
 /* working impementation of pressable buttons
 .lgBtn {
-    font: 18px/1.4 "Roboto", sans-serif;
+    font: 18px/1.4 'Nunito', sans-serif;
     width: 50px; height: 50px;
     border-radius: 12px;
     border: none;
@@ -50,7 +50,7 @@ html, body {
 
 #modebar input[type="radio"] + label {
     display: inline-block;
-    font: 18px/1.4 "Roboto", sans-serif;
+    font: 18px/1.4 'Nunito', sans-serif;
     height: 30px;
     width: 33vw;
     border-radius: 14px 14px 0 0;
@@ -97,7 +97,7 @@ html, body {
 
 #toolbar input[type="radio"] + label {
     display: inline-block;
-    font: 18px/1.4 "Roboto", sans-serif;
+    font: 18px/1.4 'Nunito', sans-serif;
     padding-top: 4px;
     padding-bottom: 4px;
     width: 21vw;
@@ -120,7 +120,7 @@ html, body {
 
 #toolbar input[type="checkbox"] + label {
     display: inline-block;
-    font: 18px/1.4 "Roboto", sans-serif;
+    font: 18px/1.4 'Nunito', sans-serif;
     padding-top: 4px;
     padding-bottom: 4px;
     width: 21vw;
@@ -206,7 +206,7 @@ html, body {
 
 .frameBtn {
     display: inline-block;
-    font: 18px/1.4 "Roboto", sans-serif;
+    font: 18px/1.4 'Nunito', sans-serif;
     padding-bottom: 5px;
     padding-top: 5px;
     width: 15vw;
@@ -241,7 +241,7 @@ html, body {
 
 #frameSpeedText {
     display: inline-block;
-    font: 20px/1.4 "Roboto", sans-serif;
+    font: 20px/1.4 'Nunito', sans-serif;
     position: absolute;
     top: -6px;
     right: 4vw;
@@ -339,7 +339,7 @@ input[type="range"]:focus {
 /*#region classes*/
 
 .smBtn {
-    font: 18px/1.4 "Roboto", sans-serif;
+    font: 18px/1.4 'Nunito', sans-serif;
     width: 50px; height: 50px;
     border-radius: 8px;
     border: none;
