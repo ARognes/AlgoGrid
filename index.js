@@ -343,6 +343,13 @@ if(isMobile) {
     document.addEventListener('touchend',  touchEnd, false);
     document.addEventListener('touchcancel', touchEnd, false);
     function touchEnd(event) {
+        if(touchStartX && event.changedTouches.length === 1 && !menuMoving && Math.abs(touchStartX - event.changedTouches[0].clientX) > 20 && Date.now() - timeTouchStart < 300 && rangeStartValue === playSpeed) {
+            clearInterval(frameInterval);
+            if(playing) playFrame();
+            if(Grid.simple) setSimpleViewMode();
+            dipAnimation(true, (mode + Math.sign(touchStartX - event.changedTouches[0].clientX)).mod(3));
+        }
+
         if(event.touches.length > 2) return;    // don't bother with 3 finger gestures
         if(!pointerActions.primary && !pointerActions.scroll) return;   // html buttons shouldn't be pressed over canvas
         if(!viewOnly && !pointerActions.scroll) condenseArray(steps);
@@ -385,40 +392,40 @@ if(isMobile) {
     }, false);
 
     //#region menuBarSwipe
-    var touchStartY = 0;
-    var touchEndY = 0;
-    var timeTouchStart = 0;
-    var menuMoving = 100;
+    let touchStartX = 0;
+    let timeTouchStart = 0;
+    let rangeStartValue = 2;
+    let menuMoving = 100;
     const ANIMATION_SPEED_DIP = 0.05;
-    mode = 2;
-    dipAnimation(true);
+    dipAnimation(true, 0);
     document.getElementById("barmenu").addEventListener('touchstart', (event) => {
         if(event.touches.length === 1) {
-            touchStartY = event.changedTouches[0].clientY;
+            touchStartX = event.changedTouches[0].clientX;
             timeTouchStart = Date.now();
+            rangeStartValue = playSpeed;
         }
     }, false);
-
+/*
     document.getElementById("barmenu").addEventListener('touchmove', (event) => {
-        if(touchStartY && event.touches.length === 1) {
-            touchEndY = event.touches[0].clientY - touchStartY;
+        if(touchStartX && event.touches.length === 1) {
+            touchEndX = event.touches[0].clientX - touchStartX;
 
             // if menu isn't already moving and swipe is within standard 0.3 seconds and at least 20 pixels big, or has reached the bottom of the screen
-            if(!menuMoving && ((event.touches[0].clientY >= canvas.height - 20) || (touchEndY > 20 && Date.now() - timeTouchStart < 300))) dipAnimation(true);
+            if(!menuMoving && ((event.touches[0].clientX >= canvas.height - 20) || (touchEndX > 20 && Date.now() - timeTouchStart < 300))) {
+                clearInterval(frameInterval);
+                if(playing) playFrame();
+                if(Grid.simple) setSimpleViewMode();
+                dipAnimation(true);
+            }
         }
-    }, false);
+    }, false);*/
 
-    function dipAnimation(dir) {
-        clearInterval(frameInterval);
-        playing = false;
-        if(Grid.simple) setSimpleViewMode();
-        document.getElementById("toolbar")
-
+    function dipAnimation(dir, newMode) {
         if(dir) {
             menuMoving += (100 - menuMoving) * ANIMATION_SPEED_DIP;
             if(menuMoving > 99) {
                 dir = false;
-                mode = (mode+1) % 3;
+                mode = newMode;
                 var indicators = document.getElementById("menuIndicator").children;
                 for(var i=1; i<indicators.length; i += 2) indicators[i].style.backgroundColor = (i === mode+1) ? "#f00" : "#a99";
                 if(mode === 0) {    // pixel art, unselect all tools
@@ -456,7 +463,7 @@ if(isMobile) {
             document.getElementById("framebar").style.bottom = (67 - menuMoving) + "px";
         }
 
-        if(menuMoving) setTimeout(() => dipAnimation(dir), 1);
+        if(menuMoving) setTimeout(() => dipAnimation(dir, newMode), 1);
     }
     //#endregion
 } else {
@@ -778,8 +785,9 @@ function playFrame() {
 }
 
 function setFrameSpeed() {
-    playSpeed = Math.ceil(Math.pow(document.getElementById("frameSpeed").value/10, 2)/100)/10;
-    document.getElementById("frameSpeedText").innerHTML = "x" + (playSpeed).toFixed(1);
+    playSpeed = document.getElementById("frameSpeed").value;
+    if(playSpeed > 10) playSpeed = (playSpeed-10) * 10;
+    document.getElementById("frameSpeedText").innerHTML = "x" + playSpeed;
     clearInterval(frameInterval);
     if(playing) frameInterval = setTimeout(() => incFrame(true), 1000 / playSpeed);
 }
