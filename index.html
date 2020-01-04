@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tile Grid Commit 58</title>
+    <title>Tile Grid Commit 59</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="description" content="An HTML website using a canvas to display an interactive grid. My first in-depth use of Javascript.">
@@ -26,7 +26,16 @@
             ><button onClick="incFrame(false)" class="frameBtn">>></button
             ><button onClick="playFrame()" class="frameBtn" id="playFrame">Play</button
             ><input type="range" oninput="setFrameSpeed()" min="100" max="1414" value="447" id="frameSpeed"
-            ><p id="frameSpeedText">x2.0</p>
+            ><p id="frameSpeedText">x2.0</p
+            ><div style="background-color: #544;overflow: hidden;position: absolute; right: 0; bottom: -10px; 
+            width: 114px;height: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 10px #000;">
+                <div style="position: absolute; right: 10px; top: -10px; font: 12px/1.4 'Nunito', sans-serif; color: #a99;">
+                    <p style="display: inline-block; margin-right: 4px;">Life</p>
+                    <div style="width: 20px; height: 10px; background-color: #a99; border-radius: 5px; display: inline-block;"></div>
+                    <div style="width: 20px; height: 10px; background-color: #f00; border-radius: 5px; display: inline-block;"></div>
+                    <div style="width: 20px; height: 10px; background-color: #a99; border-radius: 5px; display: inline-block;"></div>
+                </div>
+            </div>
         </div>
 
         <div id="toolbar">
@@ -50,19 +59,6 @@
                 </div>
             </div>
         </div>
-
-        <!--<div id="modebar">
-            <input type="radio" onClick="setMode(0)" id="default" checked="checked" name="mode"
-            ><label for="default" class="tilestyle">Default</label
-        
-            ><input type="radio" onClick="setMode(1)" id="life" name="mode"
-            ><label for="life">Life</label
-        
-            ><input type="radio" onClick="setMode(2)" id="pathfinding" name="mode"
-            ><label for="pathfinding">Pathfining</label>-->
-        </div>
-
-        
     </div>
 
     <button onClick="undo()" class="smBtn" id="undo"><<</button>

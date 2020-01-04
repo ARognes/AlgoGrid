@@ -404,37 +404,57 @@ if(isMobile) {
             touchEndY = event.touches[0].clientY - touchStartY;
 
             // if menu isn't already moving and swipe is within standard 0.3 seconds and at least 20 pixels big, or has reached the bottom of the screen
-            if(!menuMoving && ((event.touches[0].clientY >= canvas.height - 4) || (touchEndY > 20 && Date.now() - timeTouchStart < 300))) dipAnimation(true);
+            if(!menuMoving && ((event.touches[0].clientY >= canvas.height - 20) || (touchEndY > 20 && Date.now() - timeTouchStart < 300))) dipAnimation(true);
         }
     }, false);
 
     function dipAnimation(dir) {
+        clearInterval(frameInterval);
+        playing = false;
+        if(Grid.simple) setSimpleViewMode();
+        document.getElementById("toolbar")
+
         if(dir) {
             menuMoving += (100 - menuMoving) * ANIMATION_SPEED_DIP;
             if(menuMoving > 99) {
                 dir = false;
                 mode = (mode+1) % 3;
                 var indicators = document.getElementById("menuIndicator").children;
-                for(var i=1; i<indicators.length; i++) indicators[i].style.backgroundColor = (i === mode+1) ? "#f00" : "#a99";
-                if(mode === 0) {
+                for(var i=1; i<indicators.length; i += 2) indicators[i].style.backgroundColor = (i === mode+1) ? "#f00" : "#a99";
+                if(mode === 0) {    // pixel art, unselect all tools
+                    document.getElementById("toolbar").children[0].checked = false;
+                    document.getElementById("toolbar").children[2].checked = false;
+                    eraser = false;
+                    tileMode = 0;
+                    viewOnly = true;
                     indicators[0].innerHTML = "Pixel Art";
                     document.getElementById("toolbarPlatform").style.width = "142px";
-                } else if(mode === 1) {
-                    indicators[0].innerHTML = "Life";
-                    document.getElementById("toolbarPlatform").style.width = "112px";
+                } else if(mode === 1) { // life, set tools to barrier + eraser
+                    document.getElementById("toolbar").children[0].checked = true;
+                    document.getElementById("toolbar").children[2].checked = true;
+                    eraser = true;
+                    tileMode = 1;
                 } else if(mode === 2) {
                     indicators[0].innerHTML = "Pathfinding";
                     document.getElementById("toolbarPlatform").style.width = "156px";
                 }
-
-
             }
         } else {
             menuMoving += (-menuMoving) * ANIMATION_SPEED_DIP;
             if(menuMoving < 1) menuMoving = 0;
         }
-        if(menuMoving > 20) document.getElementById("barmenu").style.bottom = 20-menuMoving + "px";
-        document.getElementById("framebar").style.bottom = (60 - menuMoving) + "px";
+
+        if(mode === 0) {    // pixel art
+            if(menuMoving > 20) document.getElementById("barmenu").style.bottom = 20-menuMoving + "px";
+            document.getElementById("framebar").style.bottom = "-120px";
+        } else if(mode === 1) { // life
+            document.getElementById("barmenu").style.bottom = "-120px";
+            document.getElementById("framebar").style.bottom = (134 - menuMoving) + "px";
+        } else if(mode === 2) { // pathfinding
+            if(menuMoving > 20) document.getElementById("barmenu").style.bottom = 20-menuMoving + "px";
+            document.getElementById("framebar").style.bottom = (68 - menuMoving) + "px";
+        }
+
         if(menuMoving) setTimeout(() => dipAnimation(dir), 1);
     }
     //#endregion

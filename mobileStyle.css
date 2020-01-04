@@ -168,7 +168,7 @@ html, body {
 #menuIndicatorBox {
     width: 20px; 
     height: 10px; 
-    background-color: #222; 
+    background-color: #a99; 
     border-radius: 5px; 
     display: inline-block;
 }
@@ -191,11 +191,12 @@ html, body {
     display: inline-block;
 	background-color: #544;
     border-radius: 8px;
-    padding: 0 2.5vw 20px 2.5vw;
+    padding: 0 2.5vw 12px 2.5vw;
     margin: 0 5vw;
     width: 85vw;
     position: absolute;
-    bottom: 60px;
+    bottom: 68px;
+    box-shadow: 0 10px #000;
     left:0;
 }
 
