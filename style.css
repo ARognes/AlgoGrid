@@ -1,20 +1,23 @@
 html, body {
     margin: 0;
     border: 0;
-    font: 18px/1.4 "Roboto", sans-serif;
+    font: 18px/1.4 'Nunito', sans-serif;
+    overflow: hidden;
+    position: relative;
 }
 
-
 /*#region toolbar*/
+
 #toolbar {
 	display: inline-block;
 	background-color: #dcc;
     border-radius: 8px;
-    box-shadow: 0 10px #666;
-    padding: 10px 20px 20px 20px;
+    width: 98%;
+    padding: 8px 2.5% 18px 2.5%;
     position: absolute;
-    bottom: 20px;
-    left: 20px;
+    box-shadow: 0 10px #666;
+    bottom: 14px;
+    left: 1%;
 }
 
 #toolbar input[type="radio"], input[type="checkbox"] {
@@ -25,9 +28,11 @@ html, body {
 
 #toolbar input[type="radio"] + label {
     display: inline-block;
-    font: 18px/1.4 "Roboto", sans-serif;
-    padding: 10px 10px;
-    margin: 0 2px 0 2px;
+    font: 18px/1.4 'Nunito', sans-serif;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    width: 25%;
+    margin: 0 0.5%;
     border-radius: 8px;
     border: none;
     text-align: center;
@@ -46,16 +51,17 @@ html, body {
 
 #toolbar input[type="checkbox"] + label {
     display: inline-block;
-    font: 18px/1.4 "Roboto", sans-serif;
-    padding: 10px 10px;
-    margin: 0 2px 0 2px;
+    font: 18px/1.4 'Nunito', sans-serif;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    width: 21%;
+    margin: 0 0.5%;
     border-radius: 8px;
     border: none;
     text-align: center;
     background-color: #f44;
     box-shadow: 0 10px #666;
     transform: translateY(-4px);
-    
     
     -webkit-touch-callout: none; /* iOS Safari */
         -webkit-user-select: none; /* Safari */
@@ -82,31 +88,59 @@ html, body {
 	background-color: #090;
 }
 
-/*#endregion toolbar*/
+#menuIndicator {
+    position: absolute;
+    right: 10px;
+    top: -10px;
+    font: 12px/1.4 'Nunito', sans-serif;
+    color: #222;
+}
+
+#menuIndicatorBox {
+    width: 20px; 
+    height: 10px; 
+    background-color: #a99; 
+    border-radius: 5px; 
+    display: inline-block;
+}
+
+#toolbarPlatform {
+    background-color: #dcc;
+    overflow: hidden;
+    position: absolute; right: 0; 
+    bottom: -10px; 
+    width: 160px;
+    height: 20px; 
+    border-radius: 0 0 8px 8px; 
+    box-shadow: 0 10px #666;
+}
+
+/*#endregion*/
 /*#region framebar*/
 
 #framebar {
     display: inline-block;
 	background-color: #544;
     border-radius: 8px;
-    box-shadow: 0 10px #666;
-    padding: 0px 20px 90px 20px;
+    padding: 0 2.5% 12px 2.5%;
+    width: 96%;
     position: absolute;
-    bottom: 20px;
-    left: 28px;
+    bottom: 67px;
+    box-shadow: 0 10px #000;
+    left: 2%;
 }
 
-#playFrame {
-    width: 50px;
-    height: 50px;
+#playLife {
+    height: 46px;
 }
 
 .frameBtn {
     display: inline-block;
-    font: 18px/1.4 "Roboto", sans-serif;
-    padding: 10px 10px;
-    margin: 0 2px 0 2px;
-    width: 40px;
+    font: 18px/1.4 'Nunito', sans-serif;
+    padding-bottom: 5px;
+    padding-top: 5px;
+    width: 18%;
+    margin: 0 0.5%;
     border-radius: 8px;
     border: none;
     text-align: center;
@@ -135,11 +169,11 @@ html, body {
 }
 
 #frameSpeedText {
-    text-align: center;
-    font: 20px/1.4 "Roboto", sans-serif;
+    display: inline-block;
+    font: 20px/1.4 'Nunito', sans-serif;
     position: absolute;
-    top: 4px;
-    left: 230px;
+    top: -6px;
+    right: 4%;
     pointer-events: none;
     -webkit-touch-callout: none; /* iOS Safari */
         -webkit-user-select: none; /* Safari */
@@ -152,12 +186,12 @@ html, body {
 
 input[type="range"] { 
     -webkit-appearance: none;
-    margin: 0 2px 0 2px;
+    margin: 0 0.5%;
     display: inline-block;
     position: relative;
-    top: 14px;
-    height: 46px;
-    width: 120px;
+    top: 9px;
+    height: 36px;
+    width: 42%;
     overflow: hidden;
     cursor: pointer;
     border-radius: 8px;
@@ -221,7 +255,7 @@ input[type="range"]:focus {
 ::-ms-track {
     background: #ddd;
     color: transparent;
-    height: 40px;
+    height: 46px;
     border: none;
 }
 
@@ -231,8 +265,9 @@ input[type="range"]:focus {
 
 /*#endregion*/
 /*#region classes*/
+
 .smBtn {
-    font: 18px/1.4 "Roboto", sans-serif;
+    font: 18px/1.4 'Nunito', sans-serif;
     width: 50px; height: 50px;
     border-radius: 8px;
     border: none;
@@ -250,28 +285,12 @@ input[type="range"]:focus {
     background-color: #282;
     outline: none;
 }
+
 .smBtn:focus {
     outline: none;
 }
 
-.menu {
-    background-color: #a99;
-    stroke-width: 0;
-    min-width: 400px;
-    min-height: 200px;
-    position: absolute;
-    border-radius: 0 20px 0 0;
-    bottom: 0;
-    -webkit-touch-callout: none; /* iOS Safari */
-        -webkit-user-select: none; /* Safari */
-         -khtml-user-select: none; /* Konqueror HTML */
-           -moz-user-select: none; /* Old versions of Firefox */
-            -ms-user-select: none; /* Internet Explorer/Edge */
-                user-select: none; /* Non-prefixed version, currently
-                                      supported by Chrome, Opera and Firefox */
-}
-
-/*#endregion classes*/
+/*#endregion*/
 /*#region ids*/
 
 #canvas {
@@ -279,8 +298,15 @@ input[type="range"]:focus {
     background-color: #a99;
 }
 
+#barmenu {
+    position: absolute;
+    width: 500px;
+    bottom: 0;
+    left: 0;
+}
+
 #debug {
-    position: absolute; top: -20px; left: 10px;
+    position: absolute; top: -20px; left: 110px;
     -webkit-touch-callout: none; /* iOS Safari */
         -webkit-user-select: none; /* Safari */
          -khtml-user-select: none; /* Konqueror HTML */
@@ -299,21 +325,19 @@ input[type="range"]:focus {
 }
 
 #gridDec {
-    position: absolute; top: 60px; right: 60px; width: 40px; height: 40px;
+    position: absolute; top: 10px; right: 160px; width: 40px; height: 40px;
 }
 
 #gridInc {
-    position: absolute; top: 60px; right: 10px; width: 40px; height: 40px;
+    position: absolute; top: 10px; right: 110px; width: 40px; height: 40px;
 }
 
 #fullscreen {
-    position: absolute; top: 110px; right: 10px; width: 90px; height: 40px;
+    position: absolute; top: 10px; left: 10px; width: 90px; height: 40px;
 }
 
 #gridRepeat {
-    position: absolute; top: 160px; right: 10px; width: 90px; height: 40px;
+    position: absolute; top: 60px; left: 10px; width: 90px; height: 40px;
 }
 
 /*#endregion*/
-
-

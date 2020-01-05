@@ -32,49 +32,6 @@ html, body {
     outline: none;
 }*/
 
-/*#region modebar*/
-
-#modebar {
-    display: inline-block;
-    position: absolute;
-    width: 99%;
-    bottom: 0;
-    left: 0.5%;
-}
-
-#modebar input[type="radio"] {
-    opacity: 0;
-    width: 0;
-    display: none;
-}
-
-#modebar input[type="radio"] + label {
-    display: inline-block;
-    font: 18px/1.4 'Nunito', sans-serif;
-    height: 30px;
-    width: 33vw;
-    border-radius: 14px 14px 0 0;
-    border: none;
-    text-align: center;
-    background-color: #2b2;
-    /*transform: translateY(-4px);*/
-    
-    -webkit-touch-callout: none; /* iOS Safari */
-        -webkit-user-select: none; /* Safari */
-         -khtml-user-select: none; /* Konqueror HTML */
-           -moz-user-select: none; /* Old versions of Firefox */
-            -ms-user-select: none; /* Internet Explorer/Edge */
-                user-select: none; /* Non-prefixed version, currently
-                                      supported by Chrome, Opera and Firefox */
-}
-
-#modebar input[type="radio"]:checked + label {
-    background-color: #f82;
-    transform: translateY(8px);
-    box-shadow: 0 4px #666;
-}
-
-/*#endregion*/
 /*#region toolbar*/
 
 #toolbar {
@@ -195,12 +152,12 @@ html, body {
     margin: 0 5vw;
     width: 85vw;
     position: absolute;
-    bottom: 68px;
+    bottom: 67px;
     box-shadow: 0 10px #000;
     left:0;
 }
 
-#playFrame {
+#playLife {
     height: 46px;
 }
 
