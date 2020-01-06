@@ -26,33 +26,30 @@ if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine
 var canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
 
 // resize the canvas to fill browser window dynamically
-window.addEventListener('resize', resizeCanvas, false);
-
-// canvas is always full window
-function resizeCanvas() {
+window.addEventListener('resize', () => {
     cameraTrans.offsetX -= (canvas.width - window.innerWidth) / 2;
     cameraTrans.offsetY -= (canvas.height - window.innerHeight) / 2;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     requestAnimationFrame(draw); // redraw canvas
-}
+}, false);
 
 //#endregion
 
 /**
- *  draw function is essentially an efficiently called update function, 
+ * requestActionFrame(draw) to call this
+ * essentially an efficiently called update function, 
  *  i.e. it only updates when the user has changed something.
  */
 function draw() {
 
-    const time = (Date.now() - TIMER_START) / 10;
-
     // clamp camera position so at least 1 tile is always on screen
-    const gridPixelWidth = (TILE_SIZE) * cameraTrans.scale;
-    const gridPixelHeight = (TILE_SIZE) * cameraTrans.scale;
+    const gridPixelWidth = TILE_SIZE * cameraTrans.scale;
+    const gridPixelHeight = TILE_SIZE * cameraTrans.scale;
     cameraTrans.offsetX = Math.min(Math.max(cameraTrans.offsetX, gridPixelWidth * (1 - Grid.width)), (canvas.width - gridPixelWidth));
-    cameraTrans.offsetY = Math.min(Math.max(cameraTrans.offsetY, gridPixelWidth * (1 - Grid.height)), (canvas.height - gridPixelHeight));
+    cameraTrans.offsetY = Math.min(Math.max(cameraTrans.offsetY, gridPixelHeight * (1 - Grid.height)), (canvas.height - gridPixelHeight));
 
+    // transform the camera
     ctx.setTransform(1,0,0,1,0,0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.translate(cameraTrans.offsetX, cameraTrans.offsetY);
@@ -65,81 +62,99 @@ class Grid {
     constructor(width, height) {
         this.repeat = false;
         this.simple = false;
+
+        // pathfinding arrays
+        this.units = [];
         this.targets = [];
         this.openTiles = [];
         this.closedTiles = [];
-        this.units = [];
+
         if(height === 0) this.setSize(width, width);
         else this.setSize(width, height);
     }
 
+     // convert tile cartesian coordinates to tile array coordinates
+    cartesianToIndex(i, j) {
+        return this.repeat ? i.mod(this.width) + j.mod(this.height) * this.width : i + j * this.width;
+    }
+
     draw() {
-        const GRID_LINE_WIDTH = 6;
-        if(!this.repeat) {  // draw grid normally
 
-            // find beginX, beginY, endX, and endY. if grid not in view, return
-            let beginX = Math.max(Math.floor((-cameraTrans.offsetX) / cameraTrans.scale / TILE_SIZE), 0);
+        let beginX, beginY, endX, endY, viewWidth, viewHeight;
+        if(!this.repeat) {  // if grid not in view, return, else find first and last tiles in view
+            beginX = Math.max(Math.floor((-cameraTrans.offsetX) / cameraTrans.scale / TILE_SIZE), 0);
             if(beginX >= this.width) return;
-            let beginY = Math.max(Math.floor(-cameraTrans.offsetY / cameraTrans.scale / TILE_SIZE), 0);
+            beginY = Math.max(Math.floor(-cameraTrans.offsetY / cameraTrans.scale / TILE_SIZE), 0);
             if(beginY >= this.height) return;
-            let endX = Math.min(Math.ceil((-cameraTrans.offsetX + canvas.width) / cameraTrans.scale / TILE_SIZE), this.width);
+            endX = Math.min(Math.ceil((-cameraTrans.offsetX + canvas.width) / cameraTrans.scale / TILE_SIZE), this.width);
             if(endX < 0) return;
-            let endY = Math.min(Math.ceil((-cameraTrans.offsetY + canvas.height) / cameraTrans.scale / TILE_SIZE), this.height);
+            endY = Math.min(Math.ceil((-cameraTrans.offsetY + canvas.height) / cameraTrans.scale / TILE_SIZE), this.height);
             if(endY < 0) return;
+        } else {    // find first tile in view and the view size
+            beginX = Math.floor((-cameraTrans.offsetX) / cameraTrans.scale / TILE_SIZE);
+            beginY = Math.floor(-cameraTrans.offsetY / cameraTrans.scale / TILE_SIZE);
+            viewWidth = Math.ceil(canvas.width / cameraTrans.scale / TILE_SIZE) + 1;
+            viewHeight = Math.ceil(canvas.height / cameraTrans.scale / TILE_SIZE)+ 1;
+            endX = beginX + viewWidth;
+            endY = beginY + viewHeight;
+        }
 
-            if(this.simple) {  // draw simple grid for better performance
+        if(this.simple) {  // draw simple grid for better performance
 
-                // draw grid background
-                ctx.fillStyle = "#222";
-                ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
-                ctx.fillStyle = "#fff";
+            // draw grid background
+            ctx.fillStyle = "#222";
+            ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
 
-                // iterate through tiles shown on screen
+            // draw tiles
+            ctx.fillStyle = "#fff";
+            ctx.lineWidth = 3;
+            for(let i = beginX; i < endX; i++) {
+                for(let j = beginY; j < endY; j++) {
+                    if(!this.tiles[this.cartesianToIndex(i, j)]) continue;      // don't draw dead 
+                    ctx.fillRect(i * TILE_SIZE + 2, j * TILE_SIZE + 2, TILE_SIZE - 4, TILE_SIZE - 4);   // draw alive
+                }
+            }
+
+        } else {    // draw normal grid with details
+
+            if(this.repeat) { // draw canvas background
+                ctx.fillStyle = "#daa";
+                ctx.fillRect(beginX * TILE_SIZE, beginY * TILE_SIZE, viewWidth * TILE_SIZE, viewHeight * TILE_SIZE);
+            }
+
+            // draw grid background
+            ctx.fillStyle = "#fcc";
+            ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
+
+            // draw grid background lines
+            ctx.strokeStyle = "#a99";
+            ctx.lineWidth = GRID_LINE_WIDTH;
+            for(var i = beginX; i <= endX; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * TILE_SIZE, beginY * TILE_SIZE);
+                ctx.lineTo(i * TILE_SIZE, endY * TILE_SIZE);
+                ctx.stroke();
+            }
+            for(var i = beginY; i <= endY; i++) {
+                ctx.beginPath();
+                ctx.moveTo(beginX * TILE_SIZE, i * TILE_SIZE);
+                ctx.lineTo(endX * TILE_SIZE, i * TILE_SIZE);
+                ctx.stroke();
+            }
+
+            if(mode === 2) {        // pathfinding
                 for(var i = beginX; i < endX; i++) {
                     for(var j = beginY; j < endY; j++) {
-
+    
                         // convert tile cartesian coordinates to tile array coordinates
-                        let k = i + j * this.width;
-
-                        // set drawing context to tile style
-                        if(!this.tiles[k]) continue;    // dead 
-                        ctx.fillRect(i * TILE_SIZE + 2, j * TILE_SIZE + 2, TILE_SIZE - 4, TILE_SIZE - 4);   // alive
-                    }
-                }
-            } else {    // draw normal detailed grid
-
-                // draw grid background
-                ctx.fillStyle = "#fcc";
-                ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
-
-                // draw grid background lines
-                ctx.strokeStyle = "#a99";
-                ctx.lineWidth = GRID_LINE_WIDTH;
-                for(var i = beginX; i <= endX; i++) {
-                    ctx.beginPath();
-                    ctx.moveTo(i * TILE_SIZE, 0);
-                    ctx.lineTo(i * TILE_SIZE, endY * TILE_SIZE);
-                    ctx.stroke();
-                }
-                for(var i = beginY; i <= endY; i++) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, i * TILE_SIZE);
-                    ctx.lineTo(endX * TILE_SIZE, i * TILE_SIZE);
-                    ctx.stroke();
-                }
-
-                // iterate through tiles shown on screen
-                for(var i = beginX; i < endX; i++) {
-                    for(var j = beginY; j < endY; j++) {
-
-                        // convert tile cartesian coordinates to tile array coordinates
-                        let k = i + j * this.width;
-
+                        let k = this.cartesianToIndex(i, j);
+    
+                        if(!this.tiles[k]) continue; 
+    
                         // set drawing context to tile style
                         ctx.lineWidth = 3;
-                        if(!this.tiles[k]) continue; 
-
-                        if(this.tiles[k] === 1) {                // barrier
+    
+                        if(this.tiles[k] === 1) {                       // barrier
                             ctx.fillStyle = "#020";
                             ctx.strokeStyle = "#030";
                             ctx.lineWidth = 9;
@@ -163,131 +178,69 @@ class Grid {
                         ctx.strokeRect(i * TILE_SIZE + ctx.lineWidth/2, j * TILE_SIZE + ctx.lineWidth/2, TILE_SIZE - ctx.lineWidth, TILE_SIZE - ctx.lineWidth);
                     }
                 }
-            }
 
-            // draw text overlay for pathfinding
-            if(mode === 2) {
-
-                // draw closed tiles f = g + h
+                // draw search tile numbers g, h, f;   f = g + h
+                function labelSearch(searched) {
+                    for(let i=0; i<searched.length; i++) {
+                        if(!searched[i] || !searched[i].reference) continue;
+                        const g = Math.round(searched[i].g * 10);
+                        const h = Math.round(searched[i].h * 10);
+                        const x = searched[i].x;
+                        const y = searched[i].y;
+                        ctx.font = "8px Nunito";
+                        ctx.textAlign = "center";
+                        ctx.fillText(g, (x + 0.5) * TILE_SIZE, (y + 1) * TILE_SIZE - 24);
+                        ctx.fillText(h, (x + 0.5) * TILE_SIZE, (y + 1) * TILE_SIZE - 16);
+                        ctx.font = Math.max(19 - 3 * (g + h).toFixed().length, 8) + "px Nunito";
+                        ctx.fillText((g + h), (x + 0.5) * TILE_SIZE, (y + 1) * TILE_SIZE - 6);
+                    }
+                }
                 ctx.fillStyle = "#222";
-                for(let i=0; i<this.openTiles.length; i++) {
-                    if(!this.openTiles[i] || !this.openTiles[i].reference) continue;
-                    const g = Math.round(this.openTiles[i].g * 10);
-                    const h = Math.round(this.openTiles[i].h * 10);
-                    const x = this.openTiles[i].x;
-                    const y = this.openTiles[i].y;
-                    ctx.font = "8px Nunito";
-                    ctx.textAlign = "center";
-                    ctx.fillText(g, (x + 0.5) * TILE_SIZE, (y + 1) * TILE_SIZE - 24);
-                    ctx.fillText(h, (x + 0.5) * TILE_SIZE, (y + 1) * TILE_SIZE - 16);
-                    ctx.font = Math.max(19 - 3 * (g + h).toFixed().length, 8) + "px Nunito";
-                    ctx.fillText((g + h), (x + 0.5) * TILE_SIZE, (y + 1) * TILE_SIZE - 6);
-                }
-
-                for(let i=0; i<this.closedTiles.length; i++) {
-                    if(!this.closedTiles[i] || !this.closedTiles[i].reference) continue;
-                    const g = Math.round(this.closedTiles[i].g * 10);
-                    const h = Math.round(this.closedTiles[i].h * 10);
-                    const x = this.closedTiles[i].x;
-                    const y = this.closedTiles[i].y;
-                    ctx.font = "8px Nunito";
-                    ctx.textAlign = "center";
-                    ctx.fillText(g, (x + 0.5) * TILE_SIZE, (y + 1) * TILE_SIZE - 24);
-                    ctx.fillText(h, (x + 0.5) * TILE_SIZE, (y + 1) * TILE_SIZE - 16);
-                    ctx.font = Math.max(19 - 3 * (g + h).toFixed().length, 8) + "px Nunito";
-                    ctx.fillText((g + h), (x + 0.5) * TILE_SIZE, (y + 1) * TILE_SIZE - 6);
-                }
+                labelSearch(this.openTiles);
+                labelSearch(this.closedTiles);
 
                 // draw target tile's number order
                 ctx.font = "16px Nunito";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 for(let i=0; i<this.targets.length; i++) ctx.fillText((i + 1), (this.targets[i] % this.width + 0.5) * TILE_SIZE + 1, (Math.floor(this.targets[i] / this.width) + 0.5) * TILE_SIZE);
-            }
 
-        } else {    //draw grid repeatedly
-
-            // find beginX and beginY, and view size
-            let beginX = Math.floor((-cameraTrans.offsetX)/cameraTrans.scale / TILE_SIZE);
-            let beginY = Math.floor(-cameraTrans.offsetY/cameraTrans.scale / TILE_SIZE);
-            let viewWidth = Math.ceil(canvas.width/cameraTrans.scale / TILE_SIZE) + 1;
-            let viewHeight = Math.ceil(canvas.height/cameraTrans.scale / TILE_SIZE)+ 1;
-            let endX = beginX + viewWidth;
-            let endY = beginY + viewHeight;
-
-            if(this.simple) {
-
-                // draw grid background
-                ctx.fillStyle = "#222";
-                ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
-                ctx.fillStyle = "#fff";
-
-                // iterate through tiles shown on screen
-                for(var i = beginX; i < viewWidth + beginX; i++) {
+            } else if(mode === 1) { // life
+                for(var i = beginX; i < endX; i++) {
                     for(var j = beginY; j < endY; j++) {
-
+    
                         // convert tile cartesian coordinates to tile array coordinates
-                        let k = i.mod(this.width) + j.mod(this.height) * this.width;
-
+                        let k = this.cartesianToIndex(i, j);
+    
+                        if(this.tiles[k] < 1) continue; 
+    
                         // set drawing context to tile style
-                        ctx.lineWidth = 3;
-                        if(this.tiles[k] === 0) continue;   // dead
-                        ctx.fillRect(i * TILE_SIZE + 2, j * TILE_SIZE + 2, TILE_SIZE - 4, TILE_SIZE - 4);   // alive
+                        ctx.fillStyle = "#020";
+                        ctx.strokeStyle = "#030";
+                        ctx.lineWidth = 9;
+                        ctx.fillRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                        ctx.strokeRect(i * TILE_SIZE + ctx.lineWidth/2, j * TILE_SIZE + ctx.lineWidth/2, TILE_SIZE - ctx.lineWidth, TILE_SIZE - ctx.lineWidth);
                     }
                 }
-            } else {
-
-                // draw grid background
-                ctx.fillStyle = "#daa";
-                ctx.fillRect(beginX * TILE_SIZE, beginY * TILE_SIZE, viewWidth * TILE_SIZE, viewHeight * TILE_SIZE);
-                ctx.fillStyle = "#fcc";
-                ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
-
-                // draw grid background lines
-                ctx.strokeStyle = "#a99";
-                ctx.lineWidth = GRID_LINE_WIDTH;
-                for(var i = beginX; i <= endX; i++) {
-                    ctx.beginPath();
-                    ctx.moveTo(i * TILE_SIZE, beginY * TILE_SIZE);
-                    ctx.lineTo(i * TILE_SIZE, endY * TILE_SIZE);
-                    ctx.stroke();
-                }
-                for(var i = beginY; i <= viewHeight + beginY; i++) {
-                    ctx.beginPath();
-                    ctx.moveTo(beginX * TILE_SIZE, i * TILE_SIZE);
-                    ctx.lineTo(endX * TILE_SIZE, i * TILE_SIZE);
-                    ctx.stroke();
-                }
-
-                // iterate through tiles shown on screen
-                for(var i = beginX; i < viewWidth + beginX; i++) {
+            } else if(mode === 0) { // pixel art
+                for(var i = beginX; i < endX; i++) {
                     for(var j = beginY; j < endY; j++) {
-
+    
                         // convert tile cartesian coordinates to tile array coordinates
-                        let k = i.mod(this.width) + j.mod(this.height) * this.width;
-
+                        let k = this.cartesianToIndex(i, j);
+    
+                        if(this.tiles[k] < 1) continue; 
+    
                         // set drawing context to tile style
-                        ctx.lineWidth = 3;
-                        if(this.tiles[k] === 0) continue;             // default
-                        else if(this.tiles[k] === 1) {                // barrier
-                            ctx.fillStyle = "#020";
-                            ctx.strokeStyle = "#030";
-                            ctx.lineWidth = 9;
-                        } 
-                        else if(this.tiles[k] === 2) {                // target
-                            ctx.fillStyle = "#4d4";
-                            ctx.strokeStyle = "#4f4";
-                        } 
-                        else if(this.tiles[k] === 3) {                //unit
-                            ctx.fillStyle = "#4f4";
-                            ctx.strokeStyle = "#4d4";
-                        }
+                        ctx.fillStyle = "#020";
+                        ctx.strokeStyle = "#030";
+                        ctx.lineWidth = 9;
                         ctx.fillRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE, TILE_SIZE);
                         ctx.strokeRect(i * TILE_SIZE + ctx.lineWidth/2, j * TILE_SIZE + ctx.lineWidth/2, TILE_SIZE - ctx.lineWidth, TILE_SIZE - ctx.lineWidth);
                     }
                 }
             }
-        } 
+        }
     }
 
     // set size expects sizes out of bounds to be caught by the html/css, but clamps the values just in case something goes wrong
@@ -296,8 +249,7 @@ class Grid {
         height = Math.min(Math.max(height, MIN_WIDTH), MAX_WIDTH);
         this.width = width;
         this.height = height;
-        this.tiles = new Array(width * height);
-        for(var i=0; i<width * height; i++) this.tiles[i] = 0; // tiles hold state
+        this.tiles = new Array(width * height).fill(0);
         requestAnimationFrame(draw);
     }
 }
@@ -312,8 +264,14 @@ let pointerSpread = 0;
 
 // time
 const TIMER_START = Date.now();
+let performanceTimes = [];    // array of times taken for some code snippet to run (if too intricate to test online)
+
+//const performanceTimeStart = Date.now();
+//performanceTimes.push(Date.now() - performanceTimeStart);
+
 
 // grid construction
+const GRID_LINE_WIDTH = 6;
 const TILE_SIZE = 32;
 const MIN_WIDTH = 2;
 const MAX_WIDTH = 256;
@@ -584,6 +542,7 @@ if(isMobile) {
         }
 
         if(key === 65) stepPathfinding(false);
+        else if(key === 84) document.getElementById("debug").innerHTML = logPerformanceTime();
     });
 
     canvas.addEventListener("keyup",(event) => {
@@ -645,21 +604,23 @@ function checkTile(gx, gy, style) {
     if(erasing) style = 0;
 
     if(Grid.tiles[pos] !== style) {                         // if tile isn't same as new tile
-        steps.push({pos: pos, revert: Grid.tiles[pos]});    // push undo step
-        if(Grid.tiles[pos] === 2) {                         // if tile is a target
-            const index = Grid.targets.indexOf(pos);
-            steps[steps.length-1].target = index;           // add target index number to last step
-            Grid.targets.splice(index, 1);                  // remove this index from Grid.targets
+        if(!playing) {
+            steps.push({pos: pos, revert: Grid.tiles[pos]});    // push undo step
+            if(Grid.tiles[pos] === 2) {                         // if tile is a target
+                const index = Grid.targets.indexOf(pos);
+                steps[steps.length-1].target = index;           // add target index number to last step
+                Grid.targets.splice(index, 1);                  // remove this index from Grid.targets
+            }
         }
 
         Grid.tiles[pos] = style;                            // set tile
         if(style === 2) Grid.targets.push(pos);             // if tile is now a target, add it too Grid.targets
         else if(style === 3) Grid.units.push({x: mgx, y: mgy}); // mark unit
     }
-    document.getElementById("debug").innerHTML = logTargets();
+    document.getElementById("debug").innerHTML = logArray(Grid.targets);
 }
 
-// zoom i0 or out from the reference point
+// zoom in or out from the reference point
 function zoom(amount, referencePoint) {
     const oldScale = cameraTrans.scale;
     cameraTrans.scale -= ZOOM_AMOUNT * amount * Math.abs(cameraTrans.scale); // scale slower when further away and vice versa
@@ -701,7 +662,7 @@ function setTileMode(newTileMode) {
  * Grid targets are a whole other miserable ball game.
  */
 function undo() {
-    if(steps.length <= 0) return;
+    if(steps.length <= 0 || playing) return;
     let step = steps.pop();
     let futureStep = [];
 
@@ -725,13 +686,13 @@ function undo() {
     }
     futureSteps.push(futureStep);
     requestAnimationFrame(draw);
-    document.getElementById("debug").innerHTML = logTargets();
+    document.getElementById("debug").innerHTML = logArray(Grid.targets);
 }
 
 
 // inverse function of undo
 function redo() {
-    if(futureSteps.length <= 0) return;
+    if(futureSteps.length <= 0 || playing) return;
     let futureStep = futureSteps.pop();
     let step = [];
 
@@ -755,7 +716,7 @@ function redo() {
     }
     steps.push(step);
     requestAnimationFrame(draw);
-    document.getElementById("debug").innerHTML = logTargets();
+    document.getElementById("debug").innerHTML = logArray(Grid.targets);
 }
 
 // call fullscreen methods compatible for all browsers, retrieved from: https://developers.google.com/web/fundamentals/native-hardware/fullscreen/
@@ -784,10 +745,6 @@ var frameInterval;
 // update tiles by rules
 function stepLife(playThread) {
     if(!playThread && playing) playLife();
-
-    // empty undo and redo steps
-    steps = [];
-    futureSteps = [];
 
     // neighbor tile location in array is stores here
     var neighbors = [null, null, null, null, null, null, null, null];
@@ -857,6 +814,15 @@ function stepLife(playThread) {
         }
     }
 
+    if(!playThread) {
+        futureSteps = [];
+        let step = [];
+        for(let i=0; i<Grid.tiles.length; i++) {
+            if(Grid.tiles[i] !== modifiedTiles[i]) step.push({pos: i, revert: Grid.tiles[i]});
+        }
+        steps.push(step);
+    }
+
     Grid.tiles = modifiedTiles;
     requestAnimationFrame(draw);
 
@@ -868,6 +834,10 @@ function playLife() {
     console.log(playing ? "Play" : "Pause");
     const element = document.getElementById('playLife');
     if(playing) {
+        futureSteps = [];
+        let step = [];
+        for(let i=0; i<Grid.tiles.length; i++) step.push({pos: i, revert: Grid.tiles[i]});
+        steps.push(step);
         stepLife(true);
         element.style.backgroundColor = "#888";
         element.style.transform = "translateY(2px)";
@@ -1012,8 +982,8 @@ function calculateSurroundingNodes(x, y, targetX, targetY, addG) {
 
 // return a string displaying undo/redo steps. (#, #) are complete steps, (#, 6) shows number of changed tiles in current step
 function logSteps() {
-    var str = "(";
-    var i=0;
+    let str = "(";
+    let i=0;
     while(steps[i]) {
         str += "#, ";
         i++;
@@ -1021,21 +991,35 @@ function logSteps() {
     if(steps.length > i) str += (steps.length-1 - i) + ")";
     else str = str.substr(0, str.length - 2) + ")";
     if(str.length === 1) str = "()";
-    //console.log(str); good lord don't use this
     return str;
 }
 
-function logTargets() {
-    var str = "T(";
-    var i=0;
-    while(i < Grid.targets.length) {
-        str += Grid.targets[i] + ", ";
+// return a string displaying the contents of the given array
+function logArray(a) {
+    let str = "T(";
+    let i=0;
+    while(i < a.length) {
+        str += a[i] + ", ";
         i++;
     }
     str = str.substr(0, str.length - 2) + ")";
     if(Grid.targets.length === 0) str = "()";
-    //console.log(str); good lord don't use this
     return str;
+}
+
+// return a string displaying the mean, min, max and range of values
+function logPerformanceTime() {
+    let mean = performanceTimes[0];
+    let min = mean;
+    let max = min;
+    for(let i=1; i<performanceTimes.length; i++) {
+        mean += performanceTimes[i];
+        if(performanceTimes[i] < min) min = performanceTimes[i];
+        if(performanceTimes[i] > max) max = performanceTimes[i];
+    }
+    mean /= performanceTimes.length;
+
+    return mean + ", min: " + min + ", max: " + max + ",range: " + (max - min);
 }
 
 //#endregion
