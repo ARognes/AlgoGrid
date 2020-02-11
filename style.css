@@ -122,7 +122,7 @@ html, body {
     display: inline-block;
 	background-color: #544;
     border-radius: 8px;
-    padding: 0 2.5% 12px 2.5%;
+    padding: 0 2.5% 18px 2.5%;
     width: 96%;
     position: absolute;
     bottom: 67px;
@@ -130,7 +130,7 @@ html, body {
     left: 2%;
 }
 
-#playLife {
+#playFrame {
     height: 46px;
 }
 

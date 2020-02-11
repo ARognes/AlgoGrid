@@ -148,7 +148,7 @@ html, body {
     display: inline-block;
 	background-color: #544;
     border-radius: 8px;
-    padding: 0 2.5vw 12px 2.5vw;
+    padding: 0 2.5vw 18px 2.5vw;
     margin: 0 5vw;
     width: 85vw;
     position: absolute;
@@ -157,7 +157,7 @@ html, body {
     left:0;
 }
 
-#playLife {
+#playFrame {
     height: 46px;
 }
 
@@ -168,7 +168,6 @@ html, body {
     padding-top: 5px;
     width: 15vw;
     margin: 0 0.5vw;
-    /*border-radius: 8px 8px 0 0;*/
     border-radius: 8px;
     border: none;
     text-align: center;
