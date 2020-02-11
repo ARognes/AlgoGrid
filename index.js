@@ -24,6 +24,8 @@ if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine
 
 // get context and add input listeners
 var canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
+let dpx = window.devicePixelRatio || 1;
+ctx.scale(dpx, dpx);
 
 // resize the canvas to fill browser window dynamically
 window.addEventListener('resize', () => {
