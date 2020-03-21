@@ -298,8 +298,7 @@ let playing = false;
 let playSpeed = 2;
 
 // mode, 0: pixel art, 1: life; 2: pathfinding
-let mode = 0;
-
+let mode = -1;
 
 // camera view
 let cameraTrans = {scale: 1, offsetX: 0, offsetY: 0};
@@ -409,9 +408,7 @@ if(isMobile) {
     let touchStartX = 0;
     let timeTouchStart = 0;
     let rangeStartValue = 2;
-    let menuMoving = 100;
-    const ANIMATION_SPEED_DIP = 0.05;
-    dipAnimation(true, 0);
+    
     document.getElementById("barmenu").addEventListener('touchstart', (event) => {
         if(event.touches.length === 1) {
             touchStartX = event.changedTouches[0].clientX;
@@ -433,61 +430,6 @@ if(isMobile) {
             }
         }
     }, false);*/
-
-    function dipAnimation(dir, newMode) {
-        if(dir) {
-            menuMoving += (100 - menuMoving) * ANIMATION_SPEED_DIP;
-            if(menuMoving > 99) {
-                if(playing) {
-                    if(mode == 1) playLife();
-                    else if(mode == 2) playPathfinding();
-                }
-                dir = false;
-                mode = newMode;
-                var indicators = document.getElementById("menuIndicator").children;
-                for(var i=1; i<indicators.length; i += 2) indicators[i].style.backgroundColor = (i === mode+1) ? "#f00" : "#a99";
-                if(mode === 0) {    // pixel art, unselect all tools
-                    document.getElementById("toolbar").children[0].checked = false;
-                    document.getElementById("toolbar").children[2].checked = false;
-                    eraser = false;
-                    tileMode = 0;
-                    viewOnly = true;
-                    indicators[0].innerHTML = "Pixel Art";
-                    document.getElementById("toolbarPlatform").style.width = "142px";
-                } else if(mode === 1) { // life, set tools to barrier + eraser
-                    document.getElementById("toolbar").children[0].checked = true;
-                    document.getElementById("toolbar").children[2].checked = true;
-                    document.getElementById("playBtn").onclick = function() {playLife()};
-                    document.getElementById("stepBtn").onclick = function() {stepLife(false)};
-                    eraser = true;
-                    tileMode = 1;
-                    viewOnly = false;
-                } else if(mode === 2) { // pathfinding
-                    indicators[0].innerHTML = "Pathfinding";
-                    document.getElementById("toolbarPlatform").style.width = "156px";
-                    document.getElementById("playBtn").onclick = function() {playPathfinding()};
-                    document.getElementById("stepBtn").onclick = function() {stepPathfinding(false)};
-                }
-                requestAnimationFrame(draw);
-            }
-        } else {
-            menuMoving += (-menuMoving) * ANIMATION_SPEED_DIP;
-            if(menuMoving < 1) menuMoving = 0;
-        }
-
-        if(mode === 0) {    // pixel art
-            if(menuMoving > 20) document.getElementById("barmenu").style.bottom = 20-menuMoving + "px";
-            document.getElementById("framebar").style.bottom = "-120px";
-        } else if(mode === 1) { // life
-            document.getElementById("barmenu").style.bottom = "-120px";
-            document.getElementById("framebar").style.bottom = (134 - menuMoving) + "px";
-        } else if(mode === 2) { // pathfinding
-            if(menuMoving > 20) document.getElementById("barmenu").style.bottom = 20-menuMoving + "px";
-            document.getElementById("framebar").style.bottom = (67 - menuMoving) + "px";
-        }
-
-        if(menuMoving) setTimeout(() => dipAnimation(dir, newMode), 1);
-    }
     //#endregion
 } else {
 
@@ -541,9 +483,8 @@ if(isMobile) {
     }, false);
 
     /**
-     *  key input
+     *  pc key input
      */
-
     document.addEventListener("keydown", (event) => {
         var key = event.which;
 
@@ -559,11 +500,76 @@ if(isMobile) {
     });
 }
 
+
+let menuMoving = 100;
+/**
+ * Bar menu dip animation. Calls itself every step until animation is finished.
+ * Menu dips down, changes out of view, then pops back up.
+ * 
+ * @param {*} dir     direction, down then up, used in animation
+ * @param {*} newMode mode changing too
+ */
+function dipAnimation(dir, newMode) {
+    if(dir) {
+        if(mode == newMode) return;
+        menuMoving += (100 - menuMoving) * 0.05;
+        if(menuMoving > 99) {
+            if(playing) {
+                if(mode == 1) playLife();
+                else if(mode == 2) playPathfinding();
+            }
+            dir = false;
+            mode = newMode;
+            var indicators = document.getElementById("menuIndicator").children;
+            for(var i=1; i<indicators.length; i += 2) indicators[i].style.backgroundColor = (i === mode+1) ? "#f00" : "#a99";
+            if(mode === 0) {    // pixel art, unselect all tools
+                document.getElementById("toolbar").children[0].checked = false;
+                document.getElementById("toolbar").children[2].checked = false;
+                eraser = false;
+                tileMode = 0;
+                viewOnly = true;
+                indicators[0].innerHTML = "Pixel Art";
+                document.getElementById("toolbarPlatform").style.width = "142px";
+            } else if(mode === 1) { // life, set tools to barrier + eraser
+                document.getElementById("toolbar").children[0].checked = true;
+                document.getElementById("toolbar").children[2].checked = true;
+                document.getElementById("playBtn").onclick = function() {playLife()};
+                document.getElementById("stepBtn").onclick = function() {stepLife(false)};
+                eraser = true;
+                tileMode = 1;
+                viewOnly = false;
+            } else if(mode === 2) { // pathfinding
+                indicators[0].innerHTML = "Pathfinding";
+                document.getElementById("toolbarPlatform").style.width = "156px";
+                document.getElementById("playBtn").onclick = function() {playPathfinding()};
+                document.getElementById("stepBtn").onclick = function() {stepPathfinding(false)};
+            }
+            requestAnimationFrame(draw);
+        }
+    } else {
+        menuMoving += (-menuMoving) * 0.05;
+        if(menuMoving < 1) menuMoving = 0;
+    }
+
+    if(mode === 0) {    // pixel art
+        if(menuMoving > 20) document.getElementById("barmenu").style.bottom = 20-menuMoving + "px";
+        document.getElementById("framebar").style.bottom = "-120px";
+    } else if(mode === 1) { // life
+        document.getElementById("barmenu").style.bottom = "-120px";
+        document.getElementById("framebar").style.bottom = (134 - menuMoving) + "px";
+    } else if(mode === 2) { // pathfinding
+        if(menuMoving > 20) document.getElementById("barmenu").style.bottom = 20-menuMoving + "px";
+        document.getElementById("framebar").style.bottom = (67 - menuMoving) + "px";
+    }
+
+    if(menuMoving) setTimeout(() => dipAnimation(dir, newMode), 1);
+}
+dipAnimation(true, 0);
+
 document.addEventListener("keydown", (event) => {
     var key = event.which;
 
     if(key === 65) stepPathfinding(false);
-    else if(key === 84) document.getElementById("debug").innerHTML = logPerformanceTime();
 });
 
 //#endregion
@@ -598,7 +604,7 @@ function styleTiles(style) {
 
     if(!deltaPointer.x && !deltaPointer.y) return;
 
-    // translate last cursor coordinates into grid coordinates
+    // translate last step cursor screen coordinates into grid coordinates
     let hx = Math.floor(((pointerPos.x - deltaPointer.x - cameraTrans.offsetX)/cameraTrans.scale)/TILE_SIZE);
     let hy = Math.floor(((pointerPos.y - deltaPointer.y - cameraTrans.offsetY)/cameraTrans.scale)/TILE_SIZE);
 
@@ -619,7 +625,7 @@ function checkTile(gx, gy, style) {
     if(eraser && !deltaPointer.x && !deltaPointer.y && Grid.tiles[pos] === style) erasing = true;
     if(erasing) style = 0;
 
-    if(Grid.tiles[pos] !== style) {                         // if tile isn't same as new tile
+    if(Grid.tiles[pos] !== style && Grid.tiles[pos] >= 0) {                         // if tile isn't same as new tile
         if(!playing) {
             steps.push({pos: pos, revert: Grid.tiles[pos]});    // push undo step
             if(Grid.tiles[pos] === 2) {                         // if tile is a target
@@ -630,7 +636,7 @@ function checkTile(gx, gy, style) {
         }
 
         Grid.tiles[pos] = style;                            // set tile
-        if(style === 2) Grid.targets.push(pos);             // if tile is now a target, add it too Grid.targets
+        if(style === 2) Grid.targets.push(pos);             // if tile is now a target, add it to Grid.targets
         else if(style === 3) Grid.units.push({done: false, x: mgx, y: mgy}); // mark unit
     }
     document.getElementById("debug").innerHTML = logArray(Grid.targets);
@@ -753,6 +759,7 @@ function toggleGridRepeat() {
     requestAnimationFrame(draw);
 }
 
+// set frame speed from html slider, [1 - 100]
 function setFrameSpeed() {
     playSpeed = document.getElementById("frameSpeed").value;
     if(playSpeed > 9) playSpeed = (playSpeed-9) * 10;
@@ -918,6 +925,11 @@ let pathTile = null;
 let unitTurn = 0;
 let stepIndex = null;
 
+/**
+ * 
+ * 
+ * @param {*} playThread keeps pathfinding running at play speed
+ */
 function stepPathfinding(playThread) {
     //mode = 2;
 
@@ -992,11 +1004,19 @@ function stepPathfinding(playThread) {
 
     requestAnimationFrame(draw);
 
-   
 
     if(playThread && playing) frameInterval = setTimeout(() => stepPathfinding(true), 1000 / playSpeed);
 }
 
+/**
+ * Given an openTile and a target, calculate the F, G, and H cost of each adjacent node.
+ * 
+ * @param {*} x         current node grid x
+ * @param {*} y         current node grid y
+ * @param {*} targetX   target node grid x
+ * @param {*} targetY   target node grid y
+ * @param {*} addG      current node G cost
+ */
 function calculateAdjacentNodes(x, y, targetX, targetY, addG) {
     var neighborTiles = [null, null, null, null, null, null, null, null];
     let modifiedTiles = [...Grid.tiles];
@@ -1009,12 +1029,12 @@ function calculateAdjacentNodes(x, y, targetX, targetY, addG) {
 
     // find if corner neighbor Grid.tiles upright, upleft, downright, and downleft exist, if so, get their tile's style
     if(neighborTiles[1] !== null) {
-        if(neighborTiles[7] !== null && (neighborTiles[1] <= 0 || neighborTiles[7] <= 0)) neighborTiles[0] = modifiedTiles[x+1 + (y-1) * Grid.width];
-        if(neighborTiles[3] !== null && (neighborTiles[1] <= 0 || neighborTiles[3] <= 0)) neighborTiles[2] = modifiedTiles[x-1 + (y-1) * Grid.width];
+        if(neighborTiles[7] !== null/* && (neighborTiles[1] <= 0 || neighborTiles[7] <= 0)*/) neighborTiles[0] = modifiedTiles[x+1 + (y-1) * Grid.width];
+        if(neighborTiles[3] !== null/* && (neighborTiles[1] <= 0 || neighborTiles[3] <= 0)*/) neighborTiles[2] = modifiedTiles[x-1 + (y-1) * Grid.width];
     }
     if(neighborTiles[5] !== null) {
-        if(neighborTiles[7] !== null && (neighborTiles[5] <= 0 || neighborTiles[7] <= 0)) neighborTiles[6] = modifiedTiles[x+1 + (y+1) * Grid.width];
-        if(neighborTiles[3] !== null && (neighborTiles[5] <= 0 || neighborTiles[3] <= 0)) neighborTiles[4] = modifiedTiles[x-1 + (y+1) * Grid.width];
+        if(neighborTiles[7] !== null/* && (neighborTiles[5] <= 0 || neighborTiles[7] <= 0)*/) neighborTiles[6] = modifiedTiles[x+1 + (y+1) * Grid.width];
+        if(neighborTiles[3] !== null/* && (neighborTiles[5] <= 0 || neighborTiles[3] <= 0)*/) neighborTiles[4] = modifiedTiles[x-1 + (y+1) * Grid.width];
     }
 
     if(Grid.openTiles.length > 0) {

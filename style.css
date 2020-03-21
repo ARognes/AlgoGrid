@@ -96,7 +96,7 @@ html, body {
     color: #222;
 }
 
-#menuIndicatorBox {
+.menuIndicatorBox {
     width: 20px; 
     height: 10px; 
     background-color: #a99; 
