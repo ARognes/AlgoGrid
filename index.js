@@ -899,6 +899,7 @@ function playLife() {
 }
 
 function playPathfinding() {
+    if(!playing && (Grid.targets.length === 0 || Grid.units.length === 0)) return;
     playing = !playing;
     console.log((playing ? "Play" : "Pause") + " pathfinding");
     const element = document.getElementById('playBtn');
@@ -921,9 +922,9 @@ function playPathfinding() {
     }
 }
 
-let pathTile = null;
-let unitTurn = 0;
-let stepIndex = null;
+let pathTile = null;    // last step's path tile back
+let unitTurn = 0;       // which unit is currently pathfinding
+let stepIndex = null;   // tile that unit steps to
 
 /**
  * 
@@ -936,8 +937,6 @@ function stepPathfinding(playThread) {
     // step pressed while playing
     if(!playThread && playing) playPathfinding();
 
-    if(Grid.targets.length === 0 || Grid.units.length === 0) return;
-
     // empty undo and redo steps
     futureSteps = [];
 
@@ -947,8 +946,32 @@ function stepPathfinding(playThread) {
     if(!pathTile) {
 
         // no path possible
-        if(!Grid.openTiles) {
-            //return; // TODO
+        if(!Grid.openTiles.length && Grid.units[unitTurn].done) {
+            console.log("No path possible");
+
+            let optimalIndex = null;
+            for(let i=0; i<Grid.closedTiles.length; i++) {
+                if(Math.abs(Grid.closedTiles[i].x - Grid.units[unitTurn].x) > 1 || Math.abs(Grid.closedTiles[i].y - Grid.units[unitTurn].y) > 1) continue;
+                if(Math.abs(Grid.units[unitTurn].x - (Grid.targets[0] % Grid.width)) + Math.abs(Grid.units[unitTurn].y - Math.floor(Grid.targets[0] / Grid.width)) < Grid.closedTiles[i].g + Grid.closedTiles[i].h) continue;
+                if(optimalIndex == null || Grid.closedTiles[i].g + Grid.closedTiles[i].h < Grid.closedTiles[optimalIndex].g + Grid.closedTiles[optimalIndex].h) optimalIndex = i;
+            }
+            if(optimalIndex != null) {
+                Grid.tiles[Grid.units[unitTurn].x + Grid.units[unitTurn].y * Grid.width] = 0;
+                Grid.units[unitTurn].x = Grid.closedTiles[optimalIndex].x;
+                Grid.units[unitTurn].y = Grid.closedTiles[optimalIndex].y;
+                Grid.tiles[Grid.units[unitTurn].x + Grid.units[unitTurn].y * Grid.width] = 3;
+            }
+
+            // clear all heuristics
+            for(let i=0; i<Grid.tiles.length; i++) Grid.tiles[i] = Math.max(Grid.tiles[i], 0);
+            Grid.closedTiles = [];
+            Grid.openTiles = [];
+            Grid.units[unitTurn].done = false;
+
+            // stop pathfinding
+            if(playing) playPathfinding();
+            requestAnimationFrame(draw);
+            return;
         }
 
         // initially calculate nodes adjacent to unit, then calculate openTiles
@@ -972,6 +995,7 @@ function stepPathfinding(playThread) {
             Grid.closedTiles = [];
             Grid.openTiles = [];
 
+            // next unit loop
             unitTurn++;
             unitTurn %= Grid.units.length;
             Grid.units[unitTurn].done = false;
@@ -989,7 +1013,6 @@ function stepPathfinding(playThread) {
             }
 
             if(optimalIndex != null) {
-                    
                 Grid.tiles[Grid.closedTiles[optimalIndex].reference] = -3;
                 if(Grid.closedTiles[optimalIndex].g < 1.5) {
                     stepIndex = optimalIndex;
@@ -1029,7 +1052,7 @@ function calculateAdjacentNodes(x, y, targetX, targetY, addG) {
 
     // find if corner neighbor Grid.tiles upright, upleft, downright, and downleft exist, if so, get their tile's style
     if(neighborTiles[1] !== null) {
-        if(neighborTiles[7] !== null/* && (neighborTiles[1] <= 0 || neighborTiles[7] <= 0)*/) neighborTiles[0] = modifiedTiles[x+1 + (y-1) * Grid.width];
+        if(neighborTiles[7] !== null/* && (neighborTiles[1] <= 0 || neighborTiles[7] <= 0) USE THIS TO DISABLE CORNER TILE MOVEMENT*/) neighborTiles[0] = modifiedTiles[x+1 + (y-1) * Grid.width];
         if(neighborTiles[3] !== null/* && (neighborTiles[1] <= 0 || neighborTiles[3] <= 0)*/) neighborTiles[2] = modifiedTiles[x-1 + (y-1) * Grid.width];
     }
     if(neighborTiles[5] !== null) {
@@ -1087,6 +1110,7 @@ function calculateAdjacentNodes(x, y, targetX, targetY, addG) {
     }
     Grid.tiles = modifiedTiles;
 
+    // unit is next to tile
     if(Math.abs(targetX - x) < 2 && Math.abs(targetY - y) < 2) pathTile = {x: targetX, y: targetY};
 }
 
