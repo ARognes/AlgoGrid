@@ -66,7 +66,7 @@ class Grid {
 
         // pathfinding arrays
         this.units = [];
-        this.targets = [];
+        this.target = null;
         this.openTiles = [];
         this.closedTiles = [];
 
@@ -205,10 +205,13 @@ class Grid {
                 ctx.font = "16px Nunito";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                for(let i=0; i<this.targets.length; i++) ctx.fillText((i + 1), (this.targets[i] % this.width + 0.5) * TILE_SIZE + 1, (Math.floor(this.targets[i] / this.width) + 0.5) * TILE_SIZE);
+                //for(let i=0; i<this.targets.length; i++) ctx.fillText((i + 1), (this.targets[i] % this.width + 0.5) * TILE_SIZE + 1, (Math.floor(this.targets[i] / this.width) + 0.5) * TILE_SIZE);
 
-                // draw unit tile's acsii art
-                for(let i=0; i<this.units.length; i++) ctx.fillText("◕U◕", (this.units[i].x + 0.47) * TILE_SIZE + 1, (this.units[i].y + 0.5) * TILE_SIZE);
+                // draw target tile
+                if(this.target != null) ctx.fillText("X", (this.target % this.width + 0.47) * TILE_SIZE + 1, (Math.floor(this.target / this.width) + 0.56) * TILE_SIZE);
+
+                // draw unit tile's number
+                for(let i=0; i<this.units.length; i++) ctx.fillText(i + 1, (this.units[i].x + 0.47) * TILE_SIZE + 1, (this.units[i].y + 0.5) * TILE_SIZE);
 
             } else if(mode === 1) { // life CURRENTLY THE SAME BUT WILL CHANGE
                 for(var i = beginX; i < endX; i++) {
@@ -625,21 +628,29 @@ function checkTile(gx, gy, style) {
     if(eraser && !deltaPointer.x && !deltaPointer.y && Grid.tiles[pos] === style) erasing = true;
     if(erasing) style = 0;
 
-    if(Grid.tiles[pos] !== style && Grid.tiles[pos] >= 0) {                         // if tile isn't same as new tile
-        if(!playing) {
-            steps.push({pos: pos, revert: Grid.tiles[pos]});    // push undo step
-            if(Grid.tiles[pos] === 2) {                         // if tile is a target
-                const index = Grid.targets.indexOf(pos);
-                steps[steps.length-1].target = index;           // add target index number to last step
-                Grid.targets.splice(index, 1);                  // remove this index from Grid.targets
-            }
-        }
+    if(Grid.tiles[pos] === style || Grid.tiles[pos] < 0) return;     // if tile isn't same as new tile
+    if(style === 2 && Grid.target != null) return;
 
-        Grid.tiles[pos] = style;                            // set tile
-        if(style === 2) Grid.targets.push(pos);             // if tile is now a target, add it to Grid.targets
-        else if(style === 3) Grid.units.push({done: false, x: mgx, y: mgy}); // mark unit
-    }
-    document.getElementById("debug").innerHTML = logArray(Grid.targets);
+    if(!playing) {
+        steps.push({pos: pos, revert: Grid.tiles[pos]});    // push undo step
+
+        if(Grid.tiles[pos] === 2) Grid.target = null;       // if tile is a target
+        else if(Grid.tiles[pos] === 3) {                    // if tile is a unit
+            //const index = Grid.units.indexOf(pos);
+            let index = Grid.units[0];
+            for(let i=1; i<Grid.units.length; i++) {
+                if(Grid.units[i].x + Grid.units[i].y * Grid.height === pos) index = i;
+            }
+            console.log(index);
+            steps[steps.length-1].unit = index;             // add unit index number to last step
+            Grid.units.splice(index, 1);                    // remove this index from Grid.units
+        }
+    } else if(style > 1 || Grid.tiles[pos] > 1) return;
+
+    Grid.tiles[pos] = style;                                // set tile
+    if(style === 2) Grid.target = pos;
+    else if(style === 3) Grid.units.push({done: false, x: mgx, y: mgy});
+
 }
 
 // zoom in or out from the reference point
@@ -693,22 +704,24 @@ function undo() {
     for(var i=0; i < step.length; i++) {
 
         futureStep.push({pos: step[i].pos, revert: Grid.tiles[step[i].pos]});   // add tile to futureStep
-        if(Grid.tiles[step[i].pos] === 2) {                                     // if tile is a target
-            const index = Grid.targets.indexOf(step[i].pos);
-            futureStep[futureStep.length-1].target = index;                     // add target index to last futureStep
-            Grid.targets.splice(index, 1);                                      // remove target index from Grid.targets
+        if(Grid.tiles[step[i].pos] === 2) Grid.target = null;                   // if tile is the target
+        else if(Grid.tiles[step[i].pos] === 3) {                                     // if tile is a unit
+
+           const index = Grid.units.indexOf(step[i].pos);   
+           futureStep[futureStep.length-1].unit = index;    // add unit index to last future step
+           Grid.units.splice(index, 1);                     // remove unit index from Grid.units
         }
 
         Grid.tiles[step[i].pos] = step[i].revert;                               // set tile
 
-        if(step[i].revert === 2) {                                              // if tile is now a target
-            Grid.targets.splice(step[i].target, 0, step[i].pos);                // add tile position to Grid.targets on index target
-            futureStep[futureStep.length-1].target = step[i].target;            // add target information to futureStep
+        if(step[i].revert === 2) Grid.target = step[i].pos;
+        else if(step[i].revert === 3) {                                              // if tile is now a unit
+            Grid.units.splice(step[i].unit, 0, step[i].pos);                // add tile position to Grid.units on index unit
+            futureStep[futureStep.length-1].unit = step[i].unit;            // add unit information to futureStep
         }
     }
     futureSteps.push(futureStep);
     requestAnimationFrame(draw);
-    document.getElementById("debug").innerHTML = logArray(Grid.targets);
 }
 
 
@@ -722,23 +735,25 @@ function redo() {
     console.log('redo');
     for(var i=0; i < futureStep.length; i++) {
         step.push({pos: futureStep[i].pos, revert: Grid.tiles[futureStep[i].pos]});
-        if(Grid.tiles[futureStep[i].pos] === 2) {
-            const index = Grid.targets.indexOf(futureStep[i].pos);
+        
+        if(Grid.tiles[futureStep[i].pos] === 2) Grid.target = null;                   // if tile is the target
+        else if(Grid.tiles[futureStep[i].pos] === 3) {
+            const index = Grid.units.indexOf(futureStep[i].pos);
             step[step.length-1].target = index;
-            Grid.targets.splice(index, 1);
+            Grid.units.splice(index, 1);
         }
 
         Grid.tiles[futureStep[i].pos] = futureStep[i].revert; // edit tile if coordinates are on grid
 
-        if(futureStep[i].revert === 2) {
-            Grid.targets.splice(futureStep[i].target, 0, futureStep[i].pos);
-            step[step.length-1].target = futureStep[i].target;
+        if(futureStep[i].revert === 2) Grid.target = futureStep[i].pos;
+        else if(futureStep[i].revert === 3) {
+            Grid.units.splice(futureStep[i].unit, 0, futureStep[i].pos);
+            step[step.length-1].unit = futureStep[i].unit;
         }
 
     }
     steps.push(step);
     requestAnimationFrame(draw);
-    document.getElementById("debug").innerHTML = logArray(Grid.targets);
 }
 
 // call fullscreen methods compatible for all browsers, retrieved from: https://developers.google.com/web/fundamentals/native-hardware/fullscreen/
@@ -899,7 +914,7 @@ function playLife() {
 }
 
 function playPathfinding() {
-    if(!playing && (Grid.targets.length === 0 || Grid.units.length === 0)) return;
+    if(!playing && (Grid.target == null || Grid.units.length === 0)) return;
     playing = !playing;
     console.log((playing ? "Play" : "Pause") + " pathfinding");
     const element = document.getElementById('playBtn');
@@ -952,31 +967,23 @@ function stepPathfinding(playThread) {
             let optimalIndex = null;
             for(let i=0; i<Grid.closedTiles.length; i++) {
                 if(Math.abs(Grid.closedTiles[i].x - Grid.units[unitTurn].x) > 1 || Math.abs(Grid.closedTiles[i].y - Grid.units[unitTurn].y) > 1) continue;
-                if(Math.abs(Grid.units[unitTurn].x - (Grid.targets[0] % Grid.width)) + Math.abs(Grid.units[unitTurn].y - Math.floor(Grid.targets[0] / Grid.width)) < Grid.closedTiles[i].g + Grid.closedTiles[i].h) continue;
+                if(Math.abs(Grid.units[unitTurn].x - (Grid.target % Grid.width)) + Math.abs(Grid.units[unitTurn].y - Math.floor(Grid.target / Grid.width)) < Grid.closedTiles[i].g + Grid.closedTiles[i].h) continue;
                 if(optimalIndex == null || Grid.closedTiles[i].g + Grid.closedTiles[i].h < Grid.closedTiles[optimalIndex].g + Grid.closedTiles[optimalIndex].h) optimalIndex = i;
             }
             if(optimalIndex != null) {
-                Grid.tiles[Grid.units[unitTurn].x + Grid.units[unitTurn].y * Grid.width] = 0;
-                Grid.units[unitTurn].x = Grid.closedTiles[optimalIndex].x;
-                Grid.units[unitTurn].y = Grid.closedTiles[optimalIndex].y;
-                Grid.tiles[Grid.units[unitTurn].x + Grid.units[unitTurn].y * Grid.width] = 3;
+
+                Grid.tiles[Grid.closedTiles[optimalIndex].reference] = -3;
+                pathTile = {x: Grid.closedTiles[optimalIndex].x, y: Grid.closedTiles[optimalIndex].y};
+                stepIndex = optimalIndex;
+                if(playing) playPathfinding(); // stop pathfinding
             }
-
-            // clear all heuristics
-            for(let i=0; i<Grid.tiles.length; i++) Grid.tiles[i] = Math.max(Grid.tiles[i], 0);
-            Grid.closedTiles = [];
-            Grid.openTiles = [];
-            Grid.units[unitTurn].done = false;
-
-            // stop pathfinding
-            if(playing) playPathfinding();
             requestAnimationFrame(draw);
             return;
         }
 
         // initially calculate nodes adjacent to unit, then calculate openTiles
-        if(!Grid.units[unitTurn].done) calculateAdjacentNodes(Grid.units[unitTurn].x, Grid.units[unitTurn].y, Grid.targets[0] % Grid.width, Math.floor(Grid.targets[0] / Grid.width), 0);
-        else calculateAdjacentNodes(Grid.openTiles[0].x, Grid.openTiles[0].y, Grid.targets[0] % Grid.width, Math.floor(Grid.targets[0] / Grid.width), Grid.openTiles[0].g);
+        if(!Grid.units[unitTurn].done) calculateAdjacentNodes(Grid.units[unitTurn].x, Grid.units[unitTurn].y, Grid.target % Grid.width, Math.floor(Grid.target / Grid.width), 0);
+        else calculateAdjacentNodes(Grid.openTiles[0].x, Grid.openTiles[0].y, Grid.target % Grid.width, Math.floor(Grid.target / Grid.width), Grid.openTiles[0].g);
         Grid.units[unitTurn].done = true;
         
     } else {    // find optimal path back from target
@@ -1004,12 +1011,11 @@ function stepPathfinding(playThread) {
             pathTile = null;
         } else {
 
+            // go through all closed tiles to find lowest optimal g cost
             let optimalIndex = null;
             for(let i=0; i<Grid.closedTiles.length; i++) {
                 if(Math.abs(pathTile.x - Grid.closedTiles[i].x) > 1 ||  Math.abs(pathTile.y - Grid.closedTiles[i].y) > 1 || (pathTile.x == Grid.closedTiles[i].x && pathTile.y == Grid.closedTiles[i].y)) continue;
-                if(optimalIndex == null || Grid.closedTiles[i].g < Grid.closedTiles[optimalIndex].g) {
-                    optimalIndex = i;
-                }
+                if(optimalIndex == null || Grid.closedTiles[i].g < Grid.closedTiles[optimalIndex].g) optimalIndex = i;
             }
 
             if(optimalIndex != null) {
@@ -1065,6 +1071,7 @@ function calculateAdjacentNodes(x, y, targetX, targetY, addG) {
         Grid.closedTiles.push(Grid.openTiles.shift());                                  // remove lowest f cost openTile and add it to closedTiles
     }
 
+    // go through all neighbor tiles
     for(var j=0; j<8; j++) {
         let xPos = x;
         let yPos = y;
@@ -1141,7 +1148,7 @@ function logArray(a) {
         i++;
     }
     str = str.substr(0, str.length - 2) + ")";
-    if(Grid.targets.length === 0) str = "()";
+    if(a.length === 0) str = "()";
     return str;
 }
 
