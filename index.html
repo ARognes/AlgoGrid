@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tile Grid Commit 67</title>
+    <title>Tile Grid Commit 68</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="description" content="An HTML website using a canvas to display an interactive grid. My first in-depth use of Javascript.">
@@ -11,7 +11,8 @@
 	<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Overpass&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Nunito:800&display=swap" rel="stylesheet">
-    
+    <script type="module" src="index.js"></script>
+    <noscript>Your browser does not support JavaScript!</noscript>
 </head>
 <body>
 
@@ -24,54 +25,50 @@
 
         <!-- Animation frame buttons, step, play, timescale -->
         <div id="framebar">
-            <button onClick="setSimpleViewMode()" class="frameBtn" id="simpleViewMode">@</button
-            ><button onClick="stepLife(false)" class="frameBtn" id="stepBtn">>></button
-            ><button onClick="playLife()" class="frameBtn" id="playBtn">Play</button
-            ><input type="range" oninput="setFrameSpeed()" min="1" max="19" value="2" id="frameSpeed"
+            <button class="frameBtn" id="simpleViewMode">@</button
+            ><button class="frameBtn" id="stepBtn">>></button
+            ><button class="frameBtn" id="playBtn">Play</button
+            ><input type="range" min="1" max="19" value="2" id="frameSpeed"
             ><p id="frameSpeedText">x2</p
-            ><div style="background-color: #544;overflow: hidden;position: absolute; right: 0; bottom: -10px;
-            width: 114px;height: 20px; border-radius: 0 0 8px 8px; box-shadow: 0 10px #000;">
-                <div style="position: absolute; right: 10px; top: -10px; font: 12px/1.4 'Nunito', sans-serif; color: #a99;">
+            ><div id="framebar-toolbarPlatform">
+                <div id="framebar-menuIndicator">
                     <p style="display: inline-block; margin-right: 4px;">Life</p>
-                    <div class="menuIndicatorBox" onmousedown="dipAnimation(true, 0)"></div>
+                    <div class="menuIndicatorBox"></div>
                     <div class="menuIndicatorBox" style="background-color: #f00;"></div>
-                    <div class="menuIndicatorBox" onmousedown="dipAnimation(true, 2)"></div>
+                    <div class="menuIndicatorBox"></div>
                 </div>
             </div>
         </div>
 
         <!-- Main tools, draw, erase, etc. along with toolbar platform, which shows the program mode -->
         <div id="toolbar">
-            <input type="checkbox" onClick="setTileMode(-1)" checked="checked" id="eraser"
+            <input type="checkbox" checked="checked" id="eraser"
             ><label for="eraser">Eraser</label
             
-            ><input type="radio" onClick="setTileMode(1)" id="barrier" checked="checked" name="tool"
+            ><input type="radio" id="barrier" checked="checked" name="tool"
             ><label for="barrier" class="tilestyle">Barrier</label
         
-            ><input type="radio" onClick="setTileMode(2)" id="target" name="tool"
+            ><input type="radio" id="target" name="tool"
             ><label for="target">Target</label
         
-            ><input type="radio" onClick="setTileMode(3)" id="unit" name="tool"
+            ><input type="radio" id="unit" name="tool"
             ><label for="unit">Unit</label
             ><div id="toolbarPlatform">
                 <div id="menuIndicator">
                     <p style="display: inline-block; margin-right: 4px;">Pathfinding</p>
-                    <div class="menuIndicatorBox" onmousedown="dipAnimation(true, 0)"></div>
-                    <div class="menuIndicatorBox" onmousedown="dipAnimation(true, 1)"></div>
-                    <div class="menuIndicatorBox" onmousedown="dipAnimation(true, 2)"></div>
+                    <div class="menuIndicatorBox"></div>
+                    <div class="menuIndicatorBox"></div>
+                    <div class="menuIndicatorBox"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <button onClick="undo()" class="smBtn" id="undo"><<</button>
-    <button onClick="redo()" class="smBtn" id="redo">>></button>
-    <button onClick="Grid.setSize(Grid.width/2, Grid.height/2); steps = []; futureSteps = [];" class="smBtn" id="gridDec">Dec</button>
-    <button onClick="Grid.setSize(Grid.width*2, Grid.height*2); steps = []; futureSteps = [];" class="smBtn" id="gridInc">Inc</button>
-    <button onClick="toggleFullscreen()" class="smBtn" id="fullscreen">Fullscreen</button>
-    <button onClick="toggleGridRepeat()" class="smBtn" id="gridRepeat">Repeat</button>
-
-    <script src="index.js"></script>
-    <noscript>Your browser does not support JavaScript!</noscript>
+    <button class="smBtn" id="undo"><<</button>
+    <button class="smBtn" id="redo">>></button>
+    <button class="smBtn" id="gridDec">Dec</button>
+    <button class="smBtn" id="gridInc">Inc</button>
+    <button class="smBtn" id="fullscreen">Fullscreen</button>
+    <button class="smBtn" id="gridRepeat">Repeat</button>
 </body>
 </html>

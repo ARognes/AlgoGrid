@@ -96,6 +96,26 @@ html, body {
     color: #222;
 }
 
+#framebar-toolbarPlatform {
+    background-color: #544; 
+    overflow: hidden; 
+    position: absolute; 
+    right: 0; 
+    bottom: -10px;
+    width: 114px; 
+    height: 20px; 
+    border-radius: 0 0 8px 8px; 
+    box-shadow: 0 10px #000;
+}
+
+#framebar-menuIndicator {
+    position: absolute; 
+    right: 10px; 
+    top: -10px; 
+    font: 12px/1.4 'Nunito', sans-serif; 
+    color: #a99;
+}
+
 .menuIndicatorBox {
     width: 20px; 
     height: 10px; 
@@ -129,6 +149,8 @@ html, body {
     box-shadow: 0 10px #000;
     left: 2%;
 }
+
+
 
 #playFrame {
     height: 46px;
