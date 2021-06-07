@@ -8,71 +8,83 @@ const SQRT_2 = Math.sqrt(2);
  */
  export function stepPathfinding(grid, pause) {
 
-  // TODO add heuristic changes to steps
+  // TODO add heuristic changes to steps (undo)
 
-  // no optimal path made yet
+  // no optimal path made yet, still searching
   if (!grid.pathTile) {
-
-    // initially close tile unit is on, then close openTiles
+    
     let targetX = grid.target % grid.width, 
         targetY = Math.floor(grid.target / grid.width);
+
+    // if next to target, step unit
+    if (Math.abs(grid.units[grid.unitTurn].x - targetX) < 2 && Math.abs(grid.units[grid.unitTurn].y - targetY) < 2) {
+      grid.tiles[grid.units[grid.unitTurn].x + grid.units[grid.unitTurn].y * grid.width] = 0;
+      grid.units.splice(grid.unitTurn, 1);
+      grid.clearPathfinding(); // clear all heuristics
+      pause();
+      return;
+    }
+
+    // initially close tile unit is on, then close openTiles. Calc will find pathTile
     if (grid.openTiles.length) calculateAdjacentNodes(grid, grid.openTiles[0].x, grid.openTiles[0].y, targetX, targetY, grid.openTiles[0].g);
     else calculateAdjacentNodes(grid, grid.units[grid.unitTurn].x, grid.units[grid.unitTurn].y, targetX, targetY, 0);
 
-    if (grid.openTiles.length) return;  // path found
+    if (grid.openTiles.length) return;  // there are still tiles to search
 
     console.log("No path possible");
     let optimalIndex = null;
-    for (let i=0; i<grid.closedTiles.length; i++) {
-      if (Math.abs(grid.closedTiles[i].x - grid.units[grid.unitTurn].x) > 1 || Math.abs(grid.closedTiles[i].y - grid.units[grid.unitTurn].y) > 1) continue;
-      if (Math.abs(grid.units[grid.unitTurn].x - (grid.target % grid.width)) + Math.abs(grid.units[grid.unitTurn].y - Math.floor(grid.target / grid.width)) < grid.closedTiles[i].g + grid.closedTiles[i].h) continue;
-      if (optimalIndex == null || grid.closedTiles[i].g + grid.closedTiles[i].h < grid.closedTiles[optimalIndex].g + grid.closedTiles[optimalIndex].h) optimalIndex = i;
-    }
-    if (optimalIndex != null) {
 
-      grid.tiles[grid.closedTiles[optimalIndex].reference] = -3;
-      grid.pathTile = {x: grid.closedTiles[optimalIndex].x, y: grid.closedTiles[optimalIndex].y};
+    if (!grid.closedTiles.length) {  // completely boxed in
+      grid.unitTurn++;
+      grid.clearPathfinding();
+      pause();
+      return;
+    }
+
+    // find optimalIndex to move towards target with minimal g + h
+    grid.closedTiles.forEach((tile, i) => {
+      let unitTile = grid.units[grid.unitTurn];
+      if (Math.abs(tile.x - unitTile.x) > 1 || Math.abs(tile.y - unitTile.y) > 1) return; // find neighboring closed tiles
+      if (optimalIndex === null || tile.g + tile.h < grid.closedTiles[optimalIndex].g + grid.closedTiles[optimalIndex].h) optimalIndex = i;  // find optimal direction to move
+    });
+
+    if (optimalIndex !== null) {
+      let optimalTile = grid.closedTiles[optimalIndex];
+      grid.tiles[optimalTile.reference] = -3;
+      grid.pathTile = {x: optimalTile.x, y: optimalTile.y};
       grid.stepIndex = optimalIndex;
       pause();
     }
-    requestAnimationFrame(draw);
+    //requestAnimationFrame(draw);
       
   } else {  // find optimal path back from target
 
-    // pathTile next to unit
+    // stepIndex where this unit will step next
     if (grid.stepIndex !== null) {
 
       // step unit
-      let unitTurnIndex = grid.units[grid.unitTurn].x + grid.units[grid.unitTurn].y * grid.width;
-      grid.tiles[unitTurnIndex] = 0;
+      grid.tiles[grid.units[grid.unitTurn].x + grid.units[grid.unitTurn].y * grid.width] = 0;
       grid.units[grid.unitTurn].x = grid.closedTiles[grid.stepIndex].x;
       grid.units[grid.unitTurn].y = grid.closedTiles[grid.stepIndex].y;
-      grid.tiles[unitTurnIndex] = 3;
-
-      // clear all heuristics
-      grid.tiles = grid.tiles.map(tile => Math.max(tile, 0));
-      grid.closedTiles = [];
-      grid.openTiles = [];
+      grid.tiles[grid.units[grid.unitTurn].x + grid.units[grid.unitTurn].y * grid.width] = 3;
 
       // next unit loop
       grid.unitTurn++;
-      grid.unitTurn %= grid.units.length;
-      //optimalIndex = null;
-      grid.stepIndex = null;
-      grid.pathTile = null;
+      grid.clearPathfinding();
     } else {
 
       // go through all closed tiles to find lowest optimal g cost
       let optimalIndex = null;
-      for (let i=0; i<grid.closedTiles.length; i++) {
-        if (Math.abs(grid.pathTile.x - grid.closedTiles[i].x) > 1 ||  Math.abs(grid.pathTile.y - grid.closedTiles[i].y) > 1 || (grid.pathTile.x == grid.closedTiles[i].x && grid.pathTile.y == grid.closedTiles[i].y)) continue;
-        if (optimalIndex == null || grid.closedTiles[i].g < grid.closedTiles[optimalIndex].g) optimalIndex = i;
-      }
+      grid.closedTiles.forEach((tile, i) => {
+        //if (Math.abs(grid.pathTile.x - tile.x) > 1 ||  Math.abs(grid.pathTile.y - tile.y) > 1 || (grid.pathTile.x === tile.x && grid.pathTile.y === tile.y)) return;
+        if (Math.abs(grid.pathTile.x - tile.x) > 1 ||  Math.abs(grid.pathTile.y - tile.y) > 1) return;
+        if (optimalIndex === null || tile.g < grid.closedTiles[optimalIndex].g) optimalIndex = i;
+      });
 
-      if (optimalIndex != null) {
+      if (optimalIndex !== null) {
         let optimalTile = grid.closedTiles[optimalIndex];
         grid.tiles[optimalTile.reference] = -3;
-        if (optimalTile.g < 1.5) {
+        if (optimalTile.g < 1.5) {  // found next move for this unit
           grid.stepIndex = optimalIndex;
           pause();
         } else {
@@ -104,7 +116,7 @@ const SQRT_2 = Math.sqrt(2);
 
   // find if corner neighbor tiles upright, upleft, downright, and downleft exist, if so, get their tile's style
   if (neighborTiles[1] !== null) {
-    if (neighborTiles[7] !== null/* && (neighborTiles[1] <= 0 || neighborTiles[7] <= 0) USE THIS TO DISABLE CORNER TILE MOVEMENT*/) neighborTiles[0] = grid.tiles[x+1 + (y-1) * grid.width];
+    if (neighborTiles[7] !== null/* && (neighborTiles[1] <= 0 || neighborTiles[7] <= 0) USE THIS TO DISABLE CORNER TILE CROSSING*/) neighborTiles[0] = grid.tiles[x+1 + (y-1) * grid.width];
     if (neighborTiles[3] !== null/* && (neighborTiles[1] <= 0 || neighborTiles[3] <= 0)*/) neighborTiles[2] = grid.tiles[x-1 + (y-1) * grid.width];
   }
   if (neighborTiles[5] !== null) {
@@ -129,10 +141,8 @@ const SQRT_2 = Math.sqrt(2);
     const distX = Math.abs(targetX - xPos);
     const distY = Math.abs(targetY - yPos);
     const g = ((xPos != x && yPos != y) ? SQRT_2 + addG : 1 + addG);  // real distance from unit
-    const h = distX + distY;  // line distance to target
-
-    //const h = difference + Math.min(xDist, yDist) * SQRT_2; AWUFUL h calculation!
-    //const h = distX + distY + Math.min(distX, distY) * (SQRT_2 - 2);  //diagonal Manhattan
+    //const h = distX + distY;  // easy calculation to target
+    const h = Math.sqrt(distX * distX + distY * distY);  // line distance to target
 
     if (neighborTiles[j] === 0) {   // for each open neighbor tile
       const reference = xPos + yPos * grid.width;

@@ -2,6 +2,7 @@ import { TILE_SIZE, canvas, ctx, cameraTrans, grid } from '/modules/grid.js';
 import { fitCanvas } from '/modules/setup.js';
 import { stepPathfinding } from '/modules/pathfinding.js';
 import { stepLife } from '/modules/game-of-life.js';
+//import { GPU } from 'gpu.js';
 
 //#region initialize global variables and rendering functions
 
@@ -24,16 +25,16 @@ function draw() {
 
   // transform the camera
   ctx.setTransform(1,0,0,1,0,0);
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
   ctx.translate(cameraTrans.offsetX, cameraTrans.offsetY);
   ctx.scale(cameraTrans.scale, cameraTrans.scale);
 
-  grid.draw(mode);
+  grid.draw();
 }
 
 let isMobile = false;
 
-// input variables, mobile uses a few more in the mobile section of input
+// input variables, mobile uses a few more in the mobile seciton of input region
 let pointerPos = {x: 0, y: 0};
 let deltaPointer = {x: 0, y: 0};
 let pointerActions = {primary: false, scroll: false};
@@ -55,7 +56,6 @@ let playSpeed = 2,
     frameInterval;
 
 // 0: pixel art 1: life 2: a* pathfinding
-let mode = -1;
 
 const ZOOM_AMOUNT = 0.1;
 const ZOOM_MIN = 0.2 * Math.max(window.innerWidth, window.innerHeight) / 1200;  // this allows smaller screens to zoom almost the same amount as larger screens
@@ -114,7 +114,7 @@ if (isMobile) {
     if (touchStartX && event.changedTouches.length === 1 && !menuMoving && Math.abs(touchStartX - event.changedTouches[0].clientX) > 20 && Date.now() - timeTouchStart < 300 && rangeStartValue === playSpeed) {
       clearInterval(frameInterval);
       if (grid.simple) setSimpleViewMode();
-      dipAnimation(true, (mode + Math.sign(touchStartX - event.changedTouches[0].clientX)).mod(3));
+      dipAnimation(true, (grid.mode + Math.sign(touchStartX - event.changedTouches[0].clientX)).mod(3));
     }
 
     if (event.touches.length > 2) return;  // don't bother with 3 finger gestures
@@ -268,23 +268,23 @@ let menuMoving = 100;
  * Menu dips down, changes out of view, then pops back up.
  * 
  * @param {*} dir   direction, down then up, used in animation
- * @param {*} newMode mode changing too
+ * @param {*} newMode grid.mode changing too
  */
 function dipAnimation(dir, newMode) {
   console.log(dir, newMode);
   if (dir) {
-    if (mode == newMode) return;
+    if (grid.mode == newMode) return;
     menuMoving += (100 - menuMoving) * 0.05;
     if (menuMoving > 99) {
       if (frameInterval) {
-        if (mode == 1) playPause();
-        else if (mode == 2) playPause();
+        if (grid.mode == 1) playPause();
+        else if (grid.mode == 2) playPause();
       }
       dir = false;
-      mode = newMode;
+      grid.setMode(newMode);
       let indicators = document.getElementById("menuIndicator").children;
-      for (let i=1; i<indicators.length; i += 2) indicators[i].style.backgroundColor = (i === mode+1) ? "#f00" : "#a99";
-      if (mode === 0) {  // pixel art, unselect all tools
+      for (let i=1; i<indicators.length; i += 2) indicators[i].style.backgroundColor = (i === grid.mode+1) ? "#f00" : "#a99";
+      if (grid.mode === 0) {  // pixel art, unselect all tools
         document.getElementById("toolbar").children[0].checked = false;
         document.getElementById("toolbar").children[2].checked = false;
         eraser = false;
@@ -292,18 +292,16 @@ function dipAnimation(dir, newMode) {
         viewOnly = true;
         indicators[0].innerHTML = "Pixel Art";
         document.getElementById("toolbarPlatform").style.width = "142px";
-      } else if (mode === 1) { // life, set tools to barrier + eraser
+      } else if (grid.mode === 1) { // life, set tools to barrier + eraser
         document.getElementById("toolbar").children[0].checked = true;
         document.getElementById("toolbar").children[2].checked = true;
-        //document.getElementById("playBtn").onclick = () => playPause();
         document.getElementById("stepBtn").onclick = () => stepAlgo(false);
         eraser = true;
         tileMode = 1;
         viewOnly = false;
-      } else if (mode === 2) { // pathfinding
+      } else if (grid.mode === 2) { // pathfinding
         indicators[0].innerHTML = "Pathfinding";
         document.getElementById("toolbarPlatform").style.width = "156px";
-        //document.getElementById("playBtn").onclick = () => playPause();
         document.getElementById("stepBtn").onclick = () => stepAlgo(false);
       }
       requestAnimationFrame(draw);
@@ -313,13 +311,13 @@ function dipAnimation(dir, newMode) {
     if (menuMoving < 1) menuMoving = 0;
   }
 
-  if (mode === 0) {  // pixel art
+  if (grid.mode === 0) {  // pixel art
     if (menuMoving > 20) document.getElementById("barmenu").style.bottom = 20-menuMoving + "px";
     document.getElementById("framebar").style.bottom = "-120px";
-  } else if (mode === 1) { // life
+  } else if (grid.mode === 1) { // life
     document.getElementById("barmenu").style.bottom = "-120px";
     document.getElementById("framebar").style.bottom = (134 - menuMoving) + "px";
-  } else if (mode === 2) { // pathfinding
+  } else if (grid.mode === 2) { // pathfinding
     if (menuMoving > 20) document.getElementById("barmenu").style.bottom = 20-menuMoving + "px";
     document.getElementById("framebar").style.bottom = (67 - menuMoving) + "px";
   }
@@ -373,35 +371,39 @@ function styleTiles(style) {
 
 // check that the tile style is different from the current style, erase if first tile pressed is equal to current style
 function checkTile(gx, gy, style) {
-  if (!grid.repeat && (gx < 0 || gx >= grid.width || gy < 0 || gy >= grid.height)) return;
+  if ((!grid.repeat || grid.mode === 2) && (gx < 0 || gx >= grid.width || gy < 0 || gy >= grid.height)) return;
   let mgx = gx.mod(grid.width);
   let mgy = gy.mod(grid.height);
   const pos = mgx + mgy * grid.width;
   if (eraser && !deltaPointer.x && !deltaPointer.y && grid.tiles[pos] === style) erasing = true;
   if (erasing) style = 0;
 
-  if (grid.tiles[pos] === style || grid.tiles[pos] < 0) return;   // if tile isn't same as new tile
-  if (style === 2 && grid.target != null) return;
+  if (grid.tiles[pos] === style || (grid.tiles[pos] < 0 && style === 0)) return;   // if tile isn't same as new tile
+  if (grid.tiles[pos] < 0 || grid.tiles[pos] === 2 || style === 2) {
+    grid.clearPathfinding();
+    if (frameInterval) playPause();
+  }
 
-  if (!frameInterval) {
-    steps.push({pos: pos, revert: grid.tiles[pos]});  // push undo step
+  steps.push({pos: pos, revert: grid.tiles[pos]});  // push undo step
 
-    if (grid.tiles[pos] === 2) grid.target = null;     // if tile is a target
-    else if (grid.tiles[pos] === 3) {          // if tile is a unit
-      //const index = grid.units.indexOf(pos);
-      let index = grid.units[0];
-      for (let i=1; i<grid.units.length; i++) {
-        if (grid.units[i].x + grid.units[i].y * grid.height === pos) index = i;
-      }
-      console.log(index);
-      steps[steps.length-1].unit = index;       // add unit index number to last step
-      grid.units.splice(index, 1);          // remove this index from grid.units
-    }
-  } else if (style > 1 || grid.tiles[pos] > 1) return;
+  if (grid.tiles[pos] === 2) grid.target = null;     // if tile was a target
+  else if (grid.tiles[pos] === 3) {          // if tile was a unit
+    let removeUnit = 0;
+    grid.units.forEach((unit, i) => {
+      if (unit.x + unit.y * grid.height === pos) removeUnit = i;
+    });
 
+    steps[steps.length-1].unit = removeUnit;      // add unit removeUnit number to last step
+    grid.units.splice(removeUnit, 1);             // remove this removeUnit from grid.units
+    if (grid.unitTurn === removeUnit) grid.clearPathfinding();
+  }
+
+  if (style === 2) {
+    grid.tiles[grid.target] = 0;
+    grid.target = pos;
+  }
+  else if (style === 3) grid.units.push({x: mgx, y: mgy}); //grid.units.push({done: false, x: mgx, y: mgy});
   grid.tiles[pos] = style;                // set tile
-  if (style === 2) grid.target = pos;
-  else if (style === 3) grid.units.push({done: false, x: mgx, y: mgy});
 
 }
 
@@ -475,7 +477,6 @@ function undo() {
   futureSteps.push(futureStep);
   requestAnimationFrame(draw);
 }
-
 
 // inverse function of undo
 function redo() {
@@ -556,29 +557,30 @@ function setSimpleViewMode() {
  * 
  * @param {*} keepPlaying keeps pathfinding running at play speed
  */
+
 function stepAlgo(keepPlaying = true) {
 
   if (!keepPlaying && frameInterval) playPause();  // step pressed while playing, now pause
   futureSteps = []; // empty undo and redo steps
-
-  let paused = false, // Don't keep playing if stepPathfinding calls pause
-      pause = () => {
+  let paused = false; // Don't keep playing if stepPathfinding calls pause
+  let pause = () => {
         if (!frameInterval) return;
         playPause();
         paused = true;
       }
-  mode === 2 ? stepPathfinding(grid, pause) : stepLife(grid);  // step selected algorithm
-
+  grid.mode === 2 ? stepPathfinding(grid, pause) : stepLife(grid);  // step selected algorithm
   requestAnimationFrame(draw);
   if (keepPlaying && !paused) frameInterval = setTimeout(stepAlgo, 1000 / playSpeed); // keep playing at playSpeed
-  // UNDOING Animations must be rethought out
+  // UNDOING Algos must be rethought out
 }
+
 /**
  * 
  * Toggles whether frameInterval is set or not, along with button ux
  */
+
 function playPause() {
-  if (mode === 2 && !frameInterval && (grid.target == null || grid.units.length === 0)) return; // Don't play pathfinding without target/units
+  if (grid.mode === 2 && !frameInterval && (grid.target == null || grid.units.length === 0)) return; // Don't play pathfinding without target/units
   console.log((frameInterval ? 'Pause' : 'Play'), 'pathfinding');
   const element = document.getElementById('playBtn'); // Flip button
   if (!frameInterval) {
