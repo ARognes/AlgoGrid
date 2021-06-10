@@ -59,24 +59,23 @@ export class Grid {
 
     if (this.simple) {  // draw simple grid for better performance
 
-      // draw grid background
-      ctx.fillStyle = "#222";
-      ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
-
-      ctx.fillStyle = "#fff";
       ctx.lineWidth = 3;
       if (this.mode === 2) {  // pathfinding
+        // draw grid background
+        ctx.fillStyle = "#444";
+        ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
+
         for (let i = beginX; i < endX; i++) {
           for (let j = beginY; j < endY; j++) {
             let tile = this.tiles[this.cartesianToIndex(i, j)];
             if (!tile) continue;      // only draw barriers
             switch(tile) {
-              case 1: ctx.fillStyle = '#fff'; break;
+              case 1: ctx.fillStyle = '#000'; break;
               case 2: ctx.fillStyle = '#f33'; break;
               case 3: ctx.fillStyle = '#3f3'; break;
-              case -1: ctx.fillStyle = '#333'; break;
-              case -2: ctx.fillStyle = '#444'; break;
-              case -3: ctx.fillStyle = '#666'; break;
+              case -1: ctx.fillStyle = '#666'; break;
+              case -2: ctx.fillStyle = '#777'; break;
+              case -3: ctx.fillStyle = '#999'; break;
             }
             ctx.fillRect(i * TILE_SIZE + 2, j * TILE_SIZE + 2, TILE_SIZE - 4, TILE_SIZE - 4);   // draw alive
           }
@@ -84,6 +83,10 @@ export class Grid {
         return;
       }
 
+      // draw grid background
+      ctx.fillStyle = "#222";
+      ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
+      
       // draw tiles
       ctx.fillStyle = "#fff";
       ctx.lineWidth = 3;
@@ -132,6 +135,7 @@ export class Grid {
     this.width = width;
     this.height = height;
     this.tiles = new Array(width * height).fill(0);
+    this.clearPathfinding();
   }
 
   // switch draw function on mode change instead of on draw
@@ -139,9 +143,14 @@ export class Grid {
     this.mode = mode;
     switch(mode) {
       case 1: this.drawTiles = (beginX, endX, beginY, endY) => this.drawLife(beginX, endX, beginY, endY); break;
-      case 2: this.drawTiles = (beginX, endX, beginY, endY) => this.drawPathfinding(beginX, endX, beginY, endY); break;
+      case 2: 
+        this.drawTiles = (beginX, endX, beginY, endY) => this.drawPathfinding(beginX, endX, beginY, endY);
+        if (this.target) this.tiles[this.target] = 2;
+        this.units.forEach(unit => this.tiles[unit.x + unit.y * this.width] = 3);
+        break;
       default: this.drawTiles = (beginX, endX, beginY, endY) => this.drawPixelArt(beginX, endX, beginY, endY); break;
     }
+    this.clearPathfinding();
   }
 
   drawPixelArt(beginX, endX, beginY, endY) {
@@ -178,9 +187,26 @@ export class Grid {
         if (this.tiles[k] < 1) continue;
 
         ctx.fillRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        ctx.strokeRect(i * TILE_SIZE + ctx.lineWidth/2, j * TILE_SIZE + ctx.lineWidth/2, TILE_SIZE - ctx.lineWidth, TILE_SIZE - ctx.lineWidth);
+        ctx.strokeRect(i * TILE_SIZE + ctx.lineWidth / 2, j * TILE_SIZE + ctx.lineWidth / 2, TILE_SIZE - ctx.lineWidth, TILE_SIZE - ctx.lineWidth);
       }
     }
+  }
+
+  // draw search tile numbers g, h, f;   f = g + h
+  labelSearch(searched) {
+    ctx.textAlign = "center";
+    searched.forEach(tile => {
+      if (tile.reference === null) return;
+      const g = Math.round(tile.g * 10);
+      const h = Math.round(tile.h * 10);
+      const x = tile.x;
+      const y = tile.y;
+      ctx.font = "8px Nunito";
+      ctx.fillText(g, (x + 0.5) * TILE_SIZE, (y + 1) * TILE_SIZE - 24);
+      ctx.fillText(h, (x + 0.5) * TILE_SIZE, (y + 1) * TILE_SIZE - 16);
+      ctx.font = Math.max(19 - 3 * (g + h).toFixed().length, 8) + "px Nunito";
+      ctx.fillText((g + h), (x + 0.5) * TILE_SIZE, (y + 1) * TILE_SIZE - 6);
+    });
   }
   
   drawPathfinding(beginX, endX, beginY, endY) {
@@ -191,76 +217,47 @@ export class Grid {
         let k = this.cartesianToIndex(i, j);
   
         if (!this.tiles[k]) continue;
-  
-        // set drawing context to tile style
-        ctx.lineWidth = 3;
-  
-        if (this.tiles[k] === 1) {                       // barrier
-          ctx.fillStyle = "#020";
-          ctx.strokeStyle = "#030";
-          ctx.lineWidth = 9;
-        } else if (this.tiles[k] === 2) {                // target
-          ctx.fillStyle = "#f44";
-          ctx.strokeStyle = "#d44";
-        } else if (this.tiles[k] === 3) {                // unit
-          ctx.fillStyle = "#4f4";
-          ctx.strokeStyle = "#4d4";
-        } else if (this.tiles[k] === -1) {                // open tile
-          ctx.fillStyle = "#f99";
-          ctx.strokeStyle = "#f66";
-        } else if (this.tiles[k] === -2) {                // closed tile
-          ctx.fillStyle = "#f66";
-          ctx.strokeStyle = "#f33";
-        } else if (this.tiles[k] === -3) {                // path
-          ctx.fillStyle = "#ff0";
-          ctx.strokeStyle = "#dd0";
-        }
+
+        //                    fill, stroke, line width
+        const TILE_COLORS = [['#ff0', '#dd0', 3], // path
+                             ['#f66', '#f33', 3], // closed tile
+                             ['#f99', '#f66', 3], // open tile
+                             null, 
+                             ['#020', '#030', 9], // barrier
+                             ['#f44', '#d44', 3], // target
+                             ['#4f4', '#4d4', 3]];// unit
+        ctx.fillStyle = TILE_COLORS[this.tiles[k] + 3][0];
+        ctx.strokeStyle = TILE_COLORS[this.tiles[k] + 3][1];
+        ctx.lineWidth = TILE_COLORS[this.tiles[k] + 3][2];
+
         ctx.fillRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        ctx.strokeRect(i * TILE_SIZE + ctx.lineWidth/2, j * TILE_SIZE + ctx.lineWidth/2, TILE_SIZE - ctx.lineWidth, TILE_SIZE - ctx.lineWidth);
-      }
-    }
-  
-    // draw search tile numbers g, h, f;   f = g + h
-    function labelSearch(searched) {
-      for (let i=0; i<searched.length; i++) {
-        if (searched[i].reference == null) continue;
-        const g = Math.round(searched[i].g * 10);
-        const h = Math.round(searched[i].h * 10);
-        const x = searched[i].x;
-        const y = searched[i].y;
-        ctx.font = "8px Nunito";
-        ctx.textAlign = "center";
-        ctx.fillText(g, (x + 0.5) * TILE_SIZE, (y + 1) * TILE_SIZE - 24);
-        ctx.fillText(h, (x + 0.5) * TILE_SIZE, (y + 1) * TILE_SIZE - 16);
-        ctx.font = Math.max(19 - 3 * (g + h).toFixed().length, 8) + "px Nunito";
-        ctx.fillText((g + h), (x + 0.5) * TILE_SIZE, (y + 1) * TILE_SIZE - 6);
+        ctx.strokeRect(i * TILE_SIZE + ctx.lineWidth / 2, j * TILE_SIZE + ctx.lineWidth / 2, TILE_SIZE - ctx.lineWidth, TILE_SIZE - ctx.lineWidth);
       }
     }
   
     ctx.fillStyle = "#222";
-    labelSearch(this.openTiles);
-    labelSearch(this.closedTiles);
+    this.labelSearch(this.openTiles);
+    this.labelSearch(this.closedTiles);
   
     // draw target tile's number order
     ctx.font = "16px Nunito";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    //for (let i=0; i<this.targets.length; i++) ctx.fillText((i + 1), (this.targets[i] % this.width + 0.5) * TILE_SIZE + 1, (Math.floor(this.targets[i] / this.width) + 0.5) * TILE_SIZE);
-  
+
     // draw target tile
-    if (this.target != null) ctx.fillText("X", (this.target % this.width + 0.47) * TILE_SIZE + 1, (Math.floor(this.target / this.width) + 0.56) * TILE_SIZE);
-  
+    if (this.target !== null) ctx.fillText("X", (this.target % this.width + 0.47) * TILE_SIZE + 1, (Math.floor(this.target / this.width) + 0.56) * TILE_SIZE);
+      
     // draw unit tile's number
-    for (let i=0; i<this.units.length; i++) ctx.fillText(i + 1, (this.units[i].x + 0.47) * TILE_SIZE + 1, (this.units[i].y + 0.5) * TILE_SIZE);
+    this.units.forEach((unit, i) => ctx.fillText(i + 1, (unit.x + 0.47) * TILE_SIZE + 1, (unit.y + 0.5) * TILE_SIZE));
   }
 
   clearPathfinding() {
-    grid.tiles = grid.tiles.map(tile => Math.max(tile, 0));
-    grid.closedTiles = [];
-    grid.openTiles = [];
-    grid.unitTurn %= Math.max(grid.units.length, 1);
-    grid.stepIndex = null;
-    grid.pathTile = null;
+    this.tiles = this.tiles.map(tile => Math.max(tile, 0));
+    this.closedTiles = [];
+    this.openTiles = [];
+    this.unitTurn %= Math.max(this.units.length, 1);
+    this.stepIndex = null;
+    this.pathTile = null;
   }
 }
 

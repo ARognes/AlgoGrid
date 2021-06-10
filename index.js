@@ -2,7 +2,6 @@ import { TILE_SIZE, canvas, ctx, cameraTrans, grid } from '/modules/grid.js';
 import { fitCanvas } from '/modules/setup.js';
 import { stepPathfinding } from '/modules/pathfinding.js';
 import { stepLife } from '/modules/game-of-life.js';
-//import { GPU } from 'gpu.js';
 
 //#region initialize global variables and rendering functions
 
@@ -62,8 +61,8 @@ const ZOOM_MIN = 0.2 * Math.max(window.innerWidth, window.innerHeight) / 1200;  
 const ZOOM_MAX = 8 * Math.max(window.innerWidth, window.innerHeight) / 1200;
 
 // center camera based off grid
-cameraTrans.offsetX = canvas.width/2 - grid.width * TILE_SIZE / 2;
-cameraTrans.offsetY = canvas.height/2 - grid.height * TILE_SIZE / 2;
+cameraTrans.offsetX = canvas.width / 2 - grid.width * TILE_SIZE / 2;
+cameraTrans.offsetY = canvas.height / 2 - grid.height * TILE_SIZE / 2;
 
 requestAnimationFrame(draw); // redraw canvas
 
@@ -564,10 +563,10 @@ function stepAlgo(keepPlaying = true) {
   futureSteps = []; // empty undo and redo steps
   let paused = false; // Don't keep playing if stepPathfinding calls pause
   let pause = () => {
-        if (!frameInterval) return;
-        playPause();
-        paused = true;
-      }
+    if (!frameInterval) return;
+    playPause();
+    paused = true;
+  }
   grid.mode === 2 ? stepPathfinding(grid, pause) : stepLife(grid);  // step selected algorithm
   requestAnimationFrame(draw);
   if (keepPlaying && !paused) frameInterval = setTimeout(stepAlgo, 1000 / playSpeed); // keep playing at playSpeed
@@ -580,7 +579,7 @@ function stepAlgo(keepPlaying = true) {
  */
 
 function playPause() {
-  if (grid.mode === 2 && !frameInterval && (grid.target == null || grid.units.length === 0)) return; // Don't play pathfinding without target/units
+  if (grid.mode === 2 && !frameInterval && (grid.target === null || grid.units.length === 0)) return; // Don't play pathfinding without target/units
   console.log((frameInterval ? 'Pause' : 'Play'), 'pathfinding');
   const element = document.getElementById('playBtn'); // Flip button
   if (!frameInterval) {

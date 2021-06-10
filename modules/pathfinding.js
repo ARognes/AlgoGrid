@@ -17,13 +17,13 @@ const SQRT_2 = Math.sqrt(2);
         targetY = Math.floor(grid.target / grid.width);
 
     // if next to target, step unit
-    if (Math.abs(grid.units[grid.unitTurn].x - targetX) < 2 && Math.abs(grid.units[grid.unitTurn].y - targetY) < 2) {
+    /*if (Math.abs(grid.units[grid.unitTurn].x - targetX) < 2 && Math.abs(grid.units[grid.unitTurn].y - targetY) < 2) {
       grid.tiles[grid.units[grid.unitTurn].x + grid.units[grid.unitTurn].y * grid.width] = 0;
       grid.units.splice(grid.unitTurn, 1);
       grid.clearPathfinding(); // clear all heuristics
       pause();
       return;
-    }
+    }*/
 
     // initially close tile unit is on, then close openTiles. Calc will find pathTile
     if (grid.openTiles.length) calculateAdjacentNodes(grid, grid.openTiles[0].x, grid.openTiles[0].y, targetX, targetY, grid.openTiles[0].g);
@@ -72,6 +72,16 @@ const SQRT_2 = Math.sqrt(2);
       grid.unitTurn++;
       grid.clearPathfinding();
     } else {
+
+      let targetX = grid.target % grid.width, 
+        targetY = Math.floor(grid.target / grid.width);
+      if (Math.abs(grid.units[grid.unitTurn].x - targetX) < 2 && Math.abs(grid.units[grid.unitTurn].y - targetY) < 2) {
+        grid.tiles[grid.units[grid.unitTurn].x + grid.units[grid.unitTurn].y * grid.width] = 0;
+        grid.units.splice(grid.unitTurn, 1);
+        grid.clearPathfinding(); // clear all heuristics
+        pause();
+        return;
+      }
 
       // go through all closed tiles to find lowest optimal g cost
       let optimalIndex = null;
@@ -141,8 +151,8 @@ const SQRT_2 = Math.sqrt(2);
     const distX = Math.abs(targetX - xPos);
     const distY = Math.abs(targetY - yPos);
     const g = ((xPos != x && yPos != y) ? SQRT_2 + addG : 1 + addG);  // real distance from unit
-    //const h = distX + distY;  // easy calculation to target
     const h = Math.sqrt(distX * distX + distY * distY);  // line distance to target
+    //const h = distX + distY;  // easy calculation to target
 
     if (neighborTiles[j] === 0) {   // for each open neighbor tile
       const reference = xPos + yPos * grid.width;
