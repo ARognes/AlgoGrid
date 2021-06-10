@@ -1,5 +1,5 @@
-import { TILE_SIZE, canvas, ctx, cameraTrans, grid } from '/modules/grid.js';
 import { fitCanvas } from '/modules/setup.js';
+import { TILE_SIZE, canvas, ctx, cameraTrans, grid } from '/modules/grid.js';
 import { stepPathfinding } from '/modules/pathfinding.js';
 import { stepLife } from '/modules/game-of-life.js';
 
