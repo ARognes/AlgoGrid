@@ -1,3 +1,5 @@
+'use-strict';
+
 const GRID_LINE_WIDTH = 6,
       MIN_WIDTH = 2,
       MAX_WIDTH = 256;
@@ -12,14 +14,11 @@ export let canvas = document.getElementById('canvas'),
 //resize canvas on load
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-let times = [];
-let startTime = 0;
 
 export class Grid {
   constructor(width, height) {
-    this.repeat = false;
     this.simple = false;
-    this.mode = -1;
+    this.mode = null;
     this.drawTiles = () => {};
 
     // pathfinding arrays
@@ -36,7 +35,7 @@ export class Grid {
 
   // convert tile cartesian coordinates to tile array coordinates
   cartesianToIndex(i, j) {
-    return this.repeat ? i.mod(this.width) + j.mod(this.height) * this.width : i + j * this.width;
+    return this.simple ? i.mod(this.width) + j.mod(this.height) * this.width : i + j * this.width;
   }
 
   draw() {
@@ -45,7 +44,7 @@ export class Grid {
     let beginX = Math.floor(-cameraTrans.offsetX / tileScaled);
     let beginY = Math.floor(-cameraTrans.offsetY / tileScaled);
     let endX, endY, viewWidth, viewHeight;
-    if (this.repeat && this.mode !== 2) {    // find first tile in view and the view size
+    if (this.simple && this.mode !== 'pathfinding') {    // find first tile in view and the view size
       viewWidth = Math.ceil(canvas.width / tileScaled) + 1;
       viewHeight = Math.ceil(canvas.height / tileScaled) + 1;
       endX = beginX + viewWidth;
@@ -60,7 +59,7 @@ export class Grid {
     if (this.simple) {  // draw simple grid for better performance
 
       ctx.lineWidth = 3;
-      if (this.mode === 2) {  // pathfinding
+      if (this.mode === 'pathfinding') {  // pathfinding
         // draw grid background
         ctx.fillStyle = "#444";
         ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
@@ -100,11 +99,6 @@ export class Grid {
     }
     // draw normal grid with details
 
-    if (this.repeat) { // draw canvas background
-      ctx.fillStyle = "#daa";
-      ctx.fillRect(beginX * TILE_SIZE, beginY * TILE_SIZE, viewWidth * TILE_SIZE, viewHeight * TILE_SIZE);
-    }
-
     // draw grid background
     ctx.fillStyle = "#fcc";
     ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
@@ -142,34 +136,14 @@ export class Grid {
   setMode(mode) {
     this.mode = mode;
     switch(mode) {
-      case 1: this.drawTiles = (beginX, endX, beginY, endY) => this.drawLife(beginX, endX, beginY, endY); break;
-      case 2: 
+      case 'life': this.drawTiles = (beginX, endX, beginY, endY) => this.drawLife(beginX, endX, beginY, endY); break;
+      case 'pathfinding': 
         this.drawTiles = (beginX, endX, beginY, endY) => this.drawPathfinding(beginX, endX, beginY, endY);
         if (this.target) this.tiles[this.target] = 2;
         this.units.forEach(unit => this.tiles[unit.x + unit.y * this.width] = 3);
         break;
-      default: this.drawTiles = (beginX, endX, beginY, endY) => this.drawPixelArt(beginX, endX, beginY, endY); break;
     }
     this.clearPathfinding();
-  }
-
-  drawPixelArt(beginX, endX, beginY, endY) {
-    for (let i = beginX; i < endX; i++) {
-      for (let j = beginY; j < endY; j++) {
-  
-        // convert tile cartesian coordinates to tile array coordinates
-        let k = this.cartesianToIndex(i, j);
-  
-        if (this.tiles[k] < 1) continue;
-  
-        // set drawing context to tile style
-        ctx.fillStyle = "#020";
-        ctx.strokeStyle = "#030";
-        ctx.lineWidth = 9;
-        ctx.fillRect(i * TILE_SIZE, j * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        ctx.strokeRect(i * TILE_SIZE + ctx.lineWidth/2, j * TILE_SIZE + ctx.lineWidth/2, TILE_SIZE - ctx.lineWidth, TILE_SIZE - ctx.lineWidth);
-      }
-    }
   }
   
   drawLife(beginX, endX, beginY, endY) {

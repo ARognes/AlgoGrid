@@ -1,3 +1,5 @@
+'use-strict';
+
 import { fitCanvas } from '/modules/setup.js';
 import { TILE_SIZE, canvas, ctx, cameraTrans, grid } from '/modules/grid.js';
 import { stepPathfinding } from '/modules/pathfinding.js';
@@ -54,8 +56,6 @@ let futureSteps = [];
 let playSpeed = 2,
     frameInterval;
 
-// 0: pixel art 1: life 2: a* pathfinding
-
 const ZOOM_AMOUNT = 0.1;
 const ZOOM_MIN = 0.2 * Math.max(window.innerWidth, window.innerHeight) / 1200;  // this allows smaller screens to zoom almost the same amount as larger screens
 const ZOOM_MAX = 8 * Math.max(window.innerWidth, window.innerHeight) / 1200;
@@ -110,11 +110,11 @@ if (isMobile) {
   document.addEventListener('touchend',  touchEnd, false);
   document.addEventListener('touchcancel', touchEnd, false);
   function touchEnd(event) {
-    if (touchStartX && event.changedTouches.length === 1 && !menuMoving && Math.abs(touchStartX - event.changedTouches[0].clientX) > 20 && Date.now() - timeTouchStart < 300 && rangeStartValue === playSpeed) {
+    /*if (touchStartX && event.changedTouches.length === 1 && !menuMoving && Math.abs(touchStartX - event.changedTouches[0].clientX) > 20 && Date.now() - timeTouchStart < 300 && rangeStartValue === playSpeed) {
       clearInterval(frameInterval);
       if (grid.simple) setSimpleViewMode();
       dipAnimation(true, (grid.mode + Math.sign(touchStartX - event.changedTouches[0].clientX)).mod(3));
-    }
+    }*/
 
     if (event.touches.length > 2) return;  // don't bother with 3 finger gestures
     if (!pointerActions.primary && !pointerActions.scroll) return;   // html buttons shouldn't be pressed over canvas
@@ -270,60 +270,43 @@ let menuMoving = 100;
  * @param {*} newMode grid.mode changing too
  */
 function dipAnimation(dir, newMode) {
-  console.log(dir, newMode);
   if (dir) {
-    if (grid.mode == newMode) return;
+    if (grid.mode === newMode) return;
     menuMoving += (100 - menuMoving) * 0.05;
     if (menuMoving > 99) {
-      if (frameInterval) {
-        if (grid.mode == 1) playPause();
-        else if (grid.mode == 2) playPause();
-      }
+      if (frameInterval) playPause();
       dir = false;
       grid.setMode(newMode);
-      let indicators = document.getElementById("menuIndicator").children;
-      for (let i=1; i<indicators.length; i += 2) indicators[i].style.backgroundColor = (i === grid.mode+1) ? "#f00" : "#a99";
-      if (grid.mode === 0) {  // pixel art, unselect all tools
-        document.getElementById("toolbar").children[0].checked = false;
-        document.getElementById("toolbar").children[2].checked = false;
-        eraser = false;
-        tileMode = 0;
-        viewOnly = true;
-        indicators[0].innerHTML = "Pixel Art";
-        document.getElementById("toolbarPlatform").style.width = "142px";
-      } else if (grid.mode === 1) { // life, set tools to barrier + eraser
+      console.log('Mode:', newMode);
+      if (grid.mode === 'life') {
         document.getElementById("toolbar").children[0].checked = true;
         document.getElementById("toolbar").children[2].checked = true;
-        document.getElementById("stepBtn").onclick = () => stepAlgo(false);
+        
         eraser = true;
         tileMode = 1;
         viewOnly = false;
-      } else if (grid.mode === 2) { // pathfinding
-        indicators[0].innerHTML = "Pathfinding";
-        document.getElementById("toolbarPlatform").style.width = "156px";
-        document.getElementById("stepBtn").onclick = () => stepAlgo(false);
       }
       requestAnimationFrame(draw);
     }
   } else {
-    menuMoving += (-menuMoving) * 0.05;
+    menuMoving -= menuMoving * 0.05;
     if (menuMoving < 1) menuMoving = 0;
   }
 
-  if (grid.mode === 0) {  // pixel art
-    if (menuMoving > 20) document.getElementById("barmenu").style.bottom = 20-menuMoving + "px";
-    document.getElementById("framebar").style.bottom = "-120px";
-  } else if (grid.mode === 1) { // life
-    document.getElementById("barmenu").style.bottom = "-120px";
-    document.getElementById("framebar").style.bottom = (134 - menuMoving) + "px";
-  } else if (grid.mode === 2) { // pathfinding
-    if (menuMoving > 20) document.getElementById("barmenu").style.bottom = 20-menuMoving + "px";
-    document.getElementById("framebar").style.bottom = (67 - menuMoving) + "px";
+  switch (grid.mode) {
+    case 'life':
+      document.getElementById("barmenu").style.bottom = "-120px";
+      document.getElementById("framebar").style.bottom = (134 - menuMoving) + "px";
+      break;
+    case 'pathfinding':
+      if (menuMoving > 20) document.getElementById("barmenu").style.bottom = 20-menuMoving + "px";
+      document.getElementById("framebar").style.bottom = (67 - menuMoving) + "px";
+      break;
   }
 
   if (menuMoving) setTimeout(() => dipAnimation(dir, newMode), 1);
 }
-dipAnimation(true, 0);
+dipAnimation(true, 'life');
 
 //#endregion
 
@@ -370,7 +353,7 @@ function styleTiles(style) {
 
 // check that the tile style is different from the current style, erase if first tile pressed is equal to current style
 function checkTile(gx, gy, style) {
-  if ((!grid.repeat || grid.mode === 2) && (gx < 0 || gx >= grid.width || gy < 0 || gy >= grid.height)) return;
+  if ((!grid.simple || grid.mode === 2) && (gx < 0 || gx >= grid.width || gy < 0 || gy >= grid.height)) return;
   let mgx = gx.mod(grid.width);
   let mgy = gy.mod(grid.height);
   const pos = mgx + mgy * grid.width;
@@ -520,12 +503,6 @@ function toggleFullscreen() {
   else cancelFullScreen.call(doc);
 }
 
-// toggle grid repeat
-function toggleGridRepeat() {
-  grid.repeat = !grid.repeat;
-  requestAnimationFrame(draw);
-}
-
 // set frame speed from html slider, [1 - 100]
 function setFrameSpeed() {
   playSpeed = document.getElementById("frameSpeed").value;
@@ -567,7 +544,7 @@ function stepAlgo(keepPlaying = true) {
     playPause();
     paused = true;
   }
-  grid.mode === 2 ? stepPathfinding(grid, pause) : stepLife(grid);  // step selected algorithm
+  grid.mode === 'pathfinding' ? stepPathfinding(grid, pause) : stepLife(grid);  // step selected algorithm
   requestAnimationFrame(draw);
   if (keepPlaying && !paused) frameInterval = setTimeout(stepAlgo, 1000 / playSpeed); // keep playing at playSpeed
   // UNDOING Algos must be rethought out
@@ -579,7 +556,7 @@ function stepAlgo(keepPlaying = true) {
  */
 
 function playPause() {
-  if (grid.mode === 2 && !frameInterval && (grid.target === null || grid.units.length === 0)) return; // Don't play pathfinding without target/units
+  if (grid.mode === 'pathfinding' && !frameInterval && (grid.target === null || grid.units.length === 0)) return; // Don't play pathfinding without target/units
   console.log((frameInterval ? 'Pause' : 'Play'), 'pathfinding');
   const element = document.getElementById('playBtn'); // Flip button
   if (!frameInterval) {
@@ -625,30 +602,22 @@ function logSteps() {
 //#region DOM
 
 document.getElementById('simpleViewMode').onclick = () => setSimpleViewMode(); 
-document.getElementById('stepBtn').onclick = () => stepAlgo(false);//stepLife(false); 
+document.getElementById('stepBtn').onclick = () => stepAlgo(false);
 document.getElementById('playBtn').onclick = () => playPause(); 
 document.getElementById('frameSpeed').oninput = () => setFrameSpeed(); 
-Array.from(document.getElementById('menuIndicator').childNodes).filter(e => e.className === 'menuIndicatorBox').forEach((e, i) => e.onmousedown = () => dipAnimation(true, i));
-Array.from(document.getElementById('framebar-menuIndicator').childNodes).filter(e => e.className === 'menuIndicatorBox').forEach((e, i) => e.onmousedown = () => dipAnimation(true, i));
 document.getElementById('eraser').onclick = () => setTileMode(-1);
 document.getElementById('barrier').onclick = () => setTileMode(1);
 document.getElementById('target').onclick = () => setTileMode(2);
 document.getElementById('unit').onclick = () => setTileMode(3);
 document.getElementById('undo').onclick = () => undo();
 document.getElementById('redo').onclick = () => redo();
-document.getElementById('gridDec').onclick = () => {
-  grid.setSize(grid.width/2, grid.height/2); 
-  requestAnimationFrame(draw);
-  futureSteps = []; 
-  steps = []; 
+document.getElementById('settings').onclick = () => {
+  if (menuMoving) return;
+  clearInterval(frameInterval);
+  frameInterval = null;
+  if (grid.simple) setSimpleViewMode();
+  dipAnimation(true, grid.mode === 'life' ? 'pathfinding' : 'life');
 }
-document.getElementById('gridInc').onclick = () => {
-  grid.setSize(grid.width*2, grid.height*2); 
-  requestAnimationFrame(draw);
-  futureSteps = []; 
-  steps = []; 
-}
-document.getElementById('fullscreen').onclick = () => toggleFullscreen();
-document.getElementById('gridRepeat').onclick = () => toggleGridRepeat();
+//document.getElementById('fullscreen').onclick = () => toggleFullscreen();
 
 //#endregion

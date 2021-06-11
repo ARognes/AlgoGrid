@@ -1,3 +1,4 @@
+'use-strict';
 
 // update tiles by rules
 export function stepLife(grid) {
@@ -6,7 +7,7 @@ export function stepLife(grid) {
   let neighbors = [null, null, null, null, null, null, null, null];
   let modifiedTiles = [...grid.tiles];
 
-  if (!grid.repeat) {
+  if (!grid.simple) {
     for (let i=0; i<grid.tiles.length; i++) {
       const k = i.mod(grid.width);
 

@@ -1,4 +1,6 @@
 
+'use-strict';
+
 const SQRT_2 = Math.sqrt(2);
 
 /**
@@ -119,19 +121,19 @@ const SQRT_2 = Math.sqrt(2);
   let neighborTiles = [null, null, null, null, null, null, null, null];
 
   // if they exist, get right, left, up, down tile's style
-  if (x < grid.width-1) neighborTiles[7] = grid.tiles[x+1 + y * grid.width];
-  if (x > 0) neighborTiles[3] = grid.tiles[x-1 + y * grid.width];
-  if (y > 0) neighborTiles[1] = grid.tiles[x + (y-1) * grid.width];
-  if (y < grid.height-1) neighborTiles[5] = grid.tiles[x + (y+1) * grid.width];
+  if (x < grid.width - 1) neighborTiles[7] = grid.tiles[x + 1 + y * grid.width];
+  if (x > 0) neighborTiles[3] = grid.tiles[x - 1 + y * grid.width];
+  if (y > 0) neighborTiles[1] = grid.tiles[x + (y - 1) * grid.width];
+  if (y < grid.height - 1) neighborTiles[5] = grid.tiles[x + (y + 1) * grid.width];
 
   // find if corner neighbor tiles upright, upleft, downright, and downleft exist, if so, get their tile's style
   if (neighborTiles[1] !== null) {
-    if (neighborTiles[7] !== null/* && (neighborTiles[1] <= 0 || neighborTiles[7] <= 0) USE THIS TO DISABLE CORNER TILE CROSSING*/) neighborTiles[0] = grid.tiles[x+1 + (y-1) * grid.width];
-    if (neighborTiles[3] !== null/* && (neighborTiles[1] <= 0 || neighborTiles[3] <= 0)*/) neighborTiles[2] = grid.tiles[x-1 + (y-1) * grid.width];
+    if (neighborTiles[7] !== null/* && (neighborTiles[1] <= 0 || neighborTiles[7] <= 0) USE THIS TO DISABLE CORNER TILE CROSSING*/) neighborTiles[0] = grid.tiles[x + 1 + (y - 1) * grid.width];
+    if (neighborTiles[3] !== null/* && (neighborTiles[1] <= 0 || neighborTiles[3] <= 0)*/) neighborTiles[2] = grid.tiles[x - 1 + (y - 1) * grid.width];
   }
   if (neighborTiles[5] !== null) {
-    if (neighborTiles[7] !== null/* && (neighborTiles[5] <= 0 || neighborTiles[7] <= 0)*/) neighborTiles[6] = grid.tiles[x+1 + (y+1) * grid.width];
-    if (neighborTiles[3] !== null/* && (neighborTiles[5] <= 0 || neighborTiles[3] <= 0)*/) neighborTiles[4] = grid.tiles[x-1 + (y+1) * grid.width];
+    if (neighborTiles[7] !== null/* && (neighborTiles[5] <= 0 || neighborTiles[7] <= 0)*/) neighborTiles[6] = grid.tiles[x + 1 + (y + 1) * grid.width];
+    if (neighborTiles[3] !== null/* && (neighborTiles[5] <= 0 || neighborTiles[3] <= 0)*/) neighborTiles[4] = grid.tiles[x - 1 + (y + 1) * grid.width];
   }
 
   if (grid.openTiles.length > 0) {
@@ -140,7 +142,7 @@ const SQRT_2 = Math.sqrt(2);
   }
 
   // go through all neighbor tiles
-  for (let j=0; j<8; j++) {
+  for (let j = 0; j < 8; j++) {
     let xPos = x;
     let yPos = y;
     if (j < 3) yPos--;

@@ -88,51 +88,32 @@ html, body {
 	background-color: #090;
 }
 
-#menuIndicator {
-    position: absolute;
-    right: 10px;
-    top: -10px;
-    font: 12px/1.4 'Nunito', sans-serif;
-    color: #222;
-}
-
-#framebar-toolbarPlatform {
+#framebar-platform {
     background-color: #544; 
     overflow: hidden; 
     position: absolute; 
     right: 0; 
     bottom: -10px;
-    width: 114px; 
     height: 20px; 
     border-radius: 0 0 8px 8px; 
     box-shadow: 0 10px #000;
-}
-
-#framebar-menuIndicator {
-    position: absolute; 
-    right: 10px; 
-    top: -10px; 
-    font: 12px/1.4 'Nunito', sans-serif; 
+    padding: 0 18px 0 18px;
+    font: 12px/1.8 'Nunito', sans-serif; 
     color: #a99;
 }
 
-.menuIndicatorBox {
-    width: 20px; 
-    height: 10px; 
-    background-color: #a99; 
-    border-radius: 5px; 
-    display: inline-block;
-}
-
-#toolbarPlatform {
+#toolbar-platform {
     background-color: #dcc;
     overflow: hidden;
-    position: absolute; right: 0; 
-    bottom: -10px; 
-    width: 160px;
+    position: absolute; 
+    right: 0; 
+    bottom: -10px;
     height: 20px; 
     border-radius: 0 0 8px 8px; 
     box-shadow: 0 10px #666;
+    padding: 0 18px 0 18px;
+    font: 12px/1.8 'Nunito', sans-serif; 
+    color: #000;
 }
 
 /*#endregion*/
@@ -339,27 +320,23 @@ input[type="range"]:focus {
 }
 
 #undo {
-    position: absolute; top: 10px; right: 60px; width: 40px; height: 40px;
-}
-
-#redo {
-    position: absolute; top: 10px; right: 10px; width: 40px; height: 40px;
-}
-
-#gridDec {
-    position: absolute; top: 10px; right: 160px; width: 40px; height: 40px;
-}
-
-#gridInc {
     position: absolute; top: 10px; right: 110px; width: 40px; height: 40px;
 }
 
+#redo {
+    position: absolute; top: 10px; right: 60px; width: 40px; height: 40px;
+}
+
+#settings {
+    position: absolute; top: 10px; right: 10px; width: 40px; height: 40px;
+}
+/*
 #fullscreen {
     position: absolute; top: 10px; left: 10px; width: 90px; height: 40px;
 }
 
 #gridRepeat {
     position: absolute; top: 60px; left: 10px; width: 90px; height: 40px;
-}
+}*/
 
 /*#endregion*/

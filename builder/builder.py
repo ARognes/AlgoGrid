@@ -26,7 +26,6 @@ MODULES_DIR = 'modules'
 main = '\'use strict\';'
 for fileName in os.listdir(MODULES_DIR):
   main += formatFile(MODULES_DIR + '/' + fileName)
-main += formatFile('pre_main.js')
 
 main = jsmin(main)
 
