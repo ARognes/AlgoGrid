@@ -1,34 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tile Grid Commit 74</title>
+    <title>Tile Grid Commit 75</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="description" content="An HTML website using a canvas to display an interactive grid. My first in-depth use of Javascript.">
     <meta name="keywords" content="grid, tile, simple">
     <meta name="author" content="Austin Rognes">
     <link rel="icon" href="icon.png">
-    <link href="style.css" rel="stylesheet">
+    <link name="css"  href="style.css" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Overpass&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Nunito:800&display=swap" rel="stylesheet">
-    <script type="module" src="main.js"></script>
+    <script type="module" src="modules/zmain.js"></script>
     <noscript>Your browser does not support JavaScript!</noscript>
 </head>
 <body>
 
     <canvas id="canvas">Your browser does not support html canvas!</canvas>
     
-    <h4 id="debug">Welcome!</h4>
+    <div id="debug"><span id="debug-box"></span></div>
+    
 
     <!-- Bottom barmenu -->
     <div id="barmenu">
 
         <!-- Animation frame buttons, step, play, timescale -->
         <div id="framebar">
-            <button class="frameBtn" id="simpleViewMode">@</button
-            ><button class="frameBtn" id="stepBtn">>></button
-            ><button class="frameBtn" id="playBtn">Play</button
+            <button class="frameBtn" id="simpleViewMode"><img src="icons/visibility-on.svg" alt="@"></button
+            ><button class="frameBtn" id="stepBtn"><img src="icons/forward.svg" alt=">>"></button
+            ><button class="frameBtn" id="playBtn"><img src="icons/play.svg" alt="Play"></button
             ><input type="range" min="1" max="19" value="2" id="frameSpeed"
             ><p id="frameSpeedText">x2</p
             ><div id="framebar-platform">Life</div>
@@ -37,23 +38,45 @@
         <!-- Main tools, draw, erase, etc. along with toolbar platform, which shows the program mode -->
         <div id="toolbar">
             <input type="checkbox" checked="checked" id="eraser"
-            ><label for="eraser">Eraser</label
+            ><label for="eraser"><img src="icons/x.svg" alt="Erase"></label
             
             ><input type="radio" id="barrier" checked="checked" name="tool"
-            ><label for="barrier" class="tilestyle">Barrier</label
+            ><label for="barrier" class="tilestyle"><img src="icons/add-box.svg" alt="Tile"></label
         
             ><input type="radio" id="target" name="tool"
-            ><label for="target">Target</label
+            ><label for="target"><img src="icons/target.svg" alt="Target"></label
         
             ><input type="radio" id="unit" name="tool"
-            ><label for="unit">Unit</label
-            ><div id="toolbar-platform">Pathfinding</div>
+            ><label for="unit"><img src="icons/person-add.svg" alt="Unit"></label
+            ><div id="toolbar-platform">A*</div>
         </div>
     </div>
 
-    <button class="smBtn" id="undo"><<</button>
-    <button class="smBtn" id="redo">>></button>
-    <button class="smBtn" id="settings">#</button>
-    <!-- <button class="smBtn" id="fullscreen">Fullscreen</button> -->
+    <div id="canvas-mask"></div>
+    <div id="options-menu" style="display: none">    
+        <button class="smBtn" id="undo"><img src="icons/undo.svg" alt="<<"></button>
+        <button class="smBtn" id="redo"><img src="icons/redo.svg" alt=">>"></button>
+        <button class="smBtn" id="settings"><img src="icons/settings.svg" alt="#"></button>
+    </div>
+    <button class="smBtn" id="fullscreen"><img src="icons/fullscreen.svg" alt="<>"></button>
+    <div class="menu">
+        <h1>~AlgoGrid~</h1>
+        <div class="menu-body">
+            <div id="menu-grid">
+                <button>Conway's Game of Life</button>
+                <button>A* Pathfinding</button>
+                <button disabled>Dijkstra soon</button>
+                <button disabled>More soon</button>
+                <button disabled>More soon</button>
+            </div>
+        </div>
+    </div>
+    <div class="menu">
+        <h1>~AlgoGrid~</h1>
+        <div class="menu-body">
+            <p>This is an algorithm visualization project.</p>
+            <button id="start-btn">Start</button>
+        </div>
+    </div>
 </body>
 </html>

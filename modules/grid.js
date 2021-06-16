@@ -19,6 +19,7 @@ export class Grid {
   constructor(width, height) {
     this.simple = false;
     this.mode = null;
+    this.lastMode = null;
     this.drawTiles = () => {};
 
     // pathfinding arrays
@@ -134,6 +135,7 @@ export class Grid {
 
   // switch draw function on mode change instead of on draw
   setMode(mode) {
+    this.lastMode = this.mode;
     this.mode = mode;
     switch(mode) {
       case 'life': this.drawTiles = (beginX, endX, beginY, endY) => this.drawLife(beginX, endX, beginY, endY); break;

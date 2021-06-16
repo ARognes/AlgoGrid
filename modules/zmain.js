@@ -33,7 +33,7 @@ function draw() {
   grid.draw();
 }
 
-let isMobile = false;
+let isMobile = fitCanvas(canvas, ctx);
 
 // input variables, mobile uses a few more in the mobile seciton of input region
 let pointerPos = {x: 0, y: 0};
@@ -69,205 +69,202 @@ requestAnimationFrame(draw); // redraw canvas
 //#endregion
 
 //#region input
-
-if (isMobile) {
-
-  canvas.addEventListener('touchstart', (event) => {
-    if (event.touches.length > 2) return;  // don't bother with 3 finger gestures
-    if (!viewOnly) {
-      steps.push(null); //add empty step to mark where step started
-      futureSteps = [];
-    }
-
-    // set deltaPointer to (0, 0) as this is the reference point, then set pointerPos as first touch position
-    deltaPointer = {x : 0, y : 0};
-    pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
-
-    if (event.touches.length === 2) {  // if second finger is pressed on mobile, scrolling begins and anything done by the first finger is undone
-      pointerSpread = 0;  // set pointerSpread to 0 as this is the reference point
-
-      if (!viewOnly) { // if viewOnly = true then the tiles and steps were never changed in the first place
-        if (steps[steps.length-3] === null) {                    // if first touch only affected one tile
-          steps.pop();                              // remove null step pushed from second touch
-          grid.tiles[steps[steps.length-1].pos] = steps[steps.length-1].revert;   // undo tile affected by first touch
-          steps.pop();                              // remove first touch step
-          steps.pop();                              // remove null step pushed from first touch
-        } else {          // if first touch moved and affected more than one tile
-          steps.pop();      // remove null step pushed from second touch
-          condenseArray(steps);   // count the first touch movement as a step
-        }
-        //document.getElementById("debug").innerHTML = logSteps();
-      }
-    }
-
-    if (event.touches.length === 2) pointerActions.scroll = true;
-    else if (!viewOnly) {
-      pointerActions.primary = true;
-      styleTiles(tileMode);
-      requestAnimationFrame(draw);
-    }
-  }, false);
-  document.addEventListener('touchend',  touchEnd, false);
-  document.addEventListener('touchcancel', touchEnd, false);
-  function touchEnd(event) {
-    /*if (touchStartX && event.changedTouches.length === 1 && !menuMoving && Math.abs(touchStartX - event.changedTouches[0].clientX) > 20 && Date.now() - timeTouchStart < 300 && rangeStartValue === playSpeed) {
-      clearInterval(frameInterval);
-      if (grid.simple) setSimpleViewMode();
-      dipAnimation(true, (grid.mode + Math.sign(touchStartX - event.changedTouches[0].clientX)).mod(3));
-    }*/
-
-    if (event.touches.length > 2) return;  // don't bother with 3 finger gestures
-    if (!pointerActions.primary && !pointerActions.scroll) return;   // html buttons shouldn't be pressed over canvas
-    if (!viewOnly && !pointerActions.scroll) condenseArray(steps);
-    pointerActions.primary = false;
-    pointerActions.scroll = false;
-    erasing = false;
+canvas.addEventListener('touchstart', (event) => {
+  if (event.touches.length > 2) return;  // don't bother with 3 finger gestures
+  if (!viewOnly) {
+    steps.push(null); //add empty step to mark where step started
+    futureSteps = [];
   }
 
-	canvas.addEventListener('touchmove', (event) => {
+  // set deltaPointer to (0, 0) as this is the reference point, then set pointerPos as first touch position
+  deltaPointer = {x : 0, y : 0};
+  pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
 
-    // only update deltaPointer if not used for scrolling
-    if (!pointerActions.scroll) deltaPointer = {x: event.changedTouches[0].clientX - pointerPos.x, y: event.changedTouches[0].clientY - pointerPos.y};
-    pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
+  if (event.touches.length === 2) {  // if second finger is pressed on mobile, scrolling begins and anything done by the first finger is undone
+    pointerSpread = 0;  // set pointerSpread to 0 as this is the reference point
 
-    if (pointerActions.scroll) {
-      // get vector from touch 0 to 1, then get distance
-      const xDist = (event.touches[1].clientX - event.touches[0].clientX);
-      const yDist = (event.touches[1].clientY - event.touches[0].clientY);
-      const spread = Math.sqrt(xDist * xDist + yDist * yDist);
-
-      // pointerSpread was set to 0 when 2nd finger pointerDown, so make sure deltaSpread will be 0
-      if (pointerSpread === 0) pointerSpread = spread;
-      const deltaSpread = (pointerSpread - spread) / 16;
-      pointerSpread = spread;
-
-      // current pointer center
-      const pointerCenter = {x: (event.changedTouches[1].clientX + pointerPos.x)/2, y: (event.changedTouches[1].clientY + pointerPos.y)/2};
-
-      // deltaPointer was set to (0, 0) when any touch pointerDown and hasn't changed if scrolling, so make sure deltaPointerCenter will be (0, 0)
-      if (!deltaPointer.x && !deltaPointer.y) deltaPointer = pointerCenter;
-      const deltaPointerCenter = {x: (pointerCenter.x - deltaPointer.x), y: (pointerCenter.y - deltaPointer.y)};
-      deltaPointer = pointerCenter;
-
-      zoom(deltaSpread, pointerCenter);
-      cameraTrans.offsetX += deltaPointerCenter.x;
-      cameraTrans.offsetY += deltaPointerCenter.y;
-    } else if ((erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1)) && !viewOnly)) styleTiles(tileMode);
-    requestAnimationFrame(draw);
-
-  }, false);
-
-  //#region menuBarSwipe
-  let touchStartX = 0;
-  let timeTouchStart = 0;
-  let rangeStartValue = 2;
-  
-  document.getElementById("barmenu").addEventListener('touchstart', (event) => {
-    if (event.touches.length === 1) {
-      touchStartX = event.changedTouches[0].clientX;
-      timeTouchStart = Date.now();
-      rangeStartValue = playSpeed;
-    }
-  }, false);
-/*
-  document.getElementById("barmenu").addEventListener('touchmove', (event) => {
-    if (touchStartX && event.touches.length === 1) {
-      touchEndX = event.touches[0].clientX - touchStartX;
-
-      // if menu isn't already moving and swipe is within standard 0.3 seconds and at least 20 pixels big, or has reached the bottom of the screen
-      if (!menuMoving && ((event.touches[0].clientX >= canvas.height - 20) || (touchEndX > 20 && Date.now() - timeTouchStart < 300))) {
-        clearInterval(frameInterval);
-        if (frameInterval) playLife();
-        if (grid.simple) setSimpleViewMode();
-        dipAnimation(true);
+    if (!viewOnly) { // if viewOnly = true then the tiles and steps were never changed in the first place
+      if (steps[steps.length-3] === null) {                    // if first touch only affected one tile
+        steps.pop();                              // remove null step pushed from second touch
+        grid.tiles[steps[steps.length-1].pos] = steps[steps.length-1].revert;   // undo tile affected by first touch
+        steps.pop();                              // remove first touch step
+        steps.pop();                              // remove null step pushed from first touch
+      } else {          // if first touch moved and affected more than one tile
+        steps.pop();      // remove null step pushed from second touch
+        condenseArray(steps);   // count the first touch movement as a step
       }
+      //document.getElementById("debug").innerHTML = logSteps();
     }
-  }, false);*/
-  //#endregion
-} else {
+  }
 
-  canvas.addEventListener("mousedown", (event) => {
-    if (event.button === 1) {
-      pointerActions.scroll = true;
-      if (pointerActions.primary) {
-        pointerActions.primary = false;
-        condenseArray(steps);
-        erasing = false;
-      }
-    }
-    if (event.button > 0) return;
-    if (!viewOnly) {
-      steps.push(null); // add empty step to mark where step started
-      futureSteps = [];
-    }
-
-    deltaPointer = {x : 0, y : 0};
-    pointerPos = {x : event.x, y : event.y};
-    if (!viewOnly) {
-      pointerActions.primary = true;
-      styleTiles(tileMode);
-      requestAnimationFrame(draw);
-    }
-  }, false);
-
-  document.addEventListener("mouseup", (event) => {
-    if (!pointerActions.primary && !pointerActions.scroll) return;   // html buttons pressed over canvas
-    if (!viewOnly && !pointerActions.scroll) condenseArray(steps);
-    pointerActions.primary = false;
-    pointerActions.scroll = false;
-    erasing = false;
-  }, false);
-
-  document.addEventListener("mousemove", (event) => {
-    if (event.button === 2) return;
-    deltaPointer = {x: event.x - pointerPos.x, y: event.y - pointerPos.y};
-    pointerPos = {x : event.x, y : event.y};
-
-    if (pointerActions.scroll) {
-      cameraTrans.offsetX += deltaPointer.x;
-      cameraTrans.offsetY += deltaPointer.y;
-    } else if ((erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1)) && !viewOnly)) styleTiles(tileMode);
+  if (event.touches.length === 2) pointerActions.scroll = true;
+  else if (!viewOnly) {
+    pointerActions.primary = true;
+    styleTiles(tileMode);
     requestAnimationFrame(draw);
-  }, false);
+  }
+}, false);
+document.addEventListener('touchend',  touchEnd, false);
+document.addEventListener('touchcancel', touchEnd, false);
+function touchEnd(event) {
+  /*if (touchStartX && event.changedTouches.length === 1 && !menuMoving && Math.abs(touchStartX - event.changedTouches[0].clientX) > 20 && Date.now() - timeTouchStart < 300 && rangeStartValue === playSpeed) {
+    clearInterval(frameInterval);
+    if (grid.simple) setSimpleViewMode();
+    dipAnimation(true, (grid.mode + Math.sign(touchStartX - event.changedTouches[0].clientX)).mod(3));
+  }*/
 
-  canvas.addEventListener("wheel", (event) => {
-    zoom(Math.sign(event.deltaY), pointerPos);
-    requestAnimationFrame(draw);
-  }, false);
-
-  /**
-   *  pc key input
-   */
-  document.addEventListener("keydown", (event) => {
-    let key = event.keyCode;
-
-    // undo and redo shortcut keys
-    if (event.ctrlKey) {
-      if (key === 90) undo();
-      else if (key === 89) redo();
-      return;
-    }
-
-    if (key === 32) playPause();
-    else if (key === 65) stepAlgo(false);
-    else if (key === 82) setTileMode(1);
-    else if (key === 83) setTileMode(2);
-    else if (key === 84) setTileMode(3);
-  });
-
-  canvas.addEventListener("keyup",(event) => {
-
-  });
+  if (event.touches.length > 2) return;  // don't bother with 3 finger gestures
+  if (!pointerActions.primary && !pointerActions.scroll) return;   // html buttons shouldn't be pressed over canvas
+  if (!viewOnly && !pointerActions.scroll) condenseArray(steps);
+  pointerActions.primary = false;
+  pointerActions.scroll = false;
+  erasing = false;
 }
+
+canvas.addEventListener('touchmove', (event) => {
+
+  // only update deltaPointer if not used for scrolling
+  if (!pointerActions.scroll) deltaPointer = {x: event.changedTouches[0].clientX - pointerPos.x, y: event.changedTouches[0].clientY - pointerPos.y};
+  pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
+
+  if (pointerActions.scroll) {
+    // get vector from touch 0 to 1, then get distance
+    const xDist = (event.touches[1].clientX - event.touches[0].clientX);
+    const yDist = (event.touches[1].clientY - event.touches[0].clientY);
+    const spread = Math.sqrt(xDist * xDist + yDist * yDist);
+
+    // pointerSpread was set to 0 when 2nd finger pointerDown, so make sure deltaSpread will be 0
+    if (pointerSpread === 0) pointerSpread = spread;
+    const deltaSpread = (pointerSpread - spread) / 16;
+    pointerSpread = spread;
+
+    // current pointer center
+    const pointerCenter = {x: (event.changedTouches[1].clientX + pointerPos.x)/2, y: (event.changedTouches[1].clientY + pointerPos.y)/2};
+
+    // deltaPointer was set to (0, 0) when any touch pointerDown and hasn't changed if scrolling, so make sure deltaPointerCenter will be (0, 0)
+    if (!deltaPointer.x && !deltaPointer.y) deltaPointer = pointerCenter;
+    const deltaPointerCenter = {x: (pointerCenter.x - deltaPointer.x), y: (pointerCenter.y - deltaPointer.y)};
+    deltaPointer = pointerCenter;
+
+    zoom(deltaSpread, pointerCenter);
+    cameraTrans.offsetX += deltaPointerCenter.x;
+    cameraTrans.offsetY += deltaPointerCenter.y;
+  } else if ((erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1)) && !viewOnly)) styleTiles(tileMode);
+  requestAnimationFrame(draw);
+
+}, false);
+
+//#region menuBarSwipe
+let touchStartX = 0;
+let timeTouchStart = 0;
+let rangeStartValue = 2;
+/*
+document.getElementById("barmenu").addEventListener('touchstart', (event) => {
+  if (event.touches.length === 1) {
+    touchStartX = event.changedTouches[0].clientX;
+    timeTouchStart = Date.now();
+    rangeStartValue = playSpeed;
+  }
+}, false);
+
+document.getElementById("barmenu").addEventListener('touchmove', (event) => {
+  if (touchStartX && event.touches.length === 1) {
+    touchEndX = event.touches[0].clientX - touchStartX;
+
+    // if menu isn't already moving and swipe is within standard 0.3 seconds and at least 20 pixels big, or has reached the bottom of the screen
+    if (!menuMoving && ((event.touches[0].clientX >= canvas.height - 20) || (touchEndX > 20 && Date.now() - timeTouchStart < 300))) {
+      if (frameInterval) playLife();
+      if (grid.simple) setSimpleViewMode();
+      dipAnimation(true);
+    }
+  }
+}, false);*/
+//#endregion
+
+canvas.addEventListener("mousedown", (event) => {
+  if (event.button === 1) {
+    pointerActions.scroll = true;
+    if (pointerActions.primary) {
+      pointerActions.primary = false;
+      condenseArray(steps);
+      erasing = false;
+    }
+  }
+  if (event.button > 0) return;
+  if (!viewOnly) {
+    steps.push(null); // add empty step to mark where step started
+    futureSteps = [];
+  }
+
+  deltaPointer = {x : 0, y : 0};
+  pointerPos = {x : event.x, y : event.y};
+  if (!viewOnly) {
+    pointerActions.primary = true;
+    styleTiles(tileMode);
+    requestAnimationFrame(draw);
+  }
+}, false);
+
+document.addEventListener("mouseup", (event) => {
+  if (!pointerActions.primary && !pointerActions.scroll) return;   // html buttons pressed over canvas
+  if (!viewOnly && !pointerActions.scroll) condenseArray(steps);
+  pointerActions.primary = false;
+  pointerActions.scroll = false;
+  erasing = false;
+}, false);
+
+document.addEventListener("mousemove", (event) => {
+  if (event.button === 2) return;
+  deltaPointer = {x: event.x - pointerPos.x, y: event.y - pointerPos.y};
+  pointerPos = {x : event.x, y : event.y};
+
+  if (pointerActions.scroll) {
+    cameraTrans.offsetX += deltaPointer.x;
+    cameraTrans.offsetY += deltaPointer.y;
+  } else if ((erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1)) && !viewOnly)) styleTiles(tileMode);
+  requestAnimationFrame(draw);
+}, false);
+
+canvas.addEventListener("wheel", (event) => {
+  zoom(Math.sign(event.deltaY), pointerPos);
+  requestAnimationFrame(draw);
+}, false);
+
+/**
+ *  pc key input
+ */
+document.addEventListener("keydown", (event) => {
+  let key = event.keyCode;
+
+  // undo and redo shortcut keys
+  if (event.ctrlKey) {
+    if (key === 90) undo();
+    else if (key === 89) redo();
+    return;
+  }
+
+  if (key === 32) playPause();
+  else if (key === 65) stepAlgo(false);
+  else if (key === 82) setTileMode(1);
+  else if (key === 83) setTileMode(2);
+  else if (key === 84) setTileMode(3);
+});
+
+canvas.addEventListener("keyup", (event) => {
+
+});
 
 
 let menuMoving = 100;
+document.getElementById("barmenu").style.bottom = "-120px";
+document.getElementById("framebar").style.bottom = "0px";
+
 /**
  * Bar menu dip animation. Calls itself every step until animation is finished.
  * Menu dips down, changes out of view, then pops back up.
  * 
- * @param {*} dir   direction, down then up, used in animation
- * @param {*} newMode grid.mode changing too
+ * @param {*} dir   direction, true: down then false: up, used in animation
+ * @param {*} newMode grid.mode changing to
  */
 function dipAnimation(dir, newMode) {
   if (dir) {
@@ -293,6 +290,7 @@ function dipAnimation(dir, newMode) {
     if (menuMoving < 1) menuMoving = 0;
   }
 
+  // Animate
   switch (grid.mode) {
     case 'life':
       document.getElementById("barmenu").style.bottom = "-120px";
@@ -306,7 +304,7 @@ function dipAnimation(dir, newMode) {
 
   if (menuMoving) setTimeout(() => dipAnimation(dir, newMode), 1);
 }
-dipAnimation(true, 'life');
+//dipAnimation(true, 'life');
 
 //#endregion
 
@@ -533,7 +531,6 @@ function setSimpleViewMode() {
  * 
  * @param {*} keepPlaying keeps pathfinding running at play speed
  */
-
 function stepAlgo(keepPlaying = true) {
 
   if (!keepPlaying && frameInterval) playPause();  // step pressed while playing, now pause
@@ -556,8 +553,8 @@ function stepAlgo(keepPlaying = true) {
  */
 
 function playPause() {
-  if (grid.mode === 'pathfinding' && !frameInterval && (grid.target === null || grid.units.length === 0)) return; // Don't play pathfinding without target/units
-  console.log((frameInterval ? 'Pause' : 'Play'), 'pathfinding');
+  if (grid.mode !== 'life' && !frameInterval && (grid.target === null || grid.units.length === 0)) return toast('Must place unit and target!'); // Don't play pathfinding without target/units
+  console.log((frameInterval ? 'Pause' : 'Play'), grid.mode);
   const element = document.getElementById('playBtn'); // Flip button
   if (!frameInterval) {
     futureSteps = []; // Don't allow redo, new timeline
@@ -601,7 +598,52 @@ function logSteps() {
 
 //#region DOM
 
+// debug system
+let debug = document.getElementById('debug');
+let debugBox = document.getElementById('debug-box');
+let toastTimer;
+
+function toast(str) {
+  clearInterval(toastTimer);
+  debug.style.display = 'block';
+  debug.style.opacity = 1;
+  debug.style.filter = 'alpha(opacity=100)';
+  debugBox.innerHTML = str;
+
+  let op = 16;
+  toastTimer = setInterval(() => {
+    op -= op * 0.1;
+    if (op > 1) return;
+    if (op <= 0.01){
+      clearInterval(toastTimer);
+      debug.style.display = 'none';
+    }
+    debug.style.opacity = op;
+    debug.style.filter = 'alpha(opacity=' + op * 100 + ')';
+  }, 50);
+}
+
+// menu system
+let menus = Array.from(document.getElementsByClassName('menu'));
+document.getElementById('start-btn').onclick = () => {
+	menus[1].style.display = 'none';
+	menus[0].style.display = 'block';
+}
+
+let canvasMask = document.getElementById('canvas-mask');
+const GRID_MODES = ['life', 'pathfinding'];
+let optionsMenu = document.getElementById("options-menu");
+Array.from(document.getElementById('menu-grid').children).forEach((btn, i) => {
+  btn.onclick = () => {
+    canvasMask.style.display = 'none';
+    menus[0].style.display = 'none';
+    menuMoving = 100;
+    dipAnimation(true, GRID_MODES[i]);
+    optionsMenu.style.display = 'block';
+  }
+});
 document.getElementById('simpleViewMode').onclick = () => setSimpleViewMode(); 
+document.getElementById('fullscreen').onclick = () => toggleFullscreen(); 
 document.getElementById('stepBtn').onclick = () => stepAlgo(false);
 document.getElementById('playBtn').onclick = () => playPause(); 
 document.getElementById('frameSpeed').oninput = () => setFrameSpeed(); 
@@ -612,12 +654,19 @@ document.getElementById('unit').onclick = () => setTileMode(3);
 document.getElementById('undo').onclick = () => undo();
 document.getElementById('redo').onclick = () => redo();
 document.getElementById('settings').onclick = () => {
+  if (grid.mode === null) {
+    canvasMask.style.display = 'none';
+    menus[0].style.display = 'none';
+    menuMoving = 100;
+    dipAnimation(true, grid.lastMode);
+    return;
+  }
   if (menuMoving) return;
-  clearInterval(frameInterval);
-  frameInterval = null;
   if (grid.simple) setSimpleViewMode();
-  dipAnimation(true, grid.mode === 'life' ? 'pathfinding' : 'life');
+  dipAnimation(true, null);
+  menus[0].style.display = 'block';
+  canvasMask.style.display = 'block';
+  grid.clearPathfinding();
+  requestAnimationFrame(draw);
 }
-//document.getElementById('fullscreen').onclick = () => toggleFullscreen();
-
 //#endregion
