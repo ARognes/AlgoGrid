@@ -2,7 +2,8 @@
 
 const GRID_LINE_WIDTH = 6,
       MIN_WIDTH = 2,
-      MAX_WIDTH = 256;
+      MAX_WIDTH = 256,
+      SHOW_LABEL_DIST = 6;
 
 export const TILE_SIZE = 32;
 
@@ -17,6 +18,7 @@ canvas.height = window.innerHeight;
 
 export class Grid {
   constructor(width, height) {
+    this.pointerPos = null;
     this.simple = false;
     this.mode = null;
     this.lastMode = null;
@@ -61,6 +63,7 @@ export class Grid {
 
       ctx.lineWidth = 3;
       if (this.mode === 'pathfinding') {  // pathfinding
+        
         // draw grid background
         ctx.fillStyle = "#444";
         ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
@@ -68,7 +71,7 @@ export class Grid {
         for (let i = beginX; i < endX; i++) {
           for (let j = beginY; j < endY; j++) {
             let tile = this.tiles[this.cartesianToIndex(i, j)];
-            if (!tile) continue;      // only draw barriers
+            if (!tile) continue;
             switch(tile) {
               case 1: ctx.fillStyle = '#000'; break;
               case 2: ctx.fillStyle = '#f33'; break;
@@ -79,6 +82,11 @@ export class Grid {
             }
             ctx.fillRect(i * TILE_SIZE + 2, j * TILE_SIZE + 2, TILE_SIZE - 4, TILE_SIZE - 4);   // draw alive
           }
+        }
+        if (this.pointerPos) {
+          ctx.fillStyle = '#000';
+          this.labelSearch(this.openTiles, true);
+          this.labelSearch(this.closedTiles, true);
         }
         return;
       }
@@ -169,10 +177,11 @@ export class Grid {
   }
 
   // draw search tile numbers g, h, f;   f = g + h
-  labelSearch(searched) {
+  labelSearch(searched, usePointer) {
     ctx.textAlign = "center";
     searched.forEach(tile => {
       if (tile.reference === null) return;
+      if (usePointer && Math.pow(tile.x - this.pointerPos.x, 2) + Math.pow(tile.y - this.pointerPos.y, 2) > SHOW_LABEL_DIST) return;
       const g = Math.round(tile.g * 10);
       const h = Math.round(tile.h * 10);
       const x = tile.x;

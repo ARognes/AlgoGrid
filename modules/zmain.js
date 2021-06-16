@@ -217,7 +217,8 @@ document.addEventListener("mousemove", (event) => {
   if (event.button === 2) return;
   deltaPointer = {x: event.x - pointerPos.x, y: event.y - pointerPos.y};
   pointerPos = {x : event.x, y : event.y};
-
+  grid.pointerPos = {x: Math.floor(((pointerPos.x - cameraTrans.offsetX)/cameraTrans.scale)/TILE_SIZE),
+                     y: Math.floor(((pointerPos.y - cameraTrans.offsetY)/cameraTrans.scale)/TILE_SIZE)};
   if (pointerActions.scroll) {
     cameraTrans.offsetX += deltaPointer.x;
     cameraTrans.offsetY += deltaPointer.y;
