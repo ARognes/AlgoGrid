@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tile Grid Commit 76</title>
+    <title>AlgoGrid Commit 78</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta name="description" content="An HTML website using a canvas to display an interactive grid. My first in-depth use of Javascript.">
+    <meta name="description" content="This is an algorithm visualization project.">
     <meta name="keywords" content="grid, tile, simple">
     <meta name="author" content="Austin Rognes">
     <link rel="icon" href="icon.png">
@@ -27,9 +27,9 @@
 
         <!-- Animation frame buttons, step, play, timescale -->
         <div id="framebar">
-            <button class="frameBtn" id="simpleViewMode"><img src="icons/visibility-on.svg" alt="@"></button
-            ><button class="frameBtn" id="stepBtn"><img src="icons/forward.svg" alt=">>"></button
-            ><button class="frameBtn" id="playBtn"><img src="icons/play.svg" alt="Play"></button
+            <button class="frameBtn" id="simpleViewMode">Visual</button
+            ><button class="frameBtn" id="stepBtn">Next</button
+            ><button class="frameBtn" id="playBtn">Play</button
             ><input type="range" min="1" max="19" value="2" id="frameSpeed"
             ><p id="frameSpeedText">x2</p
             ><div id="framebar-platform">Life</div>
@@ -38,16 +38,16 @@
         <!-- Main tools, draw, erase, etc. along with toolbar platform, which shows the program mode -->
         <div id="toolbar">
             <input type="checkbox" checked="checked" id="eraser"
-            ><label for="eraser"><img src="icons/x.svg" alt="Erase"></label
+            ><label for="eraser">Erase</label
             
             ><input type="radio" id="barrier" checked="checked" name="tool"
-            ><label for="barrier" class="tilestyle"><img src="icons/add-box.svg" alt="Tile"></label
+            ><label for="barrier" class="tilestyle">Tile</label
         
             ><input type="radio" id="target" name="tool"
-            ><label for="target"><img src="icons/target.svg" alt="Target"></label
+            ><label for="target">Target</label
         
             ><input type="radio" id="unit" name="tool"
-            ><label for="unit"><img src="icons/person-add.svg" alt="Unit"></label
+            ><label for="unit">Unit</label
             ><div id="toolbar-platform">A*</div>
         </div>
     </div>
@@ -69,12 +69,18 @@
                 <button disabled>More soon</button>
                 <button disabled>More soon</button>
             </div>
+            <!-- <div id="menu-resize">
+                <input type="number" min="1" max="1024" id="resize-width"><label for="resize-width">Width</label>
+                <input type="number" min="1" max="1024" id="resize-height"><label for="resize-height">Height</label>
+                <button>Resize</button>
+            </div> -->
         </div>
     </div>
     <div class="menu">
         <h1>~AlgoGrid~</h1>
         <div class="menu-body">
             <p>This is an algorithm visualization project.</p>
+
             <button id="start-btn">Start</button>
         </div>
     </div>

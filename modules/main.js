@@ -15,7 +15,7 @@ window.addEventListener('resize', () => {
   requestAnimationFrame(draw); // redraw canvas
 }, false);
 
-// only called when necessary
+// called reactively
 function draw() {
 
   // clamp camera position so at least 1 tile is always on screen
@@ -53,12 +53,12 @@ let steps = [];
 let futureSteps = [];
 
 // playing frames
-let playSpeed = 2,
-    frameInterval;
+let playSpeed = 2;
+let frameInterval;
 
 const ZOOM_AMOUNT = 0.1;
-const ZOOM_MIN = 0.2 * Math.max(window.innerWidth, window.innerHeight) / 1200;  // this allows smaller screens to zoom almost the same amount as larger screens
-const ZOOM_MAX = 8 * Math.max(window.innerWidth, window.innerHeight) / 1200;
+const ZOOM_MIN = 0.1 * Math.max(window.innerWidth, window.innerHeight) / 1200;  // this allows smaller screens to zoom almost the same amount as larger screens
+const ZOOM_MAX = 16 * Math.max(window.innerWidth, window.innerHeight) / 1200;
 
 // center camera based off grid
 cameraTrans.offsetX = canvas.width / 2 - grid.width * TILE_SIZE / 2;
@@ -98,7 +98,7 @@ canvas.addEventListener('touchstart', (event) => {
   }
 
   if (event.touches.length === 2) pointerActions.scroll = true;
-  else if (!viewOnly) {
+  else if (!viewOnly && !grid.tilesCopy) {
     pointerActions.primary = true;
     styleTiles(tileMode);
     requestAnimationFrame(draw);
@@ -149,7 +149,7 @@ canvas.addEventListener('touchmove', (event) => {
     zoom(deltaSpread, pointerCenter);
     cameraTrans.offsetX += deltaPointerCenter.x;
     cameraTrans.offsetY += deltaPointerCenter.y;
-  } else if ((erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1)) && !viewOnly)) styleTiles(tileMode);
+  } else if ((erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1)) && !viewOnly) && !grid.tilesCopy) styleTiles(tileMode);
   requestAnimationFrame(draw);
 
 }, false);
@@ -182,7 +182,7 @@ document.getElementById("barmenu").addEventListener('touchmove', (event) => {
 //#endregion
 
 canvas.addEventListener("mousedown", (event) => {
-  if (event.button === 1) {
+  if (event.button === 1) { // scroll
     pointerActions.scroll = true;
     if (pointerActions.primary) {
       pointerActions.primary = false;
@@ -191,21 +191,31 @@ canvas.addEventListener("mousedown", (event) => {
     }
   }
   if (event.button > 0) return;
-  if (!viewOnly) {
-    steps.push(null); // add empty step to mark where step started
-    futureSteps = [];
-  }
-
   deltaPointer = {x : 0, y : 0};
   pointerPos = {x : event.x, y : event.y};
-  if (!viewOnly) {
-    pointerActions.primary = true;
-    styleTiles(tileMode);
-    requestAnimationFrame(draw);
+
+  grid.setCursorGridPos(cursorToGrid(event.x, event.y));
+  if (grid.cursorGridPos.x === grid.width && grid.cursorGridPos.y === grid.height) {
+    if (frameInterval) playPause();
+    let step = [];
+    grid.tiles.forEach((tile, i) => step.push({pos: i, revert: tile}));
+    step.push({width: grid.width, height: grid.height});
+    steps.push(step);
+    grid.resize(true);
+    console.log('Resize');
   }
+
+  if (viewOnly || grid.tilesCopy) return;
+
+  steps.push(null); // add empty step to mark where step started
+  futureSteps = [];
+  pointerActions.primary = true;
+  styleTiles(tileMode);
+  requestAnimationFrame(draw);
 }, false);
 
 document.addEventListener("mouseup", (event) => {
+  grid.resize(false);
   if (!pointerActions.primary && !pointerActions.scroll) return;   // html buttons pressed over canvas
   if (!viewOnly && !pointerActions.scroll) condenseArray(steps);
   pointerActions.primary = false;
@@ -216,13 +226,12 @@ document.addEventListener("mouseup", (event) => {
 document.addEventListener("mousemove", (event) => {
   if (event.button === 2) return;
   deltaPointer = {x: event.x - pointerPos.x, y: event.y - pointerPos.y};
-  pointerPos = {x : event.x, y : event.y};
-  grid.pointerPos = {x: Math.floor(((pointerPos.x - cameraTrans.offsetX)/cameraTrans.scale)/TILE_SIZE),
-                     y: Math.floor(((pointerPos.y - cameraTrans.offsetY)/cameraTrans.scale)/TILE_SIZE)};
+  pointerPos = {x: event.x, y: event.y};
+  grid.setCursorGridPos(cursorToGrid(event.x, event.y));
   if (pointerActions.scroll) {
     cameraTrans.offsetX += deltaPointer.x;
     cameraTrans.offsetY += deltaPointer.y;
-  } else if ((erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1)) && !viewOnly)) styleTiles(tileMode);
+  } else if ((erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1)) && !viewOnly) && !grid.tilesCopy) styleTiles(tileMode);
   requestAnimationFrame(draw);
 }, false);
 
@@ -332,15 +341,13 @@ function condenseArray(ar) {
 function styleTiles(style) {
 
   // translate cursor screen coordinates into grid coordinates
-  let gx = Math.floor(((pointerPos.x - cameraTrans.offsetX)/cameraTrans.scale)/TILE_SIZE);
-  let gy = Math.floor(((pointerPos.y - cameraTrans.offsetY)/cameraTrans.scale)/TILE_SIZE);
+  let { x: gx, y: gy } = cursorToGrid(pointerPos.x, pointerPos.y);
   checkTile(gx, gy, style);
 
   if (!deltaPointer.x && !deltaPointer.y) return;
 
   // translate last step cursor screen coordinates into grid coordinates
-  let hx = Math.floor(((pointerPos.x - deltaPointer.x - cameraTrans.offsetX)/cameraTrans.scale)/TILE_SIZE);
-  let hy = Math.floor(((pointerPos.y - deltaPointer.y - cameraTrans.offsetY)/cameraTrans.scale)/TILE_SIZE);
+  let { x: hx, y: hy } = cursorToGrid((pointerPos.x - deltaPointer.x), (pointerPos.y - deltaPointer.y));
 
   // edit tiles in-between cursor movement to ensure closed line is drawn
   while ((hx != gx || hy != gy)) {
@@ -348,6 +355,11 @@ function styleTiles(style) {
     gy -= Math.sign(gy - hy);
     checkTile(gx, gy, style);
   }
+}
+
+function cursorToGrid(cx, cy) {
+  return {x: Math.floor(((cx - cameraTrans.offsetX) / cameraTrans.scale) / TILE_SIZE), 
+          y: Math.floor(((cy - cameraTrans.offsetY) / cameraTrans.scale) / TILE_SIZE)};
 }
 
 // check that the tile style is different from the current style, erase if first tile pressed is equal to current style
@@ -374,7 +386,7 @@ function checkTile(gx, gy, style) {
       if (unit.x + unit.y * grid.height === pos) removeUnit = i;
     });
 
-    steps[steps.length-1].unit = removeUnit;      // add unit removeUnit number to last step
+    steps[steps.length-1].unit = removeUnit;      // add unit removeUnit index to last step
     grid.units.splice(removeUnit, 1);             // remove this removeUnit from grid.units
     if (grid.unitTurn === removeUnit) grid.clearPathfinding();
   }
@@ -422,39 +434,47 @@ function setTileMode(newTileMode) {
 
 /**
  * Undo and redo use Arrays to hold steps.
- * Array steps and futureSteps holds Arrays of individual tile changes called step and futureStep.
- * On undo, a step from steps is inverted and passed to futureSteps.
+ * Array steps and futureSteps hold Arrays of individual tile changes called step and futureStep.
+ * On undo, a step from steps is undone and passed to futureSteps.
  * There is an arbitrary constant UNDO_STEPS to decide how many steps are saved.
- * If the user undoes and then changes tiles, futureSteps are wiped so that the user cannot redo.
+ * There are no undo branches, user input erases futureSteps
  *
  * grid targets are a whole other miserable ball game.
  */
 function undo() {
   if (steps.length <= 0 || frameInterval) return;
-  let step = steps.pop();
+  const step = steps.pop();
   let futureStep = [];
-
   if (!step) return;
+  
   console.log('undo');
-  for (let i=0; i < step.length; i++) {
+  step.forEach(stp => {
+    if (stp.pos) {
+      const stpTile = grid.tiles[stp.pos];
+      futureStep.push({pos: stp.pos, revert: stpTile});  // add tile to futureStep
+    
+      grid.tiles[stp.pos] = stp.revert;                  // set tile
+      
+      if (stpTile === 2) grid.target = null;             // if tile is the target
+      else if (stpTile === 3) {                          // if tile is a unit
+        futureStep[futureStep.length-1].unit = stp.unit; // add unit index to last future stp
+        grid.units.splice(stp.unit, 1);                  // remove unit index from grid.units
+      }
 
-    futureStep.push({pos: step[i].pos, revert: grid.tiles[step[i].pos]});   // add tile to futureStep
-    if (grid.tiles[step[i].pos] === 2) grid.target = null;           // if tile is the target
-    else if (grid.tiles[step[i].pos] === 3) {                   // if tile is a unit
-
-       const index = grid.units.indexOf(step[i].pos);   
-       futureStep[futureStep.length-1].unit = index;  // add unit index to last future step
-       grid.units.splice(index, 1);           // remove unit index from grid.units
+      if (stp.revert === 2) grid.target = stp.pos;
+      else if (stp.revert === 3) {                        // if tile is now a unit
+        grid.units.splice(stp.unit, 0, stp.pos);          // add tile position to grid.units on index unit
+        futureStep[futureStep.length-1].unit = stp.unit;  // add unit information to futureStep
+      }
+    } else if (stp.width && stp.height) {                   // add gridSize to futureStep
+      futureStep.push({width: grid.width, height: grid.height});   
+      grid.resize(true);
+      const saveCursorPos = grid.cursorGridPos;
+      grid.setCursorGridPos({x: stp.width, y: stp.height});
+      grid.resize(false);
+      grid.setCursorGridPos(saveCursorPos);
     }
-
-    grid.tiles[step[i].pos] = step[i].revert;                 // set tile
-
-    if (step[i].revert === 2) grid.target = step[i].pos;
-    else if (step[i].revert === 3) {                        // if tile is now a unit
-      grid.units.splice(step[i].unit, 0, step[i].pos);        // add tile position to grid.units on index unit
-      futureStep[futureStep.length-1].unit = step[i].unit;      // add unit information to futureStep
-    }
-  }
+  });
   futureSteps.push(futureStep);
   requestAnimationFrame(draw);
 }
@@ -464,28 +484,38 @@ function redo() {
   if (futureSteps.length <= 0 || frameInterval) return;
   let futureStep = futureSteps.pop();
   let step = [];
-
   if (!futureStep) return;
+
   console.log('redo');
-  for (let i=0; i < futureStep.length; i++) {
-    step.push({pos: futureStep[i].pos, revert: grid.tiles[futureStep[i].pos]});
-    
-    if (grid.tiles[futureStep[i].pos] === 2) grid.target = null;           // if tile is the target
-    else if (grid.tiles[futureStep[i].pos] === 3) {
-      const index = grid.units.indexOf(futureStep[i].pos);
-      step[step.length-1].target = index;
-      grid.units.splice(index, 1);
+  futureStep.forEach(stp => {
+    if (stp.pos) {
+      let stpTile = grid.tiles[stp.pos];
+      grid.tiles[stp.pos] = stp.revert; // edit tile if coordinates are on grid
+      
+      // save current tile to undo steps
+      step.push({pos: stp.pos, revert: stpTile});
+      if (stpTile === 2) grid.target = null;
+      else if (stpTile === 3) {
+        step[step.length-1].unit = stp.unit;
+        grid.units.splice(stp.unit, 1);
+      }
+      
+      // redo this tile to its revert
+      if (stp.revert === 2) grid.target = stp.pos;
+      else if (stp.revert === 3) {
+        grid.units.splice(stp.unit, 0, {x: stp.pos % grid.width, y: Math.floor(stp.pos / grid.width)});
+        step[step.length-1].unit = stp.unit;
+      }
+    } else if (stp.width && stp.height) {                   // add gridSize to futureStep
+      step.push({width: grid.width, height: grid.height});   
+      grid.resize(true);
+      const saveCursorPos = grid.cursorGridPos;
+      grid.setCursorGridPos({x: stp.width, y: stp.height});
+      grid.resize(false);
+      grid.setCursorGridPos(saveCursorPos);
+
     }
-
-    grid.tiles[futureStep[i].pos] = futureStep[i].revert; // edit tile if coordinates are on grid
-
-    if (futureStep[i].revert === 2) grid.target = futureStep[i].pos;
-    else if (futureStep[i].revert === 3) {
-      grid.units.splice(futureStep[i].unit, 0, futureStep[i].pos);
-      step[step.length-1].unit = futureStep[i].unit;
-    }
-
-  }
+  });
   steps.push(step);
   requestAnimationFrame(draw);
 }

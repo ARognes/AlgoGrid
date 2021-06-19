@@ -7,7 +7,7 @@ Number.prototype.mod = function(n) {
   return ((this%n)+n)%n;
 };
 
-// resize the canvas to dynamically fill browser window
+// PURE: resize the canvas to dynamically fill browser window
 export function fitCanvas(canvas, ctx) {
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;

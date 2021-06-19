@@ -87,6 +87,17 @@ html, body {
     to {top: 0px}
 }
 
+/* #menu-resize {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+#menu-resize input {
+    width: 100px;
+    font-size: 24px;
+} */
+
 
 /*#endregion mainmenu*/
 

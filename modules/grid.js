@@ -12,13 +12,14 @@ export let canvas = document.getElementById('canvas'),
            ctx = canvas.getContext('2d'),
            cameraTrans = {scale: 1, offsetX: 0, offsetY: 0};
 
-//resize canvas on load
+// resize canvas on load
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 export class Grid {
   constructor(width, height) {
-    this.pointerPos = null;
+    this.tilesCopy = null
+    this.cursorGridPos = {x: null, y: null};
     this.simple = false;
     this.mode = null;
     this.lastMode = null;
@@ -33,7 +34,15 @@ export class Grid {
     this.unitTurn = 0;      // which unit is currently pathfinding
     this.stepIndex = null;  // tile that unit steps to
 
-    this.setSize(width, height === 0 ? width : height);
+    //this.setSize(width, height === 0 ? width : height);
+
+    width = Math.min(Math.max(width, MIN_WIDTH), MAX_WIDTH);
+    if (height === 0) height = width;
+    height = Math.min(Math.max(height, MIN_WIDTH), MAX_WIDTH);
+    this.width = width;
+    this.height = height;
+    this.tiles = new Array(width * height).fill(0);
+    //this.clearPathfinding();
   }
 
   // convert tile cartesian coordinates to tile array coordinates
@@ -58,14 +67,14 @@ export class Grid {
       endX = Math.min(Math.ceil((canvas.width - cameraTrans.offsetX) / tileScaled), this.width);
       endY = Math.min(Math.ceil((canvas.height - cameraTrans.offsetY) / tileScaled), this.height);
     }
-
+    
     if (this.simple) {  // draw simple grid for better performance
 
       ctx.lineWidth = 3;
       if (this.mode === 'pathfinding') {  // pathfinding
         
         // draw grid background
-        ctx.fillStyle = "#444";
+        ctx.fillStyle = '#444';
         ctx.fillRect(0, 0, this.width * TILE_SIZE, this.height * TILE_SIZE);
 
         for (let i = beginX; i < endX; i++) {
@@ -83,10 +92,15 @@ export class Grid {
             ctx.fillRect(i * TILE_SIZE + 2, j * TILE_SIZE + 2, TILE_SIZE - 4, TILE_SIZE - 4);   // draw alive
           }
         }
-        if (this.pointerPos) {
+        if (this.cursorGridPos) {
           ctx.fillStyle = '#000';
           this.labelSearch(this.openTiles, true);
           this.labelSearch(this.closedTiles, true);
+        }
+
+        if (this.cursorGridPos.x === this.width && this.cursorGridPos.y === this.height) {
+          ctx.strokeStyle = '#fff';
+          ctx.strokeRect(this.width * TILE_SIZE, this.height * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         }
         return;
       }
@@ -103,6 +117,10 @@ export class Grid {
           if (!this.tiles[this.cartesianToIndex(i, j)]) continue;      // only draw barriers
           ctx.fillRect(i * TILE_SIZE + 2, j * TILE_SIZE + 2, TILE_SIZE - 4, TILE_SIZE - 4);   // draw alive
         }
+      }
+      if (this.cursorGridPos.x === this.width && this.cursorGridPos.y === this.height) {
+        ctx.strokeStyle = '#fff';
+        ctx.strokeRect(this.width * TILE_SIZE, this.height * TILE_SIZE, TILE_SIZE, TILE_SIZE);
       }
       return;
     }
@@ -129,16 +147,39 @@ export class Grid {
     }
 
     this.drawTiles(beginX, endX, beginY, endY);
+    if (this.cursorGridPos.x === this.width && this.cursorGridPos.y === this.height) {
+      ctx.strokeStyle = '#000';
+      ctx.strokeRect(this.width * TILE_SIZE, this.height * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+    }
   }
 
-  // set size expects sizes out of bounds to be caught by the html/css, but clamps the values just in case something goes wrong
-  setSize(width, height) {
-    width = Math.min(Math.max(width, MIN_WIDTH), MAX_WIDTH);
-    height = Math.min(Math.max(height, MIN_WIDTH), MAX_WIDTH);
-    this.width = width;
-    this.height = height;
-    this.tiles = new Array(width * height).fill(0);
-    this.clearPathfinding();
+  resize(on = true) {
+    if (on) {
+      if (this.target) this.tiles[this.target] = 0;
+      this.units.forEach(unit => this.tiles[unit.x + unit.y * this.width] = 0);
+      this.target = null;
+      this.units = [];
+      this.clearPathfinding();
+      this.tilesCopy = this.tiles;
+    }
+    else if (this.tilesCopy !== null) this.tilesCopy = null;
+  }
+
+  setCursorGridPos(pos) { 
+    if (this.cursorGridPos.x === pos.x && this.cursorGridPos.y === pos.y) return; 
+    pos.x = Math.min(Math.max(pos.x, MIN_WIDTH), MAX_WIDTH);
+    pos.y = Math.min(Math.max(pos.y, MIN_WIDTH), MAX_WIDTH);
+    this.cursorGridPos = pos; 
+    if (this.tilesCopy === null) return; 
+    this.tiles = new Array(pos.x * pos.y).fill(0);
+    this.tilesCopy.forEach((tile, i) => {
+      let ix = i % this.width;
+      let iy = Math.floor(i / this.width);
+      if (ix <= pos.x && iy <= pos.y) this.tiles[ix + iy * pos.x] = tile;
+    }); 
+    this.tilesCopy = this.tiles;
+    this.width = pos.x;
+    this.height = pos.y;
   }
 
   // switch draw function on mode change instead of on draw
@@ -181,7 +222,7 @@ export class Grid {
     ctx.textAlign = "center";
     searched.forEach(tile => {
       if (tile.reference === null) return;
-      if (usePointer && Math.pow(tile.x - this.pointerPos.x, 2) + Math.pow(tile.y - this.pointerPos.y, 2) > SHOW_LABEL_DIST) return;
+      if (usePointer && Math.pow(tile.x - this.cursorGridPos.x, 2) + Math.pow(tile.y - this.cursorGridPos.y, 2) > SHOW_LABEL_DIST) return;
       const g = Math.round(tile.g * 10);
       const h = Math.round(tile.h * 10);
       const x = tile.x;
@@ -220,6 +261,7 @@ export class Grid {
       }
     }
   
+    //if (cameraTrans.scale < 0.4) return;
     ctx.fillStyle = "#222";
     this.labelSearch(this.openTiles);
     this.labelSearch(this.closedTiles);
