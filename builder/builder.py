@@ -22,7 +22,7 @@ def formatFile(fileName):
 
   return '\n' + ''.join(outLines)
 
-MODULES_DIR = '../modules'
+MODULES_DIR = './modules'
 main = '\'use strict\';'
 for fileName in os.listdir(MODULES_DIR):
   if fileName != 'main.js':
@@ -32,6 +32,6 @@ main += formatFile(MODULES_DIR + '/main.js')
 main = jsmin(main)
 main = "// Check out the uncondensed and commented version here: https://github.com/ARognes/AlgoGrid/tree/master/modules \n" + main
 
-out = open('../main.js', 'w')
+out = open('./main.js', 'w')
 out.write(main)
 print("Done")

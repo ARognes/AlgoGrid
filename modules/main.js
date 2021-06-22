@@ -11,7 +11,7 @@ import { stepLife } from '/modules/game-of-life.js';
 window.addEventListener('resize', () => {
   cameraTrans.offsetX -= (canvas.width - window.innerWidth) / 2;
   cameraTrans.offsetY -= (canvas.height - window.innerHeight) / 2;
-  isMobile = fitCanvas(canvas, ctx);
+  ({ isMobile, canvasScale: canvasRatio } = fitCanvas(canvas, ctx));
   requestAnimationFrame(draw); // redraw canvas
 }, false);
 
@@ -33,7 +33,8 @@ function draw() {
   grid.draw();
 }
 
-let isMobile = fitCanvas(canvas, ctx);
+let { isMobile, canvasScale: canvasRatio } = fitCanvas(canvas, ctx);
+
 
 // input variables, mobile uses a few more in the mobile seciton of input region
 let pointerPos = {x: 0, y: 0};
@@ -78,7 +79,19 @@ canvas.addEventListener('touchstart', (event) => {
 
   // set deltaPointer to (0, 0) as this is the reference point, then set pointerPos as first touch position
   deltaPointer = {x : 0, y : 0};
-  pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
+  pointerPos = {x : event.changedTouches[0].clientX * canvasRatio,
+                y : event.changedTouches[0].clientY * canvasRatio};
+
+  grid.setCursorGridPos(cursorToGrid(pointerPos.x, pointerPos.y));
+  if (grid.cursorGridPos.x === grid.width && grid.cursorGridPos.y === grid.height) {
+    if (frameInterval) playPause();
+    let step = [];
+    grid.tiles.forEach((tile, i) => step.push({pos: i, revert: tile}));
+    step.push({width: grid.width, height: grid.height});
+    steps.push(step);
+    grid.resize(true);
+    console.log('Resize');
+  }
 
   if (event.touches.length === 2) {  // if second finger is pressed on mobile, scrolling begins and anything done by the first finger is undone
     pointerSpread = 0;  // set pointerSpread to 0 as this is the reference point
@@ -112,7 +125,7 @@ function touchEnd(event) {
     if (grid.simple) setSimpleViewMode();
     dipAnimation(true, (grid.mode + Math.sign(touchStartX - event.changedTouches[0].clientX)).mod(3));
   }*/
-
+  grid.resize(false);
   if (event.touches.length > 2) return;  // don't bother with 3 finger gestures
   if (!pointerActions.primary && !pointerActions.scroll) return;   // html buttons shouldn't be pressed over canvas
   if (!viewOnly && !pointerActions.scroll) condenseArray(steps);
@@ -125,7 +138,8 @@ canvas.addEventListener('touchmove', (event) => {
 
   // only update deltaPointer if not used for scrolling
   if (!pointerActions.scroll) deltaPointer = {x: event.changedTouches[0].clientX - pointerPos.x, y: event.changedTouches[0].clientY - pointerPos.y};
-  pointerPos = {x : event.changedTouches[0].clientX, y : event.changedTouches[0].clientY};
+  pointerPos = {x : event.changedTouches[0].clientX * canvasRatio,
+    y : event.changedTouches[0].clientY * canvasRatio};
 
   if (pointerActions.scroll) {
     // get vector from touch 0 to 1, then get distance

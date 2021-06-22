@@ -1,6 +1,4 @@
 # TileGrid
-An HTML website using a canvas to display an interactive grid. My first in-depth use of Javascript.
+An HTML website using a canvas to display an interactive grid. My first in-depth use of JavaScript.
 
-In order for EcmaScript Modules to run on Github Pages, builder.py is used to compress all Javascript files together into main.js.
-
-/#TODO move cursor around simple mode to view algo text
+In order for EcmaScript Modules to run on Github Pages, builder.py is used to compress all JavaScript files together into main.js.
