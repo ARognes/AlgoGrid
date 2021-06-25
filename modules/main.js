@@ -11,7 +11,7 @@ import { stepLife } from '/modules/game-of-life.js';
 window.addEventListener('resize', () => {
   cameraTrans.offsetX -= (canvas.width - window.innerWidth) / 2;
   cameraTrans.offsetY -= (canvas.height - window.innerHeight) / 2;
-  ({ isMobile, canvasScale: canvasRatio } = fitCanvas(canvas, ctx));
+  ({ isMobile, canvasRatio } = fitCanvas(canvas, ctx));
   requestAnimationFrame(draw); // redraw canvas
 }, false);
 
@@ -33,7 +33,7 @@ function draw() {
   grid.draw();
 }
 
-let { isMobile, canvasScale: canvasRatio } = fitCanvas(canvas, ctx);
+let { isMobile, canvasRatio } = fitCanvas(canvas, ctx);
 
 
 // input variables, mobile uses a few more in the mobile seciton of input region
@@ -73,7 +73,7 @@ requestAnimationFrame(draw); // redraw canvas
 canvas.addEventListener('touchstart', (event) => {
   if (event.touches.length > 2) return;  // don't bother with 3 finger gestures
   if (!viewOnly) {
-    steps.push(null); //add empty step to mark where step started
+    steps.push(null); // add empty step to mark where step started
     futureSteps = [];
   }
 
