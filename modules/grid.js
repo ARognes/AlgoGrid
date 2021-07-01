@@ -17,7 +17,7 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 export class Grid {
-  constructor(width, height) {
+  constructor(width, height = 0) {
     this.tilesCopy = null
     this.cursorGridPos = {x: null, y: null};
     this.simple = false;
@@ -289,4 +289,4 @@ export class Grid {
 }
 
 // grid construction
-export let grid = new Grid((window.innerWidth < window.innerHeight) ? Math.floor(window.innerWidth / TILE_SIZE) : Math.floor(window.innerHeight / TILE_SIZE), 0, cameraTrans, canvas); // create grid to fill exactly or more than screen size;
+export let grid = new Grid((window.innerWidth < window.innerHeight) ? Math.floor(window.innerWidth / TILE_SIZE) : Math.floor(window.innerHeight / TILE_SIZE)); // create grid to fill exactly or more than screen size;

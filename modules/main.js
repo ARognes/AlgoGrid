@@ -58,8 +58,8 @@ let playSpeed = 2;
 let frameInterval;
 
 const ZOOM_AMOUNT = 0.1;
-const ZOOM_MIN = 0.1 * Math.max(window.innerWidth, window.innerHeight) / 1200;  // this allows smaller screens to zoom almost the same amount as larger screens
-const ZOOM_MAX = 16 * Math.max(window.innerWidth, window.innerHeight) / 1200;
+const ZOOM_MIN = 0.2 * Math.max(window.innerWidth, window.innerHeight) / 1200;  // this allows smaller screens to zoom almost the same amount as larger screens
+const ZOOM_MAX = 80 * ZOOM_MIN;
 
 // center camera based off grid
 cameraTrans.offsetX = canvas.width / 2 - grid.width * TILE_SIZE / 2;
@@ -71,6 +71,7 @@ requestAnimationFrame(draw); // redraw canvas
 
 //#region input
 canvas.addEventListener('touchstart', (event) => {
+  console.log(event);
   if (event.touches.length > 2) return;  // don't bother with 3 finger gestures
   if (!viewOnly) {
     steps.push(null); // add empty step to mark where step started
@@ -79,8 +80,8 @@ canvas.addEventListener('touchstart', (event) => {
 
   // set deltaPointer to (0, 0) as this is the reference point, then set pointerPos as first touch position
   deltaPointer = {x : 0, y : 0};
-  pointerPos = {x : event.changedTouches[0].clientX * canvasRatio,
-                y : event.changedTouches[0].clientY * canvasRatio};
+  pointerPos = {x : event.touches[0].clientX * canvasRatio,
+                y : event.touches[0].clientY * canvasRatio};
 
   grid.setCursorGridPos(cursorToGrid(pointerPos.x, pointerPos.y));
   if (grid.cursorGridPos.x === grid.width && grid.cursorGridPos.y === grid.height) {
@@ -136,33 +137,40 @@ function touchEnd(event) {
 
 canvas.addEventListener('touchmove', (event) => {
 
+  const _pointerPos = {x : event.touches[0].clientX * canvasRatio,
+                       y : event.touches[0].clientY * canvasRatio};
+  grid.setCursorGridPos(cursorToGrid(_pointerPos.x, _pointerPos.y));
   // only update deltaPointer if not used for scrolling
-  if (!pointerActions.scroll) deltaPointer = {x: event.changedTouches[0].clientX - pointerPos.x, y: event.changedTouches[0].clientY - pointerPos.y};
-  pointerPos = {x : event.changedTouches[0].clientX * canvasRatio,
-    y : event.changedTouches[0].clientY * canvasRatio};
+  if (!pointerActions.scroll) deltaPointer = {x: _pointerPos.x - pointerPos.x, y: _pointerPos.y - pointerPos.y};
+  // pointerPos = _pointerPos;
+  pointerPos.x = _pointerPos.x;
+  pointerPos.y = _pointerPos.y;
 
   if (pointerActions.scroll) {
+    const touchEnd = {x : event.touches[1].clientX * canvasRatio,
+                      y : event.touches[1].clientY * canvasRatio};
+
     // get vector from touch 0 to 1, then get distance
-    const xDist = (event.touches[1].clientX - event.touches[0].clientX);
-    const yDist = (event.touches[1].clientY - event.touches[0].clientY);
+    const xDist = touchEnd.x - touchStart.x;
+    const yDist = touchEnd.y - touchStart.y;
     const spread = Math.sqrt(xDist * xDist + yDist * yDist);
 
     // pointerSpread was set to 0 when 2nd finger pointerDown, so make sure deltaSpread will be 0
     if (pointerSpread === 0) pointerSpread = spread;
-    const deltaSpread = (pointerSpread - spread) / 16;
+    const deltaSpread = (pointerSpread - spread) * 0.0625;
     pointerSpread = spread;
 
-    // current pointer center
-    const pointerCenter = {x: (event.changedTouches[1].clientX + pointerPos.x)/2, y: (event.changedTouches[1].clientY + pointerPos.y)/2};
+    // current spread center
+    const spreadCenter = {x: (touchEnd.x + pointerPos.x) * 0.5, y: (touchEnd.y + pointerPos.y) * 0.5};
 
     // deltaPointer was set to (0, 0) when any touch pointerDown and hasn't changed if scrolling, so make sure deltaPointerCenter will be (0, 0)
-    if (!deltaPointer.x && !deltaPointer.y) deltaPointer = pointerCenter;
-    const deltaPointerCenter = {x: (pointerCenter.x - deltaPointer.x), y: (pointerCenter.y - deltaPointer.y)};
-    deltaPointer = pointerCenter;
+    if (!deltaPointer.x && !deltaPointer.y) deltaPointer = spreadCenter;
+    const deltaSpreadCenter = {x: spreadCenter.x - deltaPointer.x, y: spreadCenter.y - deltaPointer.y};
+    deltaPointer = spreadCenter;
 
-    zoom(deltaSpread, pointerCenter);
-    cameraTrans.offsetX += deltaPointerCenter.x;
-    cameraTrans.offsetY += deltaPointerCenter.y;
+    zoom(deltaSpread, spreadCenter);
+    cameraTrans.offsetX += deltaSpreadCenter.x;
+    cameraTrans.offsetY += deltaSpreadCenter.y;
   } else if ((erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1)) && !viewOnly) && !grid.tilesCopy) styleTiles(tileMode);
   requestAnimationFrame(draw);
 
@@ -310,7 +318,7 @@ function dipAnimation(dir, newMode) {
       requestAnimationFrame(draw);
     }
   } else {
-    menuMoving -= menuMoving * 0.05;
+    menuMoving *= 0.95;
     if (menuMoving < 1) menuMoving = 0;
   }
 
@@ -699,6 +707,7 @@ document.getElementById('unit').onclick = () => setTileMode(3);
 document.getElementById('undo').onclick = () => undo();
 document.getElementById('redo').onclick = () => redo();
 document.getElementById('settings').onclick = () => {
+  if (menuMoving) return;
   if (grid.mode === null) {
     canvasMask.style.display = 'none';
     menus[0].style.display = 'none';
@@ -706,7 +715,6 @@ document.getElementById('settings').onclick = () => {
     dipAnimation(true, grid.lastMode);
     return;
   }
-  if (menuMoving) return;
   if (grid.simple) setSimpleViewMode();
   dipAnimation(true, null);
   menus[0].style.display = 'block';

@@ -1,6 +1,7 @@
 html, body {
     margin: 0;
     border: 0;
+    padding: 0;
     font: 18px/1.4 'Nunito', sans-serif;
     overflow: hidden;
     position: relative;
@@ -75,9 +76,9 @@ html, body {
 
 #start-btn {
     position: absolute;
-    left: calc(50% - 200px);
+    left: 5%;
     bottom: 20px;
-    width: 95%;
+    width: 90%;
     height: 100px;
     border: none;
     border-radius: 20px;
