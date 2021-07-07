@@ -71,7 +71,6 @@ requestAnimationFrame(draw); // redraw canvas
 
 //#region input
 canvas.addEventListener('touchstart', (event) => {
-  console.log(event);
   if (event.touches.length > 2) return;  // don't bother with 3 finger gestures
   if (!viewOnly) {
     steps.push(null); // add empty step to mark where step started
@@ -94,8 +93,10 @@ canvas.addEventListener('touchstart', (event) => {
     console.log('Resize');
   }
 
-  if (event.touches.length === 2) {  // if second finger is pressed on mobile, scrolling begins and anything done by the first finger is undone
-    pointerSpread = 0;  // set pointerSpread to 0 as this is the reference point
+  // if second finger is pressed on mobile, scrolling begins and anything done by the first finger is undone
+  if (event.touches.length === 2) {  
+    pointerActions.scroll = true;
+    pointerSpread = 0;  // set pointerSpread to 0 as this is the reference value for scrolling
 
     if (!viewOnly) { // if viewOnly = true then the tiles and steps were never changed in the first place
       if (steps[steps.length-3] === null) {                    // if first touch only affected one tile
@@ -107,12 +108,8 @@ canvas.addEventListener('touchstart', (event) => {
         steps.pop();      // remove null step pushed from second touch
         condenseArray(steps);   // count the first touch movement as a step
       }
-      //document.getElementById("debug").innerHTML = logSteps();
     }
-  }
-
-  if (event.touches.length === 2) pointerActions.scroll = true;
-  else if (!viewOnly && !grid.tilesCopy) {
+  } else if (!viewOnly && !grid.tilesCopy) {
     pointerActions.primary = true;
     styleTiles(tileMode);
     requestAnimationFrame(draw);
@@ -140,8 +137,10 @@ canvas.addEventListener('touchmove', (event) => {
   const _pointerPos = {x : event.touches[0].clientX * canvasRatio,
                        y : event.touches[0].clientY * canvasRatio};
   grid.setCursorGridPos(cursorToGrid(_pointerPos.x, _pointerPos.y));
+
   // only update deltaPointer if not used for scrolling
   if (!pointerActions.scroll) deltaPointer = {x: _pointerPos.x - pointerPos.x, y: _pointerPos.y - pointerPos.y};
+  
   // pointerPos = _pointerPos;
   pointerPos.x = _pointerPos.x;
   pointerPos.y = _pointerPos.y;
@@ -151,8 +150,8 @@ canvas.addEventListener('touchmove', (event) => {
                       y : event.touches[1].clientY * canvasRatio};
 
     // get vector from touch 0 to 1, then get distance
-    const xDist = touchEnd.x - touchStart.x;
-    const yDist = touchEnd.y - touchStart.y;
+    const xDist = touchEnd.x - _pointerPos.x;
+    const yDist = touchEnd.y - _pointerPos.y;
     const spread = Math.sqrt(xDist * xDist + yDist * yDist);
 
     // pointerSpread was set to 0 when 2nd finger pointerDown, so make sure deltaSpread will be 0
