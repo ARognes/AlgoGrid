@@ -70,110 +70,112 @@ requestAnimationFrame(draw); // redraw canvas
 //#endregion
 
 //#region input
-canvas.addEventListener('touchstart', (event) => {
-  if (event.touches.length > 2) return;  // don't bother with 3 finger gestures
-  if (!viewOnly) {
-    steps.push(null); // add empty step to mark where step started
-    futureSteps = [];
-  }
-
-  // set deltaPointer to (0, 0) as this is the reference point, then set pointerPos as first touch position
-  deltaPointer = {x : 0, y : 0};
-  pointerPos = {x : event.touches[0].clientX * canvasRatio,
-                y : event.touches[0].clientY * canvasRatio};
-
-  grid.setCursorGridPos(cursorToGrid(pointerPos.x, pointerPos.y));
-  if (grid.cursorGridPos.x === grid.width && grid.cursorGridPos.y === grid.height) {
-    if (frameInterval) playPause();
-    let step = [];
-    grid.tiles.forEach((tile, i) => step.push({pos: i, revert: tile}));
-    step.push({width: grid.width, height: grid.height});
-    steps.push(step);
-    grid.resize(true);
-    console.log('Resize');
-  }
-
-  // if second finger is pressed on mobile, scrolling begins and anything done by the first finger is undone
-  if (event.touches.length === 2) {  
-    pointerActions.scroll = true;
-    pointerSpread = 0;  // set pointerSpread to 0 as this is the reference value for scrolling
-
-    if (!viewOnly) { // if viewOnly = true then the tiles and steps were never changed in the first place
-      if (steps[steps.length-3] === null) {                    // if first touch only affected one tile
-        steps.pop();                              // remove null step pushed from second touch
-        grid.tiles[steps[steps.length-1].pos] = steps[steps.length-1].revert;   // undo tile affected by first touch
-        steps.pop();                              // remove first touch step
-        steps.pop();                              // remove null step pushed from first touch
-      } else {          // if first touch moved and affected more than one tile
-        steps.pop();      // remove null step pushed from second touch
-        condenseArray(steps);   // count the first touch movement as a step
-      }
+if (isMobile) {
+  canvas.addEventListener('touchstart', (event) => {
+    if (event.touches.length > 2) return;  // don't bother with 3 finger gestures
+    if (!viewOnly) {
+      steps.push(null); // add empty step to mark where step started
+      futureSteps = [];
     }
-  } else if (!viewOnly && !grid.tilesCopy) {
-    pointerActions.primary = true;
-    styleTiles(tileMode);
-    requestAnimationFrame(draw);
-  }
-}, false);
-document.addEventListener('touchend',  touchEnd, false);
-document.addEventListener('touchcancel', touchEnd, false);
-function touchEnd(event) {
-  /*if (touchStartX && event.changedTouches.length === 1 && !menuMoving && Math.abs(touchStartX - event.changedTouches[0].clientX) > 20 && Date.now() - timeTouchStart < 300 && rangeStartValue === playSpeed) {
-    clearInterval(frameInterval);
-    if (grid.simple) setSimpleViewMode();
-    dipAnimation(true, (grid.mode + Math.sign(touchStartX - event.changedTouches[0].clientX)).mod(3));
-  }*/
-  grid.resize(false);
-  if (event.touches.length > 2) return;  // don't bother with 3 finger gestures
-  if (!pointerActions.primary && !pointerActions.scroll) return;   // html buttons shouldn't be pressed over canvas
-  if (!viewOnly && !pointerActions.scroll) condenseArray(steps);
-  pointerActions.primary = false;
-  pointerActions.scroll = false;
-  erasing = false;
-}
-
-canvas.addEventListener('touchmove', (event) => {
-
-  const _pointerPos = {x : event.touches[0].clientX * canvasRatio,
-                       y : event.touches[0].clientY * canvasRatio};
-  grid.setCursorGridPos(cursorToGrid(_pointerPos.x, _pointerPos.y));
-
-  // only update deltaPointer if not used for scrolling
-  if (!pointerActions.scroll) deltaPointer = {x: _pointerPos.x - pointerPos.x, y: _pointerPos.y - pointerPos.y};
   
-  // pointerPos = _pointerPos;
-  pointerPos.x = _pointerPos.x;
-  pointerPos.y = _pointerPos.y;
-
-  if (pointerActions.scroll) {
-    const touchEnd = {x : event.touches[1].clientX * canvasRatio,
-                      y : event.touches[1].clientY * canvasRatio};
-
-    // get vector from touch 0 to 1, then get distance
-    const xDist = touchEnd.x - _pointerPos.x;
-    const yDist = touchEnd.y - _pointerPos.y;
-    const spread = Math.sqrt(xDist * xDist + yDist * yDist);
-
-    // pointerSpread was set to 0 when 2nd finger pointerDown, so make sure deltaSpread will be 0
-    if (pointerSpread === 0) pointerSpread = spread;
-    const deltaSpread = (pointerSpread - spread) * 0.0625;
-    pointerSpread = spread;
-
-    // current spread center
-    const spreadCenter = {x: (touchEnd.x + pointerPos.x) * 0.5, y: (touchEnd.y + pointerPos.y) * 0.5};
-
-    // deltaPointer was set to (0, 0) when any touch pointerDown and hasn't changed if scrolling, so make sure deltaPointerCenter will be (0, 0)
-    if (!deltaPointer.x && !deltaPointer.y) deltaPointer = spreadCenter;
-    const deltaSpreadCenter = {x: spreadCenter.x - deltaPointer.x, y: spreadCenter.y - deltaPointer.y};
-    deltaPointer = spreadCenter;
-
-    zoom(deltaSpread, spreadCenter);
-    cameraTrans.offsetX += deltaSpreadCenter.x;
-    cameraTrans.offsetY += deltaSpreadCenter.y;
-  } else if ((erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1)) && !viewOnly) && !grid.tilesCopy) styleTiles(tileMode);
-  requestAnimationFrame(draw);
-
-}, false);
+    // set deltaPointer to (0, 0) as this is the reference point, then set pointerPos as first touch position
+    deltaPointer = {x : 0, y : 0};
+    pointerPos = {x : event.touches[0].clientX * canvasRatio,
+                  y : event.touches[0].clientY * canvasRatio};
+  
+    grid.setCursorGridPos(cursorToGrid(pointerPos.x, pointerPos.y));
+    if (grid.cursorGridPos.x === grid.width && grid.cursorGridPos.y === grid.height) {
+      if (frameInterval) playPause();
+      let step = [];
+      grid.tiles.forEach((tile, i) => step.push({pos: i, revert: tile}));
+      step.push({width: grid.width, height: grid.height});
+      steps.push(step);
+      grid.resize(true);
+      console.log('Resize');
+    }
+  
+    // if second finger is pressed on mobile, scrolling begins and anything done by the first finger is undone
+    if (event.touches.length === 2) {  
+      pointerActions.scroll = true;
+      pointerSpread = 0;  // set pointerSpread to 0 as this is the reference value for scrolling
+  
+      if (!viewOnly) { // if viewOnly = true then the tiles and steps were never changed in the first place
+        if (steps[steps.length-3] === null) {                    // if first touch only affected one tile
+          steps.pop();                              // remove null step pushed from second touch
+          grid.tiles[steps[steps.length-1].pos] = steps[steps.length-1].revert;   // undo tile affected by first touch
+          steps.pop();                              // remove first touch step
+          steps.pop();                              // remove null step pushed from first touch
+        } else {          // if first touch moved and affected more than one tile
+          steps.pop();      // remove null step pushed from second touch
+          condenseArray(steps);   // count the first touch movement as a step
+        }
+      }
+    } else if (!viewOnly && !grid.tilesCopy) {
+      pointerActions.primary = true;
+      styleTiles(tileMode);
+      requestAnimationFrame(draw);
+    }
+  }, false);
+  document.addEventListener('touchend',  touchEnd, false);
+  document.addEventListener('touchcancel', touchEnd, false);
+  function touchEnd(event) {
+    /*if (touchStartX && event.changedTouches.length === 1 && !menuMoving && Math.abs(touchStartX - event.changedTouches[0].clientX) > 20 && Date.now() - timeTouchStart < 300 && rangeStartValue === playSpeed) {
+      clearInterval(frameInterval);
+      if (grid.simple) setSimpleViewMode();
+      dipAnimation(true, (grid.mode + Math.sign(touchStartX - event.changedTouches[0].clientX)).mod(3));
+    }*/
+    grid.resize(false);
+    if (event.touches.length > 2) return;  // don't bother with 3 finger gestures
+    if (!pointerActions.primary && !pointerActions.scroll) return;   // html buttons shouldn't be pressed over canvas
+    if (!viewOnly && !pointerActions.scroll) condenseArray(steps);
+    pointerActions.primary = false;
+    pointerActions.scroll = false;
+    erasing = false;
+  }
+  
+  canvas.addEventListener('touchmove', (event) => {
+  
+    const _pointerPos = {x : event.touches[0].clientX * canvasRatio,
+                         y : event.touches[0].clientY * canvasRatio};
+    grid.setCursorGridPos(cursorToGrid(_pointerPos.x, _pointerPos.y));
+  
+    // only update deltaPointer if not used for scrolling
+    if (!pointerActions.scroll) deltaPointer = {x: _pointerPos.x - pointerPos.x, y: _pointerPos.y - pointerPos.y};
+    
+    // pointerPos = _pointerPos;
+    pointerPos.x = _pointerPos.x;
+    pointerPos.y = _pointerPos.y;
+  
+    if (pointerActions.scroll) {
+      const touchEnd = {x : event.touches[1].clientX * canvasRatio,
+                        y : event.touches[1].clientY * canvasRatio};
+  
+      // get vector from touch 0 to 1, then get distance
+      const xDist = touchEnd.x - _pointerPos.x;
+      const yDist = touchEnd.y - _pointerPos.y;
+      const spread = Math.sqrt(xDist * xDist + yDist * yDist);
+  
+      // pointerSpread was set to 0 when 2nd finger pointerDown, so make sure deltaSpread will be 0
+      if (pointerSpread === 0) pointerSpread = spread;
+      const deltaSpread = (pointerSpread - spread) * 0.0625;
+      pointerSpread = spread;
+  
+      // current spread center
+      const spreadCenter = {x: (touchEnd.x + pointerPos.x) * 0.5, y: (touchEnd.y + pointerPos.y) * 0.5};
+  
+      // deltaPointer was set to (0, 0) when any touch pointerDown and hasn't changed if scrolling, so make sure deltaPointerCenter will be (0, 0)
+      if (!deltaPointer.x && !deltaPointer.y) deltaPointer = spreadCenter;
+      const deltaSpreadCenter = {x: spreadCenter.x - deltaPointer.x, y: spreadCenter.y - deltaPointer.y};
+      deltaPointer = spreadCenter;
+  
+      zoom(deltaSpread, spreadCenter);
+      cameraTrans.offsetX += deltaSpreadCenter.x;
+      cameraTrans.offsetY += deltaSpreadCenter.y;
+    } else if ((erasing || (pointerActions.primary && (tileMode === 0 || tileMode === 1)) && !viewOnly) && !grid.tilesCopy) styleTiles(tileMode);
+    requestAnimationFrame(draw);
+  
+  }, false);
+}
 
 //#region menuBarSwipe
 let touchStartX = 0;
@@ -203,6 +205,7 @@ document.getElementById("barmenu").addEventListener('touchmove', (event) => {
 //#endregion
 
 canvas.addEventListener("mousedown", (event) => {
+  console.log(event.button);
   if (event.button === 1) { // scroll
     pointerActions.scroll = true;
     if (pointerActions.primary) {
@@ -257,6 +260,7 @@ document.addEventListener("mousemove", (event) => {
 }, false);
 
 canvas.addEventListener("wheel", (event) => {
+  console.log('wheel', event);
   zoom(Math.sign(event.deltaY), pointerPos);
   requestAnimationFrame(draw);
 }, false);
@@ -379,6 +383,7 @@ function styleTiles(style) {
 }
 
 function cursorToGrid(cx, cy) {
+  console.log(cx, cy, cameraTrans);
   return {x: Math.floor(((cx - cameraTrans.offsetX) / cameraTrans.scale) / TILE_SIZE), 
           y: Math.floor(((cy - cameraTrans.offsetY) / cameraTrans.scale) / TILE_SIZE)};
 }
