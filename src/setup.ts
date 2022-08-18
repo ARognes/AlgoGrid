@@ -4,6 +4,8 @@ import scaleCanvas from './scale-canvas.js'
 // modulus method that works with negative numbers, retrieved from: https://web.archive.org/web/20090717035140if_/javascript.about.com/od/problemsolving/a/modulobug.htm
 export const mod = (num: number, mod: number): number => num > 0 ? num % mod : -num % mod
 
+export const bound = (num: number, min: number, max: number): number => Math.min(Math.max(num, min), max)
+
 // PURE: resize the canvas to dynamically fill browser window
 export function fitCanvas(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): deviceInfo {
 	canvas.width = window.innerWidth
@@ -25,3 +27,4 @@ export function fitCanvas(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext
   styleSheet.href = 'style.css'
   return <deviceInfo> { isMobile: false, canvasRatio }
 }
+

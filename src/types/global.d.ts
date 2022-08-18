@@ -3,23 +3,20 @@ type deviceInfo = {
   canvasRatio: number
 }
 
-// type coordinate = {
-//   x: number
-//   y: number
-// }
+enum TileEnum { 
+  None,
+  Path,
+  Closed,
+  Open,
+  Barrier,
+  Target,
+  Unit
+}
 
-class coordinate {
-  x: number
-  y: number
-  equals(other: coordinate): boolean {
-    return this.x === other.x && this.y === other.y
-  }
-  constrain(min: number, max: number): coordinate {
-    return new coordinate(
-      Math.max(min, Math.min(max, this.x)),
-      Math.max(min, Math.min(max, this.y))
-    )
-  }
+enum GridMode {
+  None,
+  Life,
+  Pathfinding
 }
 
 type pointerActions = {
@@ -32,62 +29,25 @@ type cameraTrans = {
   offset: coordinate
 }
 
-enum TileEnum { 
-  Path,
-  Closed,
-  Open,
-  Barrier,
-  Target,
-  Unit
-}
-
-class gridSubStep {
+class GridSubStep {
   pos: number
-  revert: TileEnum
+  type: TileEnum
+  unit: number = -1
+
+  constructor(pos: number, revert: TileEnum) {
+    this.pos = pos
+    this.revert = revert
+  }
 }
 
-class resizeSubStep {
+class ResizeSubStep {
   width: number
   height: number
 }
 
-type subStep = gridSubStep | resizeSubStep
+type subStep = GridSubStep | ResizeSubStep
 
 type step = subStep[] | null
-
-interface IGrid {
-  tilesCopy: TileEnum[] | null = null
-  cursorGridPos: coordinate
-  simple: boolean
-  mode: GridMode
-  lastMode: GridMode
-  units
-  target
-  openTiles: TileEnum[]
-  closedTiles: TileEnum[]
-  pathTile
-  unitTurn
-  stepIndex
-  width: number
-  height: number
-  tiles: TileEnum[]
-
-  cartesianToIndex(x: number, y: number): number
-
-  indexToCartesian(index: number): coordinate
-
-  draw(): void
-
-  resize(on: boolean): void
-
-  setCursorGridPos(pos: coordinate): void
-}
-
-enum GridMode {
-  None,
-  Life,
-  Pathfinding
-}
 
 type style = {
   fill: string

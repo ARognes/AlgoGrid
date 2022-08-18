@@ -1,15 +1,17 @@
-import { fitCanvas, mod } from '/modules/setup.js'
-import { TILE_SIZE, canvas, ctx, cameraTrans, grid } from '/modules/grid.js'
-import { stepPathfinding } from '/modules/pathfinding.js'
-import { stepLife } from '/modules/game-of-life.js'
+import { bound, fitCanvas, mod } from 'setup'
+import { TILE_SIZE, canvas, ctx, cameraTrans, grid, Grid } from './Models/Grid'
+import { stepPathfinding } from 'pathfinding'
+import { stepLife } from 'game-of-life'
+import { Position } from './Models/Position'
+import { Tile } from './Models/Tile'
 
 //#region initialize global variables and rendering functions
 
 // resize the canvas to fill browser window dynamically
 window.addEventListener('resize', () => {
-  cameraTrans.offsetX -= (canvas.width - window.innerWidth) / 2
-  cameraTrans.offsetY -= (canvas.height - window.innerHeight) / 2
-  ({ isMobile, canvasRatio } = fitCanvas(canvas, ctx))
+  cameraTrans.offset.x -= (canvas.width - window.innerWidth) / 2
+  cameraTrans.offset.y -= (canvas.height - window.innerHeight) / 2
+  ;({ isMobile, canvasRatio } = fitCanvas(canvas, ctx))
   requestAnimationFrame(draw) // redraw canvas
 }, false)
 
@@ -19,13 +21,18 @@ function draw() {
   // clamp camera position so at least 1 tile is always on screen
   const gridPixelWidth = TILE_SIZE * cameraTrans.scale
   const gridPixelHeight = TILE_SIZE * cameraTrans.scale
-  cameraTrans.offsetX = Math.min(Math.max(cameraTrans.offsetX, gridPixelWidth * (1 - grid.width)), (canvas.width - gridPixelWidth))
-  cameraTrans.offsetY = Math.min(Math.max(cameraTrans.offsetY, gridPixelHeight * (1 - grid.height)), (canvas.height - gridPixelHeight))
+
+  cameraTrans.offset.x = bound(cameraTrans.offset.x, 
+                               gridPixelWidth * (1 - grid.width), // Min: 1 tile from left edge
+                               canvas.width - gridPixelWidth) // Max: 1 tile from right edge
+  cameraTrans.offset.y = bound(cameraTrans.offset.y, 
+                               gridPixelHeight * (1 - grid.height), // Min: 1 tile from top edge
+                               canvas.height - gridPixelHeight) // Max: 1 tile from bottom edge
 
   // transform the camera
   ctx.setTransform(1,0,0,1,0,0)
   ctx.clearRect(0, 0, canvas.width, canvas.height)
-  ctx.translate(cameraTrans.offsetX, cameraTrans.offsetY)
+  ctx.translate(cameraTrans.offset.x, cameraTrans.offset.y)
   ctx.scale(cameraTrans.scale, cameraTrans.scale)
 
   grid.draw()
@@ -35,8 +42,8 @@ let { isMobile, canvasRatio } = fitCanvas(canvas, ctx)
 
 
 // input variables, mobile uses a few more in the mobile seciton of input region
-let pointerPos: coordinate = { x: 0, y: 0 }
-let deltaPointer: coordinate = { x: 0, y: 0 }
+let pointerPos: Position = new Position(0, 0)
+let deltaPointer: Position = new Position(0, 0)
 let pointerActions: pointerActions = { primary: false, scroll: false }
 let pointerSpread = 0
 
@@ -60,8 +67,8 @@ const ZOOM_MIN = 0.2 * Math.max(window.innerWidth, window.innerHeight) / 1200  /
 const ZOOM_MAX = 80 * ZOOM_MIN
 
 // center camera based off grid
-cameraTrans.offsetX = canvas.width / 2 - grid.width * TILE_SIZE / 2
-cameraTrans.offsetY = canvas.height / 2 - grid.height * TILE_SIZE / 2
+cameraTrans.offset.x = canvas.width / 2 - grid.width * TILE_SIZE / 2
+cameraTrans.offset.y = canvas.height / 2 - grid.height * TILE_SIZE / 2
 
 requestAnimationFrame(draw) // redraw canvas
 
@@ -134,20 +141,22 @@ if (isMobile) {
   
   canvas.addEventListener('touchmove', (event: TouchEvent) => {
   
-    const _pointerPos = { x : event.touches[0].clientX * canvasRatio,
-                          y : event.touches[0].clientY * canvasRatio }
+    const _pointerPos = new Position(event.touches[0].clientX * canvasRatio,
+                                     event.touches[0].clientY * canvasRatio)
     grid.setCursorGridPos(cursorToGrid(_pointerPos))
   
     // only update deltaPointer if not used for scrolling
-    if (!pointerActions.scroll) deltaPointer = { x: _pointerPos.x - pointerPos.x, y: _pointerPos.y - pointerPos.y }
+    if (!pointerActions.scroll) 
+      deltaPointer = new Position(_pointerPos.x - pointerPos.x, 
+                                  _pointerPos.y - pointerPos.y)
     
     // pointerPos = _pointerPos;
     pointerPos.x = _pointerPos.x
     pointerPos.y = _pointerPos.y
   
     if (pointerActions.scroll) {
-      const touchEnd = { x : event.touches[1].clientX * canvasRatio,
-                         y : event.touches[1].clientY * canvasRatio }
+      const touchEnd = new Position(event.touches[1].clientX * canvasRatio,
+                                    event.touches[1].clientY * canvasRatio)
   
       // get vector from touch 0 to 1, then get distance
       const xDist = touchEnd.x - _pointerPos.x
@@ -160,16 +169,16 @@ if (isMobile) {
       pointerSpread = spread
   
       // current spread center
-      const spreadCenter: coordinate = { x: (touchEnd.x + pointerPos.x) * 0.5, y: (touchEnd.y + pointerPos.y) * 0.5 }
+      const spreadCenter = new Position((touchEnd.x + pointerPos.x) * 0.5, (touchEnd.y + pointerPos.y) * 0.5)
   
       // deltaPointer was set to (0, 0) when any touch pointerDown and hasn't changed if scrolling, so make sure deltaPointerCenter will be (0, 0)
       if (!deltaPointer.x && !deltaPointer.y) deltaPointer = spreadCenter
-      const deltaSpreadCenter: coordinate = { x: spreadCenter.x - deltaPointer.x, y: spreadCenter.y - deltaPointer.y }
+      const deltaSpreadCenter = new Position(spreadCenter.x - deltaPointer.x, spreadCenter.y - deltaPointer.y)
       deltaPointer = spreadCenter
   
       zoom(deltaSpread, spreadCenter)
-      cameraTrans.offsetX += deltaSpreadCenter.x
-      cameraTrans.offsetY += deltaSpreadCenter.y
+      cameraTrans.offset.x += deltaSpreadCenter.x
+      cameraTrans.offset.y += deltaSpreadCenter.y
     } else if (
       erasing 
       || (!grid.tilesCopy 
@@ -183,7 +192,7 @@ if (isMobile) {
   }, false)
 }
 
-canvas.addEventListener("mousedown", (event: MouseEvent) => {
+canvas.addEventListener('mousedown', (event: MouseEvent) => {
   console.log(event.button)
   if (event.button === 1) { // scroll
     pointerActions.scroll = true
@@ -194,8 +203,8 @@ canvas.addEventListener("mousedown", (event: MouseEvent) => {
     }
   }
   if (event.button > 0) return
-  deltaPointer = { x : 0, y : 0 }
-  pointerPos = { x : event.x, y : event.y }
+  deltaPointer = new Position(0, 0)
+  pointerPos = new Position(event.x, event.y)
 
   grid.setCursorGridPos(cursorToGrid(pointerPos))
   if (grid.cursorGridPos.x === grid.width && grid.cursorGridPos.y === grid.height) {
@@ -219,7 +228,7 @@ canvas.addEventListener("mousedown", (event: MouseEvent) => {
   requestAnimationFrame(draw)
 }, false)
 
-document.addEventListener("mouseup", (event: MouseEvent) => {
+document.addEventListener('mouseup', (event: MouseEvent) => {
   grid.resize(false)
   if (!pointerActions.primary && !pointerActions.scroll) return   // html buttons pressed over canvas
   if (!viewOnly && !pointerActions.scroll) condenseArray(steps)
@@ -228,11 +237,11 @@ document.addEventListener("mouseup", (event: MouseEvent) => {
   erasing = false
 }, false)
 
-document.addEventListener("mousemove", (event: MouseEvent) => {
+document.addEventListener('mousemove', (event: MouseEvent) => {
   if (event.button === 2) return
-  deltaPointer = { x: event.x - pointerPos.x, 
-                   y: event.y - pointerPos.y }
-  pointerPos = { x: event.x, y: event.y }
+  deltaPointer = new Position(event.x - pointerPos.x, 
+                              event.y - pointerPos.y)
+  pointerPos = new Position(event.x, event.y)
   grid.setCursorGridPos(cursorToGrid(pointerPos))
 
   if (pointerActions.scroll) {
@@ -247,44 +256,40 @@ document.addEventListener("mousemove", (event: MouseEvent) => {
         styleTiles(tileMode)
   
   requestAnimationFrame(draw)
-}, false);
+}, false)
 
-canvas.addEventListener("wheel", (event) => {
-  console.log('wheel', event);
-  zoom(Math.sign(event.deltaY), pointerPos);
-  requestAnimationFrame(draw);
-}, false);
+canvas.addEventListener('wheel', (event: WheelEvent) => {
+  console.log('wheel', event)
+  zoom(Math.sign(event.deltaY), pointerPos)
+  requestAnimationFrame(draw)
+}, false)
 
 /**
  *  pc key input
  */
-document.addEventListener("keydown", (event) => {
-  let key = event.keyCode;
+document.addEventListener('keydown', (event: KeyboardEvent) => {
+  let key = event.keyCode
 
   // undo and redo shortcut keys
   if (event.ctrlKey) {
-    if (key === 90) undo();
-    else if (key === 89) redo();
-    return;
+    if (key === 90) undo()
+    else if (key === 89) redo()
+    return
   }
 
-  if (key === 32) playPause();
-  else if (key === 65) stepAlgo(false);
-  else if (key === 82) setTileMode(1);
-  else if (key === 83) setTileMode(2);
-  else if (key === 84) setTileMode(3);
-});
-
-canvas.addEventListener("keyup", (event) => {
-
-});
+  if (key === 32) playPause()
+  else if (key === 65) stepAlgo(false)
+  else if (key === 82) setTileMode(1)
+  else if (key === 83) setTileMode(2)
+  else if (key === 84) setTileMode(3)
+})
 
 
-let menuMoving = 100;
-const barMenuDiv = <HTMLDivElement> document.getElementById('barMenu')
-const frameBarDiv = <HTMLDivElement> document.getElementById('framebar')
-const toolBarDiv = <HTMLDivElement> document.getElementById('toolbar')
-const eraserBtn = <HTMLButtonElement> document.getElementById('eraser')
+let menuMoving = 100
+const barMenuDiv = document.getElementById('barMenu') as HTMLDivElement
+const frameBarDiv = document.getElementById('framebar') as HTMLDivElement
+const toolBarDiv = document.getElementById('toolbar') as HTMLDivElement
+const eraserBtn = document.getElementById('eraser') as HTMLButtonElement
 
 barMenuDiv.style.bottom = '-120px'
 frameBarDiv.style.bottom = '0px'
@@ -296,7 +301,7 @@ frameBarDiv.style.bottom = '0px'
  * @param {*} dir   direction, true: down then false: up, used in animation
  * @param {*} newMode grid.mode changing to
  */
-function dipAnimation(dir, newMode) {
+function dipAnimation(dir: boolean, newMode: GridMode) {
   if (dir) {
     if (grid.mode === newMode) return
     menuMoving += (100 - menuMoving) * 0.05
@@ -305,9 +310,9 @@ function dipAnimation(dir, newMode) {
       dir = false
       grid.setMode(newMode)
       console.log('Mode:', newMode)
-      if (grid.mode === 'life') {
-        toolBarDiv.children[0].checked = true
-        toolBarDiv.children[2].checked = true
+      if (grid.mode === GridMode.Life) {
+        ;(toolBarDiv.children[0] as HTMLInputElement).checked = true
+        ;(toolBarDiv.children[2] as HTMLInputElement).checked = true
         
         eraser = true
         tileMode = 1
@@ -321,15 +326,15 @@ function dipAnimation(dir, newMode) {
   }
 
   // Animate
-  switch (grid.mode) {
-    case 'life':
-      barMenuDiv.style.bottom = '-120px'
-      frameBarDiv.style.bottom = (134 - menuMoving) + 'px'
-      break
-    case 'pathfinding':
-      if (menuMoving > 20) barMenuDiv.style.bottom = 20 - menuMoving + 'px'
-      frameBarDiv.style.bottom = (67 - menuMoving) + 'px'
-      break
+  if (grid.mode === GridMode.Life) {
+    barMenuDiv.style.bottom = '-120px'
+    frameBarDiv.style.bottom = (134 - menuMoving) + 'px'
+  }
+  else if (grid.mode === GridMode.Pathfinding) {
+    if (menuMoving > 20) 
+      barMenuDiv.style.bottom = 20 - menuMoving + 'px'
+
+    frameBarDiv.style.bottom = (67 - menuMoving) + 'px'
   }
 
   if (menuMoving) setTimeout(() => dipAnimation(dir, newMode), 1)
@@ -345,7 +350,7 @@ function dipAnimation(dir, newMode) {
  *  combines the sub-arrays into a large sub-array,
  *  and places them back into the main array where the null element was.
 */
-function condenseArray(ar) {
+function condenseArray(ar: any[]) {
   let step = []
   let i = ar.length-1
   while (ar[i] != null) {
@@ -358,7 +363,7 @@ function condenseArray(ar) {
 }
 
 // find and change the styles of the tiles the mouse is and has hovered over using deltaPointer movement
-function styleTiles(style) {
+function styleTiles(style: TileEnum) {
 
   // translate cursor screen coordinates into grid coordinates
   let { x: gx, y: gy } = cursorToGrid(pointerPos)
@@ -367,8 +372,8 @@ function styleTiles(style) {
   if (!deltaPointer.x && !deltaPointer.y) return
 
   // translate last step cursor screen coordinates into grid coordinates
-  const lastCursorPos: coordinate = { x: pointerPos.x - deltaPointer.x, 
-                                      y: pointerPos.y - deltaPointer.y }
+  const lastCursorPos = new Position(pointerPos.x - deltaPointer.x, 
+                                     pointerPos.y - deltaPointer.y)
   const { x: hx, y: hy } = cursorToGrid(lastCursorPos)
 
   // edit tiles in-between cursor movement to ensure closed line is drawn
@@ -379,51 +384,63 @@ function styleTiles(style) {
   }
 }
 
-
 // Scale/Translate by cameraTrans
-function cursorToGrid(coord: coordinate): coordinate {
-  return { x: Math.floor(((coord.x - cameraTrans.offsetX) / cameraTrans.scale) / TILE_SIZE), 
-           y: Math.floor(((coord.y - cameraTrans.offsetY) / cameraTrans.scale) / TILE_SIZE) };
+function cursorToGrid(pos: Position): Position {
+  return new Position(Math.floor(((pos.x - cameraTrans.offset.x) / cameraTrans.scale) / TILE_SIZE), 
+                      Math.floor(((pos.y - cameraTrans.offset.y) / cameraTrans.scale) / TILE_SIZE))
 }
 
-// check that the tile style is different from the current style, erase if first tile pressed is equal to current style
-function checkTile(gx: number, gy: number, style: number) {
-  if ((!grid.simple || grid.mode === 2) && (gx < 0 || gx >= grid.width || gy < 0 || gy >= grid.height)) return
+// check that the tile tileType is different from the current tileType, erase if first tile pressed is equal to current tileType
+function checkTile(gx: number, gy: number, tileType: TileEnum) {
+  if ((!grid.simple || grid.mode === GridMode.Pathfinding) // No wrap in Pathfinding or non-simple mode
+      && !Grid.within(grid, gx, gy)) 
+        return
+
   let mgx = mod(gx, grid.width)
   let mgy = mod(gy, grid.height)
   const pos = mgx + mgy * grid.width
-  if (eraser && !deltaPointer.x && !deltaPointer.y && grid.tiles[pos] === style) erasing = true
-  if (erasing) style = 0
+  if (eraser && !deltaPointer.x && !deltaPointer.y && grid.tiles[pos] === tileType) erasing = true
+  if (erasing) tileType = TileEnum.None
 
-  if (grid.tiles[pos] === style || (grid.tiles[pos] < 0 && style === 0)) return   // if tile isn't same as new tile
-  if (grid.tiles[pos] < 0 || grid.tiles[pos] === 2 || style === 2) {
+  const ignoreTileTypes = [TileEnum.Path, TileEnum.Closed]
+  const erasingPathTile = (grid.tiles[pos] in ignoreTileTypes && tileType === TileEnum.None)
+  const newSameAsOld = grid.tiles[pos] === tileType
+
+  if (newSameAsOld || erasingPathTile) return
+
+  const pathTiles = [TileEnum.Path, TileEnum.Closed, TileEnum.Open, TileEnum.Target, TileEnum.Unit]
+  const removingPathTile = grid.tiles[pos] in pathTiles
+  const newIsTarget = tileType === TileEnum.Target
+
+  if (newIsTarget || removingPathTile) {
     grid.clearPathfinding()
     if (frameInterval) playPause()
   }
 
-  const gridSubStep = { pos: pos, revert: grid.tiles[pos] }
-  const subStep = [gridSubStep]
-  steps.push(subStep)  // push undo step
+  const gridSubStep = new GridSubStep(pos, grid.tiles[pos])
 
-  if (grid.tiles[pos] === 2) grid.target = null     // if tile was a target
-  else if (grid.tiles[pos] === 3) {          // if tile was a unit
+  if (grid.tiles[pos] === TileEnum.Target) grid.target = null
+  else if (grid.tiles[pos] === TileEnum.Unit) {
     let removeUnit = 0
-    grid.units.forEach((unit, i) => {
+
+    grid.units.forEach((unit: Tile, i: number) => {
       if (unit.x + unit.y * grid.height === pos) removeUnit = i
     })
+    gridSubStep.unit = removeUnit
 
-    steps[steps.length-1].unit = removeUnit      // add unit removeUnit index to last step
     grid.units.splice(removeUnit, 1)             // remove this removeUnit from grid.units
     if (grid.unitTurn === removeUnit) grid.clearPathfinding()
   }
 
-  if (style === 2) {
+  const subStep = [gridSubStep]
+  steps.push(subStep)
+
+  if (tileType === 2) {
     grid.tiles[grid.target] = 0
     grid.target = pos
   }
-  else if (style === 3) grid.units.push({x: mgx, y: mgy}) //grid.units.push({done: false, x: mgx, y: mgy});
-  grid.tiles[pos] = style                // set tile
-
+  else if (tileType === 3) grid.units.push(new Tile(mgx, mgy, TileEnum.None)) //grid.units.push({done: false, x: mgx, y: mgy});
+  grid.tiles[pos] = tileType                // set tile
 }
 
 // zoom in or out from the reference point
@@ -478,14 +495,14 @@ function undo() {
     if (subStep === null) return
 
     if (subStep instanceof gridSubStep) {
-      const subStepTile = grid.tiles[subStep.pos]
-      futureStep.push({ pos: subStep.pos, revert: subStepTile })  // add tile to futureStep
+      const subStepType = grid.tiles[subStep.pos]
+      futureStep.push(new gridSubStep(subStep.pos, subStepType))  // add tile to futureStep
     
-      grid.tiles[subStep.pos] = subStep.revert                  // set tile
+      grid.tiles[subStep.pos] = subStep.type                  // set tile
       
-      if (subStepTile === 2) grid.target = null             // if tile is the target
-      else if (subStepTile === 3) {                          // if tile is a unit
-        futureStep[futureStep.length-1].unit = subStep.unit // add unit index to last future subStep
+      if (subStepType === TileEnum.Target) grid.target = null
+      else if (subStepType === TileEnum.Unit) {
+        futureStep[futureStep.length - 1].unit = subStep.unit // add unit index to last future subStep
         grid.units.splice(subStep.unit, 1)                  // remove unit index from grid.units
       }
 
@@ -498,7 +515,7 @@ function undo() {
       futureStep.push({width: grid.width, height: grid.height})   
       grid.resize(true)
       const saveCursorPos = grid.cursorGridPos
-      grid.setCursorGridPos({x: subStep.width, y: subStep.height})
+      grid.setCursorGridPos(new Position(subStep.width, subStep.height))
       grid.resize(false)
       grid.setCursorGridPos(saveCursorPos)
     }
@@ -552,38 +569,38 @@ function redo() {
 
 // call fullscreen methods compatible for all browsers, retrieved from: https://developers.google.com/web/fundamentals/native-hardware/fullscreen/
 function toggleFullscreen() {
-  let doc = window.document;
-  let docEl = doc.documentElement;
+  let doc = window.document
+  let docEl = doc.documentElement
 
-  let requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-  let cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+  let requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen
+  let cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen
 
-  if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) requestFullScreen.call(docEl);
-  else cancelFullScreen.call(doc);
+  if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) requestFullScreen.call(docEl)
+  else cancelFullScreen.call(doc)
 }
 
 // set frame speed from html slider, [1 - 100]
 function setFrameSpeed() {
-  playSpeed = document.getElementById("frameSpeed").value;
-  if (playSpeed > 9) playSpeed = (playSpeed-9) * 10;
-  document.getElementById("frameSpeedText").innerHTML = "x" + playSpeed;
-  clearInterval(frameInterval);
-  if (frameInterval) frameInterval = setTimeout(stepAlgo, 1000 / playSpeed);
+  playSpeed = document.getElementById("frameSpeed").value
+  if (playSpeed > 9) playSpeed = (playSpeed-9) * 10
+  document.getElementById("frameSpeedText").innerHTML = "x" + playSpeed
+  clearInterval(frameInterval)
+  if (frameInterval) frameInterval = setTimeout(stepAlgo, 1000 / playSpeed)
 }
 
 function setSimpleViewMode() {
   grid.simple = !grid.simple;
   const simpleViewModeDiv = <HTMLDivElement> document.getElementById('simpleViewMode')
   if (grid.simple) {
-    canvas.style.backgroundColor = '#000';
-    simpleViewModeDiv.style.backgroundColor = '#888';
-    simpleViewModeDiv.style.transform = 'translateY(2px)';
-    simpleViewModeDiv.style.boxShadow = '0 4px #666';
+    canvas.style.backgroundColor = '#000'
+    simpleViewModeDiv.style.backgroundColor = '#888'
+    simpleViewModeDiv.style.transform = 'translateY(2px)'
+    simpleViewModeDiv.style.boxShadow = '0 4px #666'
   } else {
-    canvas.style.backgroundColor = '#a99';
-    simpleViewModeDiv.style.backgroundColor = '#222';
-    simpleViewModeDiv.style.transform = 'translateY(-4px)';
-    simpleViewModeDiv.style.boxShadow = '0 10px #666';
+    canvas.style.backgroundColor = '#a99'
+    simpleViewModeDiv.style.backgroundColor = '#222'
+    simpleViewModeDiv.style.transform = 'translateY(-4px)'
+    simpleViewModeDiv.style.boxShadow = '0 10px #666'
   }
   requestAnimationFrame(draw);
 }
@@ -602,7 +619,7 @@ function stepAlgo(keepPlaying = true) {
     playPause()
     paused = true
   }
-  grid.mode === 'pathfinding' ? stepPathfinding(grid, pause) : stepLife(grid)  // step selected algorithm
+  grid.mode === GridMode.Pathfinding ? stepPathfinding(grid, pause) : stepLife(grid)  // step selected algorithm
   requestAnimationFrame(draw)
   if (keepPlaying && !paused) frameInterval = setTimeout(stepAlgo, 1000 / playSpeed) // keep playing at playSpeed
   // UNDOING Algos must be rethought out
@@ -614,7 +631,7 @@ function stepAlgo(keepPlaying = true) {
  */
 
 function playPause() {
-  if (grid.mode !== 'life' && !frameInterval && (grid.target === null || grid.units.length === 0)) return toast('Must place unit and target!') // Don't play pathfinding without target/units
+  if (grid.mode !== GridMode.Life && !frameInterval && (grid.target === null || grid.units.length === 0)) return toast('Must place unit and target!') // Don't play pathfinding without target/units
   console.log((frameInterval ? 'Pause' : 'Play'), grid.mode)
 
   const playBtn = <HTMLButtonElement> document.getElementById('playBtn') // Flip button
@@ -644,16 +661,16 @@ function playPause() {
 
 // return a string displaying undo/redo steps. (#, #) are complete steps, (#, 6) shows number of changed tiles in current step
 function logSteps() {
-  let str = "(";
-  let i=0;
+  let str = '('
+  let i = 0
   while (steps[i]) {
-    str += "#, ";
-    i++;
+    str += '#, '
+    i++
   }
-  if (steps.length > i) str += (steps.length-1 - i) + ")";
-  else str = str.substr(0, str.length - 2) + ")";
-  if (str.length === 1) str = "()";
-  return str;
+  if (steps.length > i) str += (steps.length-1 - i) + ')'
+  else str = str.substr(0, str.length - 2) + '')'
+  if (str.length === 1) str = '()'
+  return str
 }
 
 //#endregion
@@ -661,76 +678,76 @@ function logSteps() {
 //#region DOM
 
 // debug system
-let debug = document.getElementById('debug');
-let debugBox = document.getElementById('debug-box');
-let toastTimer;
+let debug = document.getElementById('debug') as HTMLDivElement
+let debugBox = document.getElementById('debug-box') as HTMLDivElement
+let toastTimer: number
 
 function toast(str) {
-  clearInterval(toastTimer);
-  debug.style.display = 'block';
-  debug.style.opacity = 1;
-  debug.style.filter = 'alpha(opacity=100)';
-  debugBox.innerHTML = str;
+  clearInterval(toastTimer)
+  debug.style.display = 'block'
+  debug.style.opacity = 1
+  debug.style.filter = 'alpha(opacity=100)'
+  debugBox.innerHTML = str
 
-  let op = 16;
+  let op = 16
   toastTimer = setInterval(() => {
-    op -= op * 0.1;
-    if (op > 1) return;
-    if (op <= 0.01){
-      clearInterval(toastTimer);
-      debug.style.display = 'none';
+    op -= op * 0.1
+    if (op > 1) return
+    if (op <= 0.01) {
+      clearInterval(toastTimer)
+      debug.style.display = 'none'
     }
-    debug.style.opacity = op;
-    debug.style.filter = 'alpha(opacity=' + op * 100 + ')';
-  }, 50);
+    debug.style.opacity = op
+    debug.style.filter = 'alpha(opacity=' + op * 100 + ')'
+  }, 50)
 }
 
 // menu system
-let menus = Array.from(document.getElementsByClassName('menu'));
-document.getElementById('start-btn').onclick = () => {
-	menus[1].style.display = 'none';
-	menus[0].style.display = 'block';
+let menus = Array.from(document.getElementsByClassName('menu') as HTMLCollectionOf<HTMLDivElement>)
+;(document.getElementById('start-btn') as HTMLButtonElement).onclick = () => {
+	menus[1].style.display = 'none'
+	menus[0].style.display = 'block'
 }
 
-let canvasMask = document.getElementById('canvas-mask');
-const GRID_MODES = ['life', 'pathfinding'];
-let optionsMenu = document.getElementById("options-menu");
+let canvasMask = document.getElementById('canvas-mask') as HTMLDivElement
+const GRID_MODES = ['life', 'pathfinding']
+let optionsMenu = document.getElementById('options-menu')
 Array.from(document.getElementById('menu-grid').children).forEach((btn, i) => {
   btn.onclick = () => {
-    canvasMask.style.display = 'none';
-    menus[0].style.display = 'none';
-    menuMoving = 100;
-    dipAnimation(true, GRID_MODES[i]);
-    optionsMenu.style.display = 'block';
+    canvasMask.style.display = 'none'
+    menus[0].style.display = 'none'
+    menuMoving = 100
+    dipAnimation(true, GRID_MODES[i])
+    optionsMenu.style.display = 'block'
   }
-});
+})
 
 
-document.getElementById('simpleViewMode').onclick = () => setSimpleViewMode(); 
-document.getElementById('fullscreen').onclick = () => toggleFullscreen(); 
-document.getElementById('stepBtn').onclick = () => stepAlgo(false);
-document.getElementById('playBtn').onclick = () => playPause(); 
-document.getElementById('frameSpeed').oninput = () => setFrameSpeed(); 
-document.getElementById('eraser').onclick = () => setTileMode(-1);
-document.getElementById('barrier').onclick = () => setTileMode(1);
-document.getElementById('target').onclick = () => setTileMode(2);
-document.getElementById('unit').onclick = () => setTileMode(3);
-document.getElementById('undo').onclick = () => undo();
-document.getElementById('redo').onclick = () => redo();
-document.getElementById('settings').onclick = () => {
-  if (menuMoving) return;
-  if (grid.mode === null) {
-    canvasMask.style.display = 'none';
-    menus[0].style.display = 'none';
-    menuMoving = 100;
-    dipAnimation(true, grid.lastMode);
+;(document.getElementById('simpleViewMode') as HTMLButtonElement).onclick = () => setSimpleViewMode()
+;(document.getElementById('fullscreen') as HTMLButtonElement).onclick = () => toggleFullscreen()
+;(document.getElementById('stepBtn') as HTMLButtonElement).onclick = () => stepAlgo(false)
+;(document.getElementById('playBtn') as HTMLButtonElement).onclick = () => playPause()
+;(document.getElementById('frameSpeed') as HTMLButtonElement).oninput = () => setFrameSpeed()
+;(document.getElementById('eraser') as HTMLButtonElement).onclick = () => setTileMode(-1)
+;(document.getElementById('barrier') as HTMLButtonElement).onclick = () => setTileMode(1)
+;(document.getElementById('target') as HTMLButtonElement).onclick = () => setTileMode(2)
+;(document.getElementById('unit') as HTMLButtonElement).onclick = () => setTileMode(3)
+;(document.getElementById('undo') as HTMLButtonElement).onclick = () => undo()
+;(document.getElementById('redo') as HTMLButtonElement).onclick = () => redo()
+;(document.getElementById('settings') as HTMLButtonElement).onclick = () => {
+  if (menuMoving) return
+  if (grid.mode === GridMode.None) {
+    canvasMask.style.display = 'none'
+    menus[0].style.display = 'none'
+    menuMoving = 100
+    dipAnimation(true, grid.lastMode)
     return;
   }
-  if (grid.simple) setSimpleViewMode();
-  dipAnimation(true, null);
-  menus[0].style.display = 'block';
-  canvasMask.style.display = 'block';
-  grid.clearPathfinding();
-  requestAnimationFrame(draw);
+  if (grid.simple) setSimpleViewMode()
+  dipAnimation(true, GridMode.None)
+  menus[0].style.display = 'block'
+  canvasMask.style.display = 'block'
+  grid.clearPathfinding()
+  requestAnimationFrame(draw)
 }
 //#endregion
