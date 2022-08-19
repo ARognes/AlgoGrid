@@ -13,47 +13,7 @@ const SQRT_2 = Math.sqrt(2)
 
   // TODO add heuristic changes to steps (undo)
 
-  // no optimal path made yet, still searching
-  if (grid.pathTilePos === null) {
-    
-    let targetX = grid.target % grid.width, 
-        targetY = Math.floor(grid.target / grid.width)
-
-    // initially close tile unit is on, then close openTiles. Calc will find pathTilePos
-    grid.openTiles.length
-      ? calculateAdjacentNodes(grid, grid.openTiles[0].x, grid.openTiles[0].y, targetX, targetY, grid.openTiles[0].g)
-      : calculateAdjacentNodes(grid, grid.units[grid.unitTurn].x, grid.units[grid.unitTurn].y, targetX, targetY, 0)
-
-    if (grid.openTiles.length) return  // there are still tiles to search
-
-    console.log('No path possible')
-    let optimalIndex: number = -1
-
-    if (!grid.closedTiles.length) {  // completely boxed in
-      grid.unitTurn++
-      grid.clearPathfinding()
-      pause()
-      return
-    }
-
-    // find optimalIndex to move towards target with minimal g + h
-    grid.closedTiles.forEach((tile: PathTile, i: number) => {
-      let unitTile = grid.units[grid.unitTurn]
-      if (Math.abs(tile.x - unitTile.x) > 1 || Math.abs(tile.y - unitTile.y) > 1) return // find neighboring closed tiles
-      if (optimalIndex === -1 
-          || tile.g + tile.h < grid.closedTiles[optimalIndex].g + grid.closedTiles[optimalIndex].h) 
-            optimalIndex = i  // find optimal direction to move
-    })
-
-    if (optimalIndex !== null) {
-      let optimalTile = grid.closedTiles[optimalIndex]
-      grid.tiles[optimalTile.reference] = -3
-      grid.pathTilePos = new Position(optimalTile.x, optimalTile.y)
-      grid.stepIndex = optimalIndex
-      pause()
-    }
-      
-  } else {  // find optimal path back from target
+  if (grid.pathTilePos !== null) {  // find optimal path back from target
 
     // stepIndex where this unit will step next
     if (grid.stepIndex >= 0) {
@@ -99,6 +59,45 @@ const SQRT_2 = Math.sqrt(2)
         }
       }
     }
+  } else { // no optimal path made yet, still searching
+    
+    let targetX = grid.target % grid.width, 
+        targetY = Math.floor(grid.target / grid.width)
+
+    // initially close tile unit is on, then close openTiles. Calc will find pathTilePos
+    grid.openTiles.length
+      ? calculateAdjacentNodes(grid, grid.openTiles[0].x, grid.openTiles[0].y, targetX, targetY, grid.openTiles[0].g)
+      : calculateAdjacentNodes(grid, grid.units[grid.unitTurn].x, grid.units[grid.unitTurn].y, targetX, targetY, 0)
+
+    if (grid.openTiles.length) return  // there are still tiles to search
+
+    console.log('No path possible')
+    let optimalIndex: number = -1
+
+    if (!grid.closedTiles.length) {  // completely boxed in
+      grid.unitTurn++
+      grid.clearPathfinding()
+      pause()
+      return
+    }
+
+    // find optimalIndex to move towards target with minimal g + h
+    grid.closedTiles.forEach((tile: PathTile, i: number) => {
+      let unitTile = grid.units[grid.unitTurn]
+      if (Math.abs(tile.x - unitTile.x) > 1 || Math.abs(tile.y - unitTile.y) > 1) return // find neighboring closed tiles
+      if (optimalIndex === -1 
+          || tile.g + tile.h < grid.closedTiles[optimalIndex].g + grid.closedTiles[optimalIndex].h) 
+            optimalIndex = i  // find optimal direction to move
+    })
+
+    if (optimalIndex !== null) {
+      let optimalTile = grid.closedTiles[optimalIndex]
+      grid.tiles[optimalTile.reference] = -3
+      grid.pathTilePos = new Position(optimalTile.x, optimalTile.y)
+      grid.stepIndex = optimalIndex
+      pause()
+    }
+      
   }
 }
 

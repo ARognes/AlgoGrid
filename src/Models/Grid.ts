@@ -42,7 +42,6 @@ export class Grid implements IGrid {
     this.tiles = new Array(this.width * this.height).fill(0)
   }
 
-  // convert tile cartesian coordinates to tile array coordinates
   static cartesianToIndex(grid: Grid, x: number, y: number): number {
     return grid.simple ? mod(x, grid.width) + mod(y, grid.height) * grid.width : x + y * grid.width
   }
@@ -293,6 +292,10 @@ export class Grid implements IGrid {
     this.unitTurn %= Math.max(this.units.length, 1)
     this.stepIndex = -1
     this.pathTilePos = null
+  }
+
+  step(pause: Function) {
+    grid.mode === GridMode.Pathfinding ? stepPathfinding(grid, pause) : stepLife(grid)
   }
 }
 

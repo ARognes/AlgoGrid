@@ -619,7 +619,9 @@ function stepAlgo(keepPlaying = true) {
     playPause()
     paused = true
   }
-  grid.mode === GridMode.Pathfinding ? stepPathfinding(grid, pause) : stepLife(grid)  // step selected algorithm
+  grid.step(pause)
+
+  // grid.mode === GridMode.Pathfinding ? stepPathfinding(grid, pause) : stepLife(grid)  // step selected algorithm
   requestAnimationFrame(draw)
   if (keepPlaying && !paused) frameInterval = setTimeout(stepAlgo, 1000 / playSpeed) // keep playing at playSpeed
   // UNDOING Algos must be rethought out
