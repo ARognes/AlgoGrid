@@ -1,4 +1,4 @@
-import { bound, fitCanvas, mod } from 'setup'
+import { bound, fitCanvas, mod } from './setup'
 import { TILE_SIZE } from './constants'
 import { grid, Grid } from './Models/Grid'
 import { Position } from './Models/Position'
@@ -8,7 +8,7 @@ import { Tile } from './Models/Tile'
 
 // camera view
 export let canvas = document.getElementById('canvas') as HTMLCanvasElement
-export let ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+export let ctx = canvas.getContext('2d') as Context2D
 export let cameraTrans: cameraTrans = { scale: 1, offset: new Position(0, 0) }
 
 // resize the canvas to fill browser window dynamically

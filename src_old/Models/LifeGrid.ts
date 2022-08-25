@@ -9,7 +9,7 @@ export class LifeGrid extends Grid implements ILifeGrid {
     super(width, height)
   }
 
-  draw(canvasWidth: number, canvasHeight: number, ctx: CanvasRenderingContext2D, cameraTrans: cameraTrans) {
+  draw(canvasWidth: number, canvasHeight: number, ctx: Context2D, cameraTrans: cameraTrans) {
 
     if (this.viewMode === GridViewMode.Simple) 
       return super.draw(canvasWidth, canvasHeight, ctx, cameraTrans)
@@ -120,7 +120,7 @@ export let grid =
            : Math.floor(window.innerHeight / TILE_SIZE)) // create grid to fill exactly or more than screen size
 
 interface ILifeGrid extends IGrid {
-  draw(canvasWidth: number, canvasHeight: number, ctx: CanvasRenderingContext2D, cameraTrans: cameraTrans): void
+  draw(canvasWidth: number, canvasHeight: number, ctx: Context2D, cameraTrans: cameraTrans): void
 
   step(): void
 }

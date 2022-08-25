@@ -7,7 +7,7 @@ export const mod = (num: number, mod: number): number => num > 0 ? num % mod : -
 export const bound = (num: number, min: number, max: number): number => Math.min(Math.max(num, min), max)
 
 // PURE: resize the canvas to dynamically fill browser window
-export function fitCanvas(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): deviceInfo {
+export function fitCanvas(canvas: HTMLCanvasElement, ctx: Context2D): deviceInfo {
 	canvas.width = window.innerWidth
 	canvas.height = window.innerHeight
 	canvas.style.width = window.innerWidth + 'px'

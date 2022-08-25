@@ -8,7 +8,7 @@ import { Tile } from './Models/Tile'
 
 // camera view
 export let canvas = document.getElementById('canvas') as HTMLCanvasElement
-export let ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+export let ctx = canvas.getContext('2d') as Context2D
 export let cameraTrans: cameraTrans = { scale: 1, offset: new Position(0, 0) }
 
 // resize the canvas to fill browser window dynamically
@@ -39,7 +39,7 @@ function draw() {
   ctx.translate(cameraTrans.offset.x, cameraTrans.offset.y)
   ctx.scale(cameraTrans.scale, cameraTrans.scale)
 
-  grid.draw()
+  grid.draw(canvas.width, canvas.height, ctx, cameraTrans)
 }
 
 let { isMobile, canvasRatio } = fitCanvas(canvas, ctx)
@@ -688,10 +688,10 @@ let debug = document.getElementById('debug') as HTMLDivElement
 let debugBox = document.getElementById('debug-box') as HTMLDivElement
 let toastTimer: number
 
-function toast(str) {
+function toast(str: string) {
   clearInterval(toastTimer)
   debug.style.display = 'block'
-  debug.style.opacity = 1
+  debug.style.opacity = String(1)
   debug.style.filter = 'alpha(opacity=100)'
   debugBox.innerHTML = str
 
@@ -703,7 +703,7 @@ function toast(str) {
       clearInterval(toastTimer)
       debug.style.display = 'none'
     }
-    debug.style.opacity = op
+    debug.style.opacity = String(op)
     debug.style.filter = 'alpha(opacity=' + op * 100 + ')'
   }, 50)
 }
@@ -715,18 +715,22 @@ let menus = Array.from(document.getElementsByClassName('menu') as HTMLCollection
 	menus[0].style.display = 'block'
 }
 
-let canvasMask = document.getElementById('canvas-mask') as HTMLDivElement
-const GRID_MODES = ['life', 'pathfinding']
-let optionsMenu = document.getElementById('options-menu')
-Array.from(document.getElementById('menu-grid').children).forEach((btn, i) => {
-  btn.onclick = () => {
-    canvasMask.style.display = 'none'
-    menus[0].style.display = 'none'
-    menuMoving = 100
-    dipAnimation(true, GRID_MODES[i])
-    optionsMenu.style.display = 'block'
-  }
-})
+const canvasMask = document.getElementById('canvas-mask') as HTMLDivElement
+const optionsMenu = document.getElementById('options-menu') as HTMLDivElement
+
+const btnLife = document.getElementById('btn-Life') as HTMLButtonElement
+btnLife.onclick = () => menuButton(GridMode.Life)
+
+const btnPathfinding = document.getElementById('btn-Pathfinding') as HTMLButtonElement
+btnPathfinding.onclick = () => menuButton(GridMode.Pathfinding)
+
+function menuButton(gridMode: GridMode) {
+  canvasMask.style.display = 'none'
+  menus[0].style.display = 'none'
+  menuMoving = 100
+  dipAnimation(true, gridMode)
+  optionsMenu.style.display = 'block'
+}
 
 
 ;(document.getElementById('simpleViewMode') as HTMLButtonElement).onclick = () => setSimpleViewMode()

@@ -1,4 +1,4 @@
-import { mod } from 'setup'
+import { mod } from '../setup'
 import { MIN_WIDTH, MAX_WIDTH, TILE_SIZE, GRID_LINE_WIDTH, SHOW_LABEL_DIST, SQRT_2 } from '../constants'
 import { cameraTrans, canvas, ctx } from '../main'
 import { Grid, IGrid } from './Grid'
@@ -338,7 +338,7 @@ interface IPathGrid extends IGrid {
   unitTurn: number
   stepIndex: number
 
-  draw(canvasWidth: number, canvasHeight: number, ctx: CanvasRenderingContext2D, cameraTrans: cameraTrans): void
+  draw(canvasWidth: number, canvasHeight: number, ctx: Context2D, cameraTrans: cameraTrans): void
 
   resize(on: boolean): void
 

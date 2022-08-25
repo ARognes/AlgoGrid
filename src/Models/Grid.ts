@@ -33,7 +33,7 @@ export class Grid implements IGrid {
     return x >= 0 && x < grid.width && y >= 0 && y < grid.height
   }
 
-  draw(canvasWidth: number, canvasHeight: number, ctx: CanvasRenderingContext2D, cameraTrans: cameraTrans) {
+  draw(canvasWidth: number, canvasHeight: number, ctx: Context2D, cameraTrans: cameraTrans) {
 
     if (this.viewMode === GridViewMode.Simple) 
       return this.drawSimple(canvasWidth, canvasHeight, ctx, cameraTrans)
@@ -71,7 +71,7 @@ export class Grid implements IGrid {
     }
   }
 
-  private drawSimple(canvasWidth: number, canvasHeight: number, ctx: CanvasRenderingContext2D, cameraTrans: cameraTrans) {
+  private drawSimple(canvasWidth: number, canvasHeight: number, ctx: Context2D, cameraTrans: cameraTrans) {
     const tileScaled = cameraTrans.scale * TILE_SIZE
     const beginX = Math.floor(-cameraTrans.offset.x / tileScaled)
     const beginY = Math.floor(-cameraTrans.offset.y / tileScaled)
@@ -140,7 +140,7 @@ export interface IGrid {
   height: number
   tiles: TileEnum[]
 
-  draw(canvasWidth: number, canvasHeight: number, ctx: CanvasRenderingContext2D, cameraTrans: cameraTrans): void
+  draw(canvasWidth: number, canvasHeight: number, ctx: Context2D, cameraTrans: cameraTrans): void
 
   resize(on: boolean): void
 

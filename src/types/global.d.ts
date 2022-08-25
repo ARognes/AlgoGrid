@@ -59,3 +59,11 @@ type style = {
   stroke: string
   lineWidth: number
 }
+
+type Context2D = CanvasRenderingContext2D & {
+  webkitBackingStorePixelRatio
+  mozBackingStorePixelRatio
+  msBackingStorePixelRatio
+  oBackingStorePixelRatio
+  backingStorePixelRatio
+}
